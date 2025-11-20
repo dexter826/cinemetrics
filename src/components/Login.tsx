@@ -1,0 +1,47 @@
+import React from 'react';
+import { useAuth } from './AuthProvider';
+import { Film, LogIn } from 'lucide-react';
+
+const Login: React.FC = () => {
+  const { signInWithGoogle } = useAuth();
+
+  return (
+    <div className="min-h-screen flex flex-col items-center justify-center bg-background relative overflow-hidden">
+      {/* Background Effects */}
+      <div className="absolute top-0 left-0 w-full h-full overflow-hidden z-0">
+        <div className="absolute -top-1/2 -left-1/2 w-full h-full bg-primary/10 blur-[120px] rounded-full mix-blend-screen"></div>
+        <div className="absolute top-1/2 left-1/2 w-full h-full bg-secondary/10 blur-[120px] rounded-full mix-blend-screen"></div>
+      </div>
+
+      <div className="z-10 flex flex-col items-center space-y-8 p-8">
+        <div className="bg-surface p-4 rounded-2xl shadow-2xl shadow-primary/20 border border-white/5">
+            <Film size={64} className="text-primary" />
+        </div>
+        
+        <div className="text-center space-y-2">
+          <h1 className="text-5xl font-bold tracking-tighter text-white">
+            Cinemetrics
+          </h1>
+          <p className="text-gray-400 text-lg max-w-md">
+            Track your cinematic journey. Visualize your watch history. 
+            Secure, personal, and beautiful.
+          </p>
+        </div>
+
+        <button
+          onClick={signInWithGoogle}
+          className="group relative flex items-center space-x-3 px-8 py-4 bg-white text-black rounded-full font-semibold text-lg hover:scale-105 transition-all duration-200 hover:shadow-[0_0_40px_-10px_rgba(255,255,255,0.5)]"
+        >
+          <LogIn size={20} className="group-hover:translate-x-1 transition-transform" />
+          <span>Sign in with Google</span>
+        </button>
+      </div>
+      
+      <footer className="absolute bottom-8 text-gray-600 text-sm z-10">
+        &copy; {new Date().getFullYear()} Cinemetrics. Built for movie lovers.
+      </footer>
+    </div>
+  );
+};
+
+export default Login;
