@@ -53,3 +53,21 @@ export const getGenres = async (): Promise<{ id: number; name: string }[]> => {
     return [];
   }
 };
+
+export const getTrendingMovies = async (): Promise<TMDBMovieResult[]> => {
+  if (!TMDB_API_KEY) return [];
+
+  try {
+    const response = await fetch(
+      `${TMDB_BASE_URL}/trending/movie/week?api_key=${TMDB_API_KEY}&language=vi-VN`
+    );
+
+    if (!response.ok) throw new Error('TMDB API Error');
+
+    const data = await response.json();
+    return data.results || [];
+  } catch (error) {
+    console.error("Failed to get trending movies:", error);
+    return [];
+  }
+};

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Search, Loader2, Film, ArrowLeft, Filter } from 'lucide-react';
-import { searchMovies, getGenres } from '../services/tmdbService';
+import { searchMovies, getGenres, getTrendingMovies } from '../services/tmdbService';
 import { TMDBMovieResult } from '../types';
 import { TMDB_IMAGE_BASE_URL } from '../constants';
 import { useNavigate } from 'react-router-dom';
@@ -12,6 +12,7 @@ const SearchPage: React.FC = () => {
   const { openAddModal } = useAddMovie();
   const [query, setQuery] = useState('');
   const [results, setResults] = useState<TMDBMovieResult[]>([]);
+  const [trendingMovies, setTrendingMovies] = useState<TMDBMovieResult[]>([]);
   const [loading, setLoading] = useState(false);
   
   // Filters
@@ -25,7 +26,12 @@ const SearchPage: React.FC = () => {
       const genreList = await getGenres();
       setGenres(genreList);
     };
+    const fetchTrending = async () => {
+      const trending = await getTrendingMovies();
+      setTrendingMovies(trending);
+    };
     fetchGenres();
+    fetchTrending();
   }, []);
 
   useEffect(() => {
@@ -42,7 +48,7 @@ const SearchPage: React.FC = () => {
     return () => clearTimeout(timer);
   }, [query]);
 
-  const filteredResults = results.filter(movie => {
+  const filteredResults = (query ? results : trendingMovies).filter(movie => {
     if (filterType !== 'all' && movie.media_type !== filterType) return false;
     
     if (filterYear) {
@@ -135,7 +141,13 @@ const SearchPage: React.FC = () => {
             <Loader2 className="animate-spin text-primary" size={40} />
           </div>
         ) : (
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 md:gap-6">
+          <>
+            {!query && filteredResults.length > 0 && (
+               <div className="mb-4">
+                 <h2 className="text-xl font-bold">Phim thịnh hành</h2>
+               </div>
+            )}
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 md:gap-6">
             {filteredResults.map(movie => (
               <div
                 key={movie.id}
@@ -171,13 +183,14 @@ const SearchPage: React.FC = () => {
                 Không tìm thấy kết quả nào.
               </div>
             )}
-            {!query && (
+            {!query && filteredResults.length === 0 && (
               <div className="col-span-full flex flex-col items-center justify-center py-20 text-text-muted opacity-50">
                 <Search size={48} className="mb-4" />
                 <p>Nhập tên phim để bắt đầu tìm kiếm</p>
               </div>
             )}
           </div>
+          </>
         )}
       </div>
     </div>

@@ -179,8 +179,8 @@ const Dashboard: React.FC = () => {
       <main className="max-w-screen-xl mx-auto px-4 md:px-8 py-8 space-y-8">
 
         {/* Stats Row */}
-        <div className="w-full">
-          {/* Action Card */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 w-full">
+          {/* Action Card: Search */}
           <button
             onClick={() => navigate('/search')}
             className="w-full bg-gradient-to-br from-primary/80 to-primary hover:to-primary/90 p-6 rounded-2xl flex items-center justify-between group transition-all shadow-lg shadow-primary/20"
@@ -190,7 +190,21 @@ const Dashboard: React.FC = () => {
               <h3 className="text-2xl font-bold text-white text-left">Ghi lại phim</h3>
             </div>
             <div className="bg-white/20 p-3 rounded-xl group-hover:rotate-90 transition-transform duration-300">
-              <Plus size={24} className="text-white" />
+              <Search size={24} className="text-white" />
+            </div>
+          </button>
+
+          {/* Action Card: Manual Add */}
+          <button
+            onClick={() => openAddModal({})}
+            className="w-full bg-surface border border-black/5 dark:border-white/10 hover:border-primary/50 p-6 rounded-2xl flex items-center justify-between group transition-all shadow-sm hover:shadow-md"
+          >
+            <div>
+              <p className="text-text-muted text-sm font-medium mb-1 text-left">Không tìm thấy phim?</p>
+              <h3 className="text-2xl font-bold text-text-main text-left">Thêm thủ công</h3>
+            </div>
+            <div className="bg-black/5 dark:bg-white/10 p-3 rounded-xl group-hover:bg-primary/10 transition-colors duration-300">
+              <Plus size={24} className="text-text-main group-hover:text-primary transition-colors" />
             </div>
           </button>
         </div>

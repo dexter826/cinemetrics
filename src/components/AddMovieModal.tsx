@@ -25,6 +25,8 @@ const AddMovieModal: React.FC = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isLoadingDetails, setIsLoadingDetails] = useState(false);
 
+  const isManualMode = !initialData?.tmdbId && !initialData?.movie && !initialData?.movieToEdit;
+
   // Reset form when modal opens with new data
   useEffect(() => {
     if (isOpen) {
@@ -203,6 +205,19 @@ const AddMovieModal: React.FC = () => {
                     />
                   </div>
 
+                  {isManualMode && (
+                    <div>
+                      <label className="block text-sm font-medium text-text-muted mb-1">Link Poster (URL)</label>
+                      <input
+                        type="url"
+                        value={formData.poster}
+                        onChange={e => setFormData({...formData, poster: e.target.value})}
+                        placeholder="https://example.com/poster.jpg"
+                        className="w-full bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-lg px-4 py-2.5 focus:outline-none focus:border-primary/50 transition-colors"
+                      />
+                    </div>
+                  )}
+
                   <div className="grid grid-cols-2 gap-4">
                     {(initialData?.mediaType === 'tv' || initialData?.movie?.media_type === 'tv' || initialData?.movieToEdit?.media_type === 'tv') ? (
                       <div>
@@ -210,10 +225,10 @@ const AddMovieModal: React.FC = () => {
                         <input
                           type="number"
                           required
-                          disabled
+                          disabled={!isManualMode}
                           value={formData.seasons}
                           onChange={e => setFormData({...formData, seasons: e.target.value})}
-                          className="w-full bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-lg px-4 py-2.5 focus:outline-none focus:border-primary/50 transition-colors opacity-60 cursor-not-allowed"
+                          className={`w-full bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-lg px-4 py-2.5 focus:outline-none focus:border-primary/50 transition-colors ${!isManualMode ? 'opacity-60 cursor-not-allowed' : ''}`}
                         />
                       </div>
                     ) : (
@@ -222,10 +237,10 @@ const AddMovieModal: React.FC = () => {
                         <input
                           type="number"
                           required
-                          disabled
+                          disabled={!isManualMode}
                           value={formData.runtime}
                           onChange={e => setFormData({...formData, runtime: e.target.value})}
-                          className="w-full bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-lg px-4 py-2.5 focus:outline-none focus:border-primary/50 transition-colors opacity-60 cursor-not-allowed"
+                          className={`w-full bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-lg px-4 py-2.5 focus:outline-none focus:border-primary/50 transition-colors ${!isManualMode ? 'opacity-60 cursor-not-allowed' : ''}`}
                         />
                       </div>
                     )}
