@@ -214,7 +214,7 @@ const Dashboard: React.FC = () => {
           <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
             <div className="flex items-baseline gap-3">
               <h2 className="text-xl font-semibold text-text-main">Lịch sử xem</h2>
-              <span className="text-sm text-text-muted">{movies.length} mục</span>
+              <span className="text-sm text-text-muted">{movies.length} phim</span>
             </div>
 
             {/* Controls Toolbar */}

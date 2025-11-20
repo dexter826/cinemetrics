@@ -59,13 +59,13 @@ export const getTrendingMovies = async (): Promise<TMDBMovieResult[]> => {
 
   try {
     const response = await fetch(
-      `${TMDB_BASE_URL}/trending/movie/week?api_key=${TMDB_API_KEY}&language=vi-VN`
+      `${TMDB_BASE_URL}/trending/all/week?api_key=${TMDB_API_KEY}&language=vi-VN`
     );
 
     if (!response.ok) throw new Error('TMDB API Error');
 
     const data = await response.json();
-    return data.results || [];
+    return (data.results || []).filter((item: TMDBMovieResult) => item.media_type === 'movie' || item.media_type === 'tv');
   } catch (error) {
     console.error("Failed to get trending movies:", error);
     return [];

@@ -14,6 +14,9 @@ export interface Movie {
   media_type?: 'movie' | 'tv';
   rating?: number; // 1-5
   review?: string;
+  tagline?: string;
+  genres?: string;
+  release_date?: string;
 }
 
 export interface TMDBMovieResult {

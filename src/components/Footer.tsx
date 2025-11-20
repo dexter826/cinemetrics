@@ -15,7 +15,7 @@ const Footer: React.FC = () => {
           
           <div className="flex items-center gap-6">
             <a 
-              href="https://facebook.com" 
+              href="https://www.facebook.com/ctrlkd1" 
               target="_blank" 
               rel="noopener noreferrer"
               className="text-text-muted hover:text-primary transition-colors"
@@ -23,7 +23,7 @@ const Footer: React.FC = () => {
               <Facebook size={24} />
             </a>
             <a 
-              href="https://instagram.com" 
+              href="https://www.instagram.com/trcongminh_04/" 
               target="_blank" 
               rel="noopener noreferrer"
               className="text-text-muted hover:text-primary transition-colors"
@@ -31,7 +31,7 @@ const Footer: React.FC = () => {
               <Instagram size={24} />
             </a>
             <a 
-              href="https://github.com" 
+              href="https://github.com/dexter826" 
               target="_blank" 
               rel="noopener noreferrer"
               className="text-text-muted hover:text-primary transition-colors"

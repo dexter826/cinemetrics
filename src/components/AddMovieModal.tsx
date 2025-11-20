@@ -19,11 +19,15 @@ const AddMovieModal: React.FC = () => {
     poster: '',
     date: new Date().toISOString().split('T')[0],
     rating: 0,
-    review: ''
+    review: '',
+    tagline: '',
+    genres: '',
+    releaseDate: ''
   });
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isLoadingDetails, setIsLoadingDetails] = useState(false);
+  const [manualMediaType, setManualMediaType] = useState<'movie' | 'tv'>('movie');
 
   const isManualMode = !initialData?.tmdbId && !initialData?.movie && !initialData?.movieToEdit;
 
@@ -49,7 +53,10 @@ const AddMovieModal: React.FC = () => {
           poster: m.poster_path,
           date: dateStr,
           rating: m.rating || 0,
-          review: m.review || ''
+          review: m.review || '',
+          tagline: m.tagline || '',
+          genres: m.genres || '',
+          releaseDate: m.release_date || ''
         });
       } else if (initialData?.tmdbId || initialData?.movie) {
         // Add Mode from Search or ID
@@ -65,6 +72,9 @@ const AddMovieModal: React.FC = () => {
                 const title = details.title || details.name || '';
                 const runtime = details.runtime || (details.episode_run_time && details.episode_run_time[0]) || 0;
                 const seasons = details.number_of_seasons || 0;
+                const tagline = details.tagline || '';
+                const genres = details.genres?.map(g => g.name).join(', ') || '';
+                const releaseDate = details.release_date || details.first_air_date || '';
                 
                 setFormData(prev => ({
                   ...prev,
@@ -74,7 +84,10 @@ const AddMovieModal: React.FC = () => {
                   poster: details.poster_path || '',
                   date: new Date().toISOString().split('T')[0],
                   rating: 0,
-                  review: ''
+                  review: '',
+                  tagline: tagline,
+                  genres: genres,
+                  releaseDate: releaseDate
                 }));
               }
             }
@@ -95,8 +108,12 @@ const AddMovieModal: React.FC = () => {
           poster: '',
           date: new Date().toISOString().split('T')[0],
           rating: 0,
-          review: ''
+          review: '',
+          tagline: '',
+          genres: '',
+          releaseDate: ''
         });
+        setManualMediaType('movie');
       }
     }
   }, [isOpen, initialData]);
@@ -109,7 +126,7 @@ const AddMovieModal: React.FC = () => {
     try {
       const [y, m, d] = formData.date.split('-').map(Number);
       const watchedDate = new Date(y, m - 1, d, 12, 0, 0);
-      const isTv = initialData?.mediaType === 'tv' || initialData?.movie?.media_type === 'tv' || (initialData?.movieToEdit?.media_type === 'tv');
+      const isTv = initialData?.mediaType === 'tv' || initialData?.movie?.media_type === 'tv' || (initialData?.movieToEdit?.media_type === 'tv') || (isManualMode && manualMediaType === 'tv');
 
       if (initialData?.movieToEdit && initialData.movieToEdit.docId) {
         // Update Existing
@@ -120,7 +137,10 @@ const AddMovieModal: React.FC = () => {
           poster_path: formData.poster,
           watched_at: watchedDate,
           rating: Number(formData.rating),
-          review: formData.review
+          review: formData.review,
+          tagline: formData.tagline,
+          genres: formData.genres,
+          release_date: formData.releaseDate
         });
         showToast("Đã cập nhật phim", "success");
       } else {
@@ -134,9 +154,12 @@ const AddMovieModal: React.FC = () => {
           seasons: parseInt(formData.seasons) || 0,
           watched_at: watchedDate,
           source: (initialData?.tmdbId || initialData?.movie) ? 'tmdb' : 'manual',
-          media_type: initialData?.mediaType || 'movie',
+          media_type: isManualMode ? manualMediaType : (initialData?.mediaType || 'movie'),
           rating: Number(formData.rating),
-          review: formData.review
+          review: formData.review,
+          tagline: formData.tagline,
+          genres: formData.genres,
+          release_date: formData.releaseDate
         });
         showToast("Đã thêm phim mới", "success");
       }
@@ -153,14 +176,14 @@ const AddMovieModal: React.FC = () => {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
-      <div className="bg-surface border border-white/10 rounded-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto shadow-2xl animate-in zoom-in-95 duration-200">
+      <div className="bg-surface border border-black/10 dark:border-white/10 rounded-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto shadow-2xl animate-in zoom-in-95 duration-200">
         
         {/* Header */}
-        <div className="sticky top-0 z-10 flex items-center justify-between p-4 border-b border-white/10 bg-surface/95 backdrop-blur">
+        <div className="sticky top-0 z-10 flex items-center justify-between p-4 border-b border-black/10 dark:border-white/10 bg-surface/95 backdrop-blur">
           <h2 className="text-xl font-bold text-text-main">
             {initialData?.movieToEdit ? 'Chỉnh sửa phim' : 'Thêm phim mới'}
           </h2>
-          <button onClick={closeAddModal} className="p-2 hover:bg-white/10 rounded-full transition-colors">
+          <button onClick={closeAddModal} className="p-2 hover:bg-black/5 dark:hover:bg-white/10 rounded-full transition-colors">
             <X size={20} className="text-text-muted" />
           </button>
         </div>
@@ -177,7 +200,7 @@ const AddMovieModal: React.FC = () => {
               <div className="flex flex-col md:flex-row gap-6">
                 {/* Poster Preview */}
                 <div className="w-full md:w-1/3 flex flex-col gap-4">
-                  <div className="aspect-[2/3] rounded-xl overflow-hidden bg-black/20 border border-white/5 relative group">
+                  <div className="aspect-[2/3] rounded-xl overflow-hidden bg-black/10 dark:bg-black/20 border border-black/10 dark:border-white/5 relative group">
                     {formData.poster ? (
                       <img 
                         src={formData.poster.startsWith('http') ? formData.poster : `${TMDB_IMAGE_BASE_URL}${formData.poster}`}
@@ -201,7 +224,19 @@ const AddMovieModal: React.FC = () => {
                       required
                       value={formData.title}
                       onChange={e => setFormData({...formData, title: e.target.value})}
-                      className="w-full bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-lg px-4 py-2.5 focus:outline-none focus:border-primary/50 transition-colors"
+                      className="w-full bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-lg px-4 py-2.5 text-text-main placeholder-text-muted focus:outline-none focus:border-primary/50 transition-colors"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-text-muted mb-1">Tagline (tùy chọn)</label>
+                    <input
+                      type="text"
+                      value={formData.tagline}
+                      onChange={e => setFormData({...formData, tagline: e.target.value})}
+                      placeholder="Câu slogan của phim..."
+                      disabled={!isManualMode && !initialData?.movieToEdit}
+                      className={`w-full bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-lg px-4 py-2.5 text-text-main placeholder-text-muted focus:outline-none focus:border-primary/50 transition-colors ${!isManualMode && !initialData?.movieToEdit ? 'opacity-60 cursor-not-allowed' : ''}`}
                     />
                   </div>
 
@@ -213,13 +248,76 @@ const AddMovieModal: React.FC = () => {
                         value={formData.poster}
                         onChange={e => setFormData({...formData, poster: e.target.value})}
                         placeholder="https://example.com/poster.jpg"
-                        className="w-full bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-lg px-4 py-2.5 focus:outline-none focus:border-primary/50 transition-colors"
+                        className="w-full bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-lg px-4 py-2.5 text-text-main placeholder-text-muted focus:outline-none focus:border-primary/50 transition-colors"
                       />
                     </div>
                   )}
 
+                  <div>
+                    <label className="block text-sm font-medium text-text-muted mb-1">Thể loại</label>
+                    <input
+                      type="text"
+                      value={formData.genres}
+                      onChange={e => setFormData({...formData, genres: e.target.value})}
+                      placeholder="Hành động, Phiêu lưu, Khoa học viễn tưởng..."
+                      disabled={!isManualMode && !initialData?.movieToEdit}
+                      className={`w-full bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-lg px-4 py-2.5 text-text-main placeholder-text-muted focus:outline-none focus:border-primary/50 transition-colors ${!isManualMode && !initialData?.movieToEdit ? 'opacity-60 cursor-not-allowed' : ''}`}
+                    />
+                  </div>
+
                   <div className="grid grid-cols-2 gap-4">
-                    {(initialData?.mediaType === 'tv' || initialData?.movie?.media_type === 'tv' || initialData?.movieToEdit?.media_type === 'tv') ? (
+                    <div>
+                      <label className="block text-sm font-medium text-text-muted mb-1">Ngày phát hành</label>
+                      <input
+                        type="date"
+                        value={formData.releaseDate}
+                        onChange={e => setFormData({...formData, releaseDate: e.target.value})}
+                        disabled={!isManualMode && !initialData?.movieToEdit}
+                        className={`w-full bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-lg px-4 py-2.5 text-text-main focus:outline-none focus:border-primary/50 transition-colors [color-scheme:light] dark:[color-scheme:dark] ${!isManualMode && !initialData?.movieToEdit ? 'opacity-60 cursor-not-allowed' : ''}`}
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-text-muted mb-1">Ngày xem</label>
+                      <div className="relative">
+                        <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted" size={16} />
+                        <input
+                          type="date"
+                          required
+                          value={formData.date}
+                          onChange={e => setFormData({...formData, date: e.target.value})}
+                          className="w-full bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-lg pl-10 pr-4 py-2.5 text-text-main focus:outline-none focus:border-primary/50 transition-colors [color-scheme:light] dark:[color-scheme:dark]"
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-text-muted mb-1">Loại nội dung</label>
+                      {isManualMode ? (
+                        <select
+                          value={manualMediaType}
+                          onChange={e => {
+                            setManualMediaType(e.target.value as 'movie' | 'tv');
+                            // Reset runtime/seasons when switching
+                            setFormData(prev => ({
+                              ...prev,
+                              runtime: '',
+                              seasons: ''
+                            }));
+                          }}
+                          className="w-full bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-lg px-4 py-2.5 text-text-main focus:outline-none focus:border-primary/50 transition-colors"
+                        >
+                          <option value="movie">Phim lẻ</option>
+                          <option value="tv">TV Series</option>
+                        </select>
+                      ) : (
+                        <div className="w-full bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-lg px-4 py-2.5 text-text-main">
+                          {(initialData?.mediaType === 'tv' || initialData?.movie?.media_type === 'tv' || initialData?.movieToEdit?.media_type === 'tv') ? 'TV Series' : 'Phim lẻ'}
+                        </div>
+                      )}
+                    </div>
+                    {(isManualMode ? manualMediaType === 'tv' : (initialData?.mediaType === 'tv' || initialData?.movie?.media_type === 'tv' || initialData?.movieToEdit?.media_type === 'tv')) ? (
                       <div>
                         <label className="block text-sm font-medium text-text-muted mb-1">Số phần</label>
                         <input
@@ -228,7 +326,7 @@ const AddMovieModal: React.FC = () => {
                           disabled={!isManualMode}
                           value={formData.seasons}
                           onChange={e => setFormData({...formData, seasons: e.target.value})}
-                          className={`w-full bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-lg px-4 py-2.5 focus:outline-none focus:border-primary/50 transition-colors ${!isManualMode ? 'opacity-60 cursor-not-allowed' : ''}`}
+                          className={`w-full bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-lg px-4 py-2.5 text-text-main focus:outline-none focus:border-primary/50 transition-colors ${!isManualMode ? 'opacity-60 cursor-not-allowed' : ''}`}
                         />
                       </div>
                     ) : (
@@ -240,23 +338,10 @@ const AddMovieModal: React.FC = () => {
                           disabled={!isManualMode}
                           value={formData.runtime}
                           onChange={e => setFormData({...formData, runtime: e.target.value})}
-                          className={`w-full bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-lg px-4 py-2.5 focus:outline-none focus:border-primary/50 transition-colors ${!isManualMode ? 'opacity-60 cursor-not-allowed' : ''}`}
+                          className={`w-full bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-lg px-4 py-2.5 text-text-main focus:outline-none focus:border-primary/50 transition-colors ${!isManualMode ? 'opacity-60 cursor-not-allowed' : ''}`}
                         />
                       </div>
                     )}
-                    <div>
-                      <label className="block text-sm font-medium text-text-muted mb-1">Ngày xem</label>
-                      <div className="relative">
-                        <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted" size={16} />
-                        <input
-                          type="date"
-                          required
-                          value={formData.date}
-                          onChange={e => setFormData({...formData, date: e.target.value})}
-                          className="w-full bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-lg pl-10 pr-4 py-2.5 focus:outline-none focus:border-primary/50 transition-colors [color-scheme:dark]"
-                        />
-                      </div>
-                    </div>
                   </div>
 
                   <div>
@@ -288,18 +373,18 @@ const AddMovieModal: React.FC = () => {
                       rows={3}
                       value={formData.review}
                       onChange={e => setFormData({...formData, review: e.target.value})}
-                      className="w-full bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-lg px-4 py-2.5 focus:outline-none focus:border-primary/50 transition-colors resize-none"
+                      className="w-full bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-lg px-4 py-2.5 text-text-main placeholder-text-muted focus:outline-none focus:border-primary/50 transition-colors resize-none"
                       placeholder="Cảm nhận của bạn về phim..."
                     />
                   </div>
                 </div>
               </div>
 
-              <div className="flex justify-end pt-4 border-t border-white/10">
+              <div className="flex justify-end pt-4 border-t border-black/10 dark:border-white/10">
                 <button
                   type="button"
                   onClick={closeAddModal}
-                  className="px-6 py-2.5 rounded-xl text-text-muted hover:bg-white/5 transition-colors mr-3"
+                  className="px-6 py-2.5 rounded-xl text-text-muted hover:bg-black/5 dark:hover:bg-white/5 transition-colors mr-3"
                 >
                   Hủy
                 </button>
