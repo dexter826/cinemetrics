@@ -139,6 +139,7 @@ const AddMovieModal: React.FC<AddMovieModalProps> = ({ isOpen, onClose, movieToE
           poster_path: details.poster_path || '',
           runtime: runtime,
           source: 'tmdb',
+          media_type: mediaType,
           watched_at: watchedDate,
           rating: formData.rating,
           review: formData.review
@@ -154,6 +155,7 @@ const AddMovieModal: React.FC<AddMovieModalProps> = ({ isOpen, onClose, movieToE
           poster_path: formData.poster,
           runtime: parseInt(formData.runtime) || 0,
           source: 'manual',
+          media_type: 'movie',
           watched_at: watchedDate,
           rating: formData.rating,
           review: formData.review

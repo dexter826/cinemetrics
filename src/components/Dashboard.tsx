@@ -2,7 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { useAuth } from './AuthProvider';
 import { subscribeToMovies, deleteMovie } from '../services/movieService';
 import { Movie, Stats } from '../types';
-import { LogOut, Film, Clock, Plus, Loader, AlertTriangle, Calendar, Type, ArrowUp, ArrowDown, Search, X, Sun, Moon } from 'lucide-react';
+import { LogOut, Film, Clock, Plus, Loader, AlertTriangle, Calendar, Type, ArrowUp, ArrowDown, Search, X, Sun, Moon, Filter } from 'lucide-react';
 import StatsCard from './StatsCard';
 import MovieCard from './MovieCard';
 import AddMovieModal from './AddMovieModal';
@@ -27,6 +27,7 @@ const Dashboard: React.FC = () => {
   const [editingMovie, setEditingMovie] = useState<Movie | null>(null);
   const [selectedMovie, setSelectedMovie] = useState<Movie | null>(null);
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
+  const [showFilters, setShowFilters] = useState(false);
 
   // Sorting & Filtering State
   const [sortBy, setSortBy] = useState<SortOption>('date');
@@ -148,13 +149,13 @@ const Dashboard: React.FC = () => {
           </div>
 
           <div className="flex items-center space-x-4">
-            <div className="hidden md:flex items-center space-x-3 px-3 py-1.5 rounded-full bg-black/5 dark:bg-white/5 border border-black/5 dark:border-white/5">
+            <div className="flex items-center space-x-3 px-3 py-1.5 rounded-full bg-black/5 dark:bg-white/5 border border-black/5 dark:border-white/5">
               {user?.photoURL ? (
                 <img src={user.photoURL} alt="Avatar" className="w-6 h-6 rounded-full" />
               ) : (
                 <div className="w-6 h-6 rounded-full bg-secondary"></div>
               )}
-              <span className="text-sm font-medium text-text-main">{user?.displayName}</span>
+              <span className="hidden md:inline text-sm font-medium text-text-main">{user?.displayName}</span>
             </div>
             <button
               onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
@@ -220,66 +221,90 @@ const Dashboard: React.FC = () => {
 
             {/* Controls Toolbar */}
             {movies.length > 0 && (
-              <div className="flex flex-col sm:flex-row gap-3">
-                {/* Search Bar */}
-                <div className="relative group">
-                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted group-focus-within:text-primary transition-colors" size={16} />
-                  <input
-                    type="text"
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    placeholder="Lọc phim..."
-                    className="w-full sm:w-64 bg-surface border border-black/5 dark:border-white/10 rounded-xl py-2 pl-10 pr-8 text-sm text-text-main placeholder-text-muted focus:outline-none focus:border-primary/50 transition-all"
-                  />
-                  {searchQuery && (
+              <div className="flex flex-col items-end gap-3 relative">
+                <div className="flex items-center gap-2 w-full sm:w-auto">
+                  {/* Search Bar */}
+                  <div className="relative group flex-1 sm:flex-none">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted group-focus-within:text-primary transition-colors" size={16} />
+                    <input
+                      type="text"
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      placeholder="Lọc phim..."
+                      className="w-full sm:w-64 bg-surface border border-black/5 dark:border-white/10 rounded-xl py-2 pl-10 pr-8 text-sm text-text-main placeholder-text-muted focus:outline-none focus:border-primary/50 transition-all"
+                    />
+                    {searchQuery && (
+                      <button
+                        onClick={() => setSearchQuery('')}
+                        className="absolute right-2 top-1/2 -translate-y-1/2 text-text-muted hover:text-text-main"
+                      >
+                        <X size={14} />
+                      </button>
+                    )}
+                  </div>
+                  
+                  {/* Filter Toggle Button */}
+                  <button
+                    onClick={() => setShowFilters(!showFilters)}
+                    className={`p-2 rounded-xl border transition-colors ${showFilters ? 'bg-primary/10 border-primary/20 text-primary' : 'bg-surface border-black/5 dark:border-white/10 text-text-muted hover:text-text-main'}`}
+                  >
+                    <Filter size={20} />
+                  </button>
+                </div>
+
+                {/* Sorting Controls (Dropdown/Expandable) */}
+                {showFilters && (
+                  <div className="absolute top-full right-0 mt-2 z-20 bg-surface p-2 rounded-xl border border-black/5 dark:border-white/10 shadow-xl flex flex-col gap-2 min-w-[200px] animate-fade-in">
+                    <div className="text-xs font-semibold text-text-muted px-2 py-1">Sắp xếp theo</div>
                     <button
-                      onClick={() => setSearchQuery('')}
-                      className="absolute right-2 top-1/2 -translate-y-1/2 text-text-muted hover:text-text-main"
+                      onClick={() => setSortBy('date')}
+                      className={`flex items-center justify-between px-3 py-2 rounded-lg text-sm font-medium transition-all ${sortBy === 'date' ? 'bg-black/5 dark:bg-white/10 text-text-main' : 'text-text-muted hover:text-text-main hover:bg-black/5 dark:hover:bg-white/5'
+                        }`}
                     >
-                      <X size={14} />
+                      <div className="flex items-center gap-2">
+                        <Calendar size={14} />
+                        <span>Ngày xem</span>
+                      </div>
+                      {sortBy === 'date' && <div className="w-1.5 h-1.5 rounded-full bg-primary"></div>}
                     </button>
-                  )}
-                </div>
 
-                {/* Sorting Controls */}
-                <div className="flex items-center space-x-2 bg-surface p-1 rounded-xl border border-black/5 dark:border-white/5 self-start sm:self-auto">
-                  <button
-                    onClick={() => setSortBy('date')}
-                    className={`flex items-center space-x-2 px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${sortBy === 'date' ? 'bg-black/5 dark:bg-white/10 text-text-main' : 'text-text-muted hover:text-text-main hover:bg-black/5 dark:hover:bg-white/5'
-                      }`}
-                  >
-                    <Calendar size={14} />
-                    <span className="hidden sm:inline">Ngày</span>
-                  </button>
+                    <button
+                      onClick={() => setSortBy('title')}
+                      className={`flex items-center justify-between px-3 py-2 rounded-lg text-sm font-medium transition-all ${sortBy === 'title' ? 'bg-black/5 dark:bg-white/10 text-text-main' : 'text-text-muted hover:text-text-main hover:bg-black/5 dark:hover:bg-white/5'
+                        }`}
+                    >
+                      <div className="flex items-center gap-2">
+                        <Type size={14} />
+                        <span>Tiêu đề</span>
+                      </div>
+                      {sortBy === 'title' && <div className="w-1.5 h-1.5 rounded-full bg-primary"></div>}
+                    </button>
 
-                  <button
-                    onClick={() => setSortBy('title')}
-                    className={`flex items-center space-x-2 px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${sortBy === 'title' ? 'bg-black/5 dark:bg-white/10 text-text-main' : 'text-text-muted hover:text-text-main hover:bg-black/5 dark:hover:bg-white/5'
-                      }`}
-                  >
-                    <Type size={14} />
-                    <span className="hidden sm:inline">Tiêu đề</span>
-                  </button>
+                    <button
+                      onClick={() => setSortBy('runtime')}
+                      className={`flex items-center justify-between px-3 py-2 rounded-lg text-sm font-medium transition-all ${sortBy === 'runtime' ? 'bg-black/5 dark:bg-white/10 text-text-main' : 'text-text-muted hover:text-text-main hover:bg-black/5 dark:hover:bg-white/5'
+                        }`}
+                    >
+                      <div className="flex items-center gap-2">
+                        <Clock size={14} />
+                        <span>Thời lượng</span>
+                      </div>
+                      {sortBy === 'runtime' && <div className="w-1.5 h-1.5 rounded-full bg-primary"></div>}
+                    </button>
 
-                  <button
-                    onClick={() => setSortBy('runtime')}
-                    className={`flex items-center space-x-2 px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${sortBy === 'runtime' ? 'bg-black/5 dark:bg-white/10 text-text-main' : 'text-text-muted hover:text-text-main hover:bg-black/5 dark:hover:bg-white/5'
-                      }`}
-                  >
-                    <Clock size={14} />
-                    <span className="hidden sm:inline">Thời lượng</span>
-                  </button>
+                    <div className="h-px bg-black/10 dark:bg-white/10 my-1" />
 
-                  <div className="w-px h-4 bg-black/10 dark:bg-white/10 mx-1" />
-
-                  <button
-                    onClick={toggleSortOrder}
-                    className="p-1.5 text-text-muted hover:text-text-main hover:bg-black/5 dark:hover:bg-white/5 rounded-lg transition-colors"
-                    title={`Sắp xếp ${sortOrder === 'asc' ? 'Tăng dần' : 'Giảm dần'}`}
-                  >
-                    {sortOrder === 'asc' ? <ArrowUp size={16} /> : <ArrowDown size={16} />}
-                  </button>
-                </div>
+                    <button
+                      onClick={toggleSortOrder}
+                      className="flex items-center justify-between px-3 py-2 rounded-lg text-sm font-medium text-text-muted hover:text-text-main hover:bg-black/5 dark:hover:bg-white/5 transition-colors"
+                    >
+                      <div className="flex items-center gap-2">
+                        {sortOrder === 'asc' ? <ArrowUp size={14} /> : <ArrowDown size={14} />}
+                        <span>{sortOrder === 'asc' ? 'Tăng dần' : 'Giảm dần'}</span>
+                      </div>
+                    </button>
+                  </div>
+                )}
               </div>
             )}
           </div>

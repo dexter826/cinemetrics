@@ -72,6 +72,7 @@ export const subscribeToMovies = (uid: string, callback: (movies: Movie[]) => vo
         runtime: data.runtime,
         watched_at: data.watched_at,
         source: data.source,
+        media_type: data.media_type || 'movie',
         rating: data.rating || 0,
         review: data.review || ''
       } as Movie;

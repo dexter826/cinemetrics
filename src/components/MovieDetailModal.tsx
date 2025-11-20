@@ -19,8 +19,13 @@ const MovieDetailModal: React.FC<MovieDetailModalProps> = ({ isOpen, onClose, mo
       if (movie && movie.source === 'tmdb' && movie.id) {
         setLoading(true);
         try {
-          // Assuming it's a movie for now, logic could be improved to handle TV shows if stored in Movie type
-          const data = await getMovieDetails(Number(movie.id), 'movie'); 
+          let data = await getMovieDetails(Number(movie.id), movie.media_type || 'movie');
+          
+          // Fallback for legacy data: if 'movie' failed and we didn't specify type, try 'tv'
+          if (!data && !movie.media_type) {
+             data = await getMovieDetails(Number(movie.id), 'tv');
+          }
+          
           setDetails(data);
         } catch (error) {
           console.error("Failed to fetch details", error);

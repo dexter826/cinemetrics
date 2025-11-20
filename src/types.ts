@@ -10,6 +10,7 @@ export interface Movie {
   runtime: number; // Minutes
   watched_at: Timestamp | Date;
   source: 'tmdb' | 'manual';
+  media_type?: 'movie' | 'tv';
   rating?: number; // 1-5
   review?: string;
 }
