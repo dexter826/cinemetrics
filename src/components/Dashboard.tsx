@@ -126,10 +126,8 @@ const Dashboard: React.FC = () => {
       {/* Navigation */}
       <nav className="border-b border-black/5 dark:border-white/5 bg-surface/50 backdrop-blur-md sticky top-0 z-40 transition-colors duration-300">
         <div className="max-w-screen-xl mx-auto px-4 md:px-8 h-16 flex items-center justify-between">
-          <div className="flex items-center space-x-2">
-            <div className="bg-primary/20 p-1.5 rounded-lg">
-              <Film className="text-primary" size={20} />
-            </div>
+          <div className="flex items-center space-x-3">
+            <img src="/logo192.png" alt="Cinemetrics Logo" className="w-8 h-8" />
             <span className="font-bold text-lg tracking-tight">Cinemetrics</span>
           </div>
 
