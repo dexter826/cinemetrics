@@ -124,7 +124,7 @@ const Dashboard: React.FC = () => {
 
       {/* Navigation */}
       {/* Navigation */}
-      <nav className="border-b border-white/5 dark:border-white/5 border-black/5 bg-surface/50 backdrop-blur-md sticky top-0 z-40 transition-colors duration-300">
+      <nav className="border-b border-black/5 dark:border-white/5 bg-surface/50 backdrop-blur-md sticky top-0 z-40 transition-colors duration-300">
         <div className="max-w-screen-xl mx-auto px-4 md:px-8 h-16 flex items-center justify-between">
           <div className="flex items-center space-x-2">
             <div className="bg-primary/20 p-1.5 rounded-lg">
@@ -134,7 +134,7 @@ const Dashboard: React.FC = () => {
           </div>
 
           <div className="flex items-center space-x-4">
-            <div className="hidden md:flex items-center space-x-3 px-3 py-1.5 rounded-full bg-white/5 border border-white/5">
+            <div className="hidden md:flex items-center space-x-3 px-3 py-1.5 rounded-full bg-black/5 dark:bg-white/5 border border-black/5 dark:border-white/5">
               {user?.photoURL ? (
                 <img src={user.photoURL} alt="Avatar" className="w-6 h-6 rounded-full" />
               ) : (
@@ -172,7 +172,7 @@ const Dashboard: React.FC = () => {
       <main className="max-w-screen-xl mx-auto px-4 md:px-8 py-8 space-y-8">
 
         {/* Stats Row */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <StatsCard
             label="Đã xem"
             value={stats.totalMovies}
@@ -209,7 +209,7 @@ const Dashboard: React.FC = () => {
               <div className="flex flex-col sm:flex-row gap-3">
                 {/* Search Bar */}
                 <div className="relative group">
-                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 group-focus-within:text-primary transition-colors" size={16} />
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted group-focus-within:text-primary transition-colors" size={16} />
                   <input
                     type="text"
                     value={searchQuery}
@@ -220,7 +220,7 @@ const Dashboard: React.FC = () => {
                   {searchQuery && (
                     <button
                       onClick={() => setSearchQuery('')}
-                      className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-500 hover:text-white"
+                      className="absolute right-2 top-1/2 -translate-y-1/2 text-text-muted hover:text-text-main"
                     >
                       <X size={14} />
                     </button>
@@ -228,7 +228,7 @@ const Dashboard: React.FC = () => {
                 </div>
 
                 {/* Sorting Controls */}
-                <div className="flex items-center space-x-2 bg-surface p-1 rounded-xl border border-white/5 self-start sm:self-auto">
+                <div className="flex items-center space-x-2 bg-surface p-1 rounded-xl border border-black/5 dark:border-white/5 self-start sm:self-auto">
                   <button
                     onClick={() => setSortBy('date')}
                     className={`flex items-center space-x-2 px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${sortBy === 'date' ? 'bg-black/5 dark:bg-white/10 text-text-main' : 'text-text-muted hover:text-text-main hover:bg-black/5 dark:hover:bg-white/5'
@@ -273,7 +273,7 @@ const Dashboard: React.FC = () => {
           {processedMovies.length === 0 ? (
             <div className="border-2 border-dashed border-black/10 dark:border-white/10 rounded-3xl p-12 flex flex-col items-center justify-center text-center space-y-4">
               <div className="w-16 h-16 bg-black/5 dark:bg-white/5 rounded-full flex items-center justify-center">
-                <Film className="text-gray-600" size={32} />
+                <Film className="text-text-muted" size={32} />
               </div>
               <div>
                 <h3 className="text-lg font-medium text-text-main">
