@@ -2,14 +2,44 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { useAuth } from './AuthProvider';
 import { subscribeToMovies } from '../services/movieService';
 import { Movie } from '../types';
-import { Calendar, Film, Star, TrendingUp, Tv } from 'lucide-react';
+import { Calendar, Film, Star, TrendingUp, Tv, Globe } from 'lucide-react';
 import Navbar from './Navbar';
 import StatsCard from './StatsCard';
 import { Timestamp } from 'firebase/firestore';
-import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip } from 'recharts';
+import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip, BarChart, Bar, XAxis, YAxis, CartesianGrid } from 'recharts';
 import Loading from './Loading';
 
 const COLORS = ['#3b82f6', '#8b5cf6', '#ec4899', '#f59e0b', '#10b981', '#06b6d4', '#f97316', '#84cc16', '#6366f1', '#14b8a6'];
+
+const GENRE_TRANSLATIONS: Record<string, string> = {
+  'Action': 'Hành động',
+  'Adventure': 'Phiêu lưu',
+  'Animation': 'Hoạt hình',
+  'Comedy': 'Hài',
+  'Crime': 'Tội phạm',
+  'Documentary': 'Tài liệu',
+  'Drama': 'Chính kịch',
+  'Family': 'Gia đình',
+  'Fantasy': 'Phiêu lưu kỳ thú',
+  'History': 'Lịch sử',
+  'Horror': 'Kinh dị',
+  'Music': 'Âm nhạc',
+  'Mystery': 'Bí ẩn',
+  'Romance': 'Lãng mạn',
+  'Science Fiction': 'Khoa học viễn tưởng',
+  'TV Movie': 'Phim truyền hình',
+  'Thriller': 'Gay cấn',
+  'War': 'Chiến tranh',
+  'Western': 'Miền Tây',
+  'Sci-Fi & Fantasy': 'Khoa học viễn tưởng',
+  'Action & Adventure': 'Hành động & Phiêu lưu',
+  'War & Politics': 'Chiến tranh & Chính trị',
+  'Soap': 'Phím dài tập',
+  'Talk': 'Talk show',
+  'News': 'Tin tức',
+  'Reality': 'Thực tế',
+  'Kids': 'Thiếu nhi'
+};
 
 const StatsPage: React.FC = () => {
   const { user } = useAuth();
@@ -65,6 +95,20 @@ const StatsPage: React.FC = () => {
       }
     });
 
+    // Movies by Genre
+    const moviesByGenre: Record<string, number> = {};
+    movies.forEach(m => {
+      if (m.genres && m.genres.trim().length > 0) {
+        const genres = m.genres.split(',').map(g => g.trim()).filter(g => g.length > 0);
+        genres.forEach(genre => {
+          const translatedGenre = GENRE_TRANSLATIONS[genre] || genre;
+          moviesByGenre[translatedGenre] = (moviesByGenre[translatedGenre] || 0) + 1;
+        });
+      }
+    });
+
+    const totalCountries = Object.keys(moviesByCountry).length;
+
     return {
       totalMovies,
       movieCount,
@@ -76,7 +120,9 @@ const StatsPage: React.FC = () => {
       avgRating,
       moviesByYear,
       moviesByRating,
-      moviesByCountry
+      moviesByCountry,
+      moviesByGenre,
+      totalCountries
     };
   }, [movies]);
 
@@ -95,12 +141,18 @@ const StatsPage: React.FC = () => {
         </h1>
 
         {/* Overview Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           <StatsCard
             label="Tổng phim đã xem"
             value={stats.totalMovies}
             icon={Film}
             colorClass="text-blue-500"
+          />
+          <StatsCard
+            label="Tổng quốc gia"
+            value={stats.totalCountries}
+            icon={Globe}
+            colorClass="text-purple-500"
           />
           <StatsCard
             label="Phim / TV"
@@ -175,20 +227,17 @@ const StatsPage: React.FC = () => {
 
         </div>
 
-        {/* Movies by Country */}
-        {Object.keys(stats.moviesByCountry).length > 0 ? (
+        {/* Country and Genre Distribution */}
+        <div className="space-y-8">
+          
+          {/* Movies by Country */}
           <div className="bg-surface border border-black/5 dark:border-white/5 p-6 rounded-2xl">
             <h3 className="text-xl font-bold mb-6 flex items-center gap-2">
-              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-primary">
-                <circle cx="12" cy="12" r="10"/>
-                <line x1="2" y1="12" x2="22" y2="12"/>
-                <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
-              </svg>
+              <Globe size={20} className="text-purple-500" />
               Phân bố phim theo quốc gia
             </h3>
-            <div className="flex flex-col lg:flex-row gap-8 items-center">
-              {/* Pie Chart */}
-              <div className="w-full lg:w-1/2 h-80">
+            {Object.keys(stats.moviesByCountry).length > 0 ? (
+              <div className="h-80">
                 <ResponsiveContainer width="100%" height="100%">
                   <PieChart>
                     <Pie
@@ -204,7 +253,7 @@ const StatsPage: React.FC = () => {
                       cy="50%"
                       labelLine={false}
                       label={({ name, percentage }) => `${name}: ${percentage}%`}
-                      outerRadius={100}
+                      outerRadius={90}
                       fill="#8884d8"
                       dataKey="value"
                     >
@@ -225,42 +274,69 @@ const StatsPage: React.FC = () => {
                   </PieChart>
                 </ResponsiveContainer>
               </div>
-              
-              {/* Legend List */}
-              <div className="w-full lg:w-1/2 space-y-3 max-h-80 overflow-y-auto custom-scrollbar">
-                {Object.entries(stats.moviesByCountry)
-                  .sort((a, b) => Number(b[1]) - Number(a[1]))
-                  .map(([country, count], index) => (
-                    <div key={country} className="flex items-center justify-between p-3 bg-black/5 dark:bg-white/5 rounded-lg hover:bg-black/10 dark:hover:bg-white/10 transition-colors">
-                      <div className="flex items-center gap-3">
-                        <div 
-                          className="w-4 h-4 rounded-full flex-shrink-0"
-                          style={{ backgroundColor: COLORS[index % COLORS.length] }}
-                        />
-                        <span className="font-medium text-text-main">{country}</span>
-                      </div>
-                      <div className="text-right">
-                        <div className="font-bold text-text-main">{count} phim</div>
-                        <div className="text-xs text-text-muted">{((Number(count) / stats.totalMovies) * 100).toFixed(1)}%</div>
-                      </div>
-                    </div>
-                  ))}
+            ) : (
+              <div className="h-80 flex flex-col items-center justify-center text-center text-text-muted">
+                <Globe size={48} className="opacity-50 mb-4" />
+                <p className="text-sm">Chưa có dữ liệu quốc gia</p>
               </div>
-            </div>
+            )}
           </div>
-        ) : (
-          <div className="bg-surface border border-black/5 dark:border-white/5 p-8 rounded-2xl text-center">
-            <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mx-auto mb-4 text-text-muted opacity-50">
-              <circle cx="12" cy="12" r="10"/>
-              <line x1="2" y1="12" x2="22" y2="12"/>
-              <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
-            </svg>
-            <h3 className="text-lg font-semibold text-text-main mb-2">Chưa có dữ liệu quốc gia</h3>
-            <p className="text-text-muted text-sm max-w-md mx-auto">
-              Thêm phim mới hoặc cập nhật thông tin quốc gia cho các phim hiện tại để xem thống kê này.
-            </p>
+
+          {/* Movies by Genre */}
+          <div className="bg-surface border border-black/5 dark:border-white/5 p-6 rounded-2xl">
+            <h3 className="text-xl font-bold mb-6 flex items-center gap-2">
+              <Film size={20} className="text-teal-500" />
+              Phân bố phim theo thể loại
+            </h3>
+            {Object.keys(stats.moviesByGenre).length > 0 ? (
+              <div className="h-80">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart
+                    data={Object.entries(stats.moviesByGenre)
+                      .sort((a, b) => Number(b[1]) - Number(a[1]))
+                      .slice(0, 10)
+                      .map(([genre, count]) => ({
+                        genre: genre.length > 12 ? genre.substring(0, 12) + '...' : genre,
+                        fullGenre: genre,
+                        count: Number(count)
+                      }))}
+                    margin={{ top: 20, right: 30, left: 0, bottom: 60 }}
+                  >
+                    <CartesianGrid strokeDasharray="3 3" className="stroke-text-muted" opacity={0.1} />
+                    <XAxis 
+                      dataKey="genre" 
+                      angle={-45}
+                      textAnchor="end"
+                      height={80}
+                      tick={{ fill: 'currentColor', fontSize: 12 }}
+                      className="text-text-muted"
+                    />
+                    <YAxis 
+                      tick={{ fill: 'currentColor', fontSize: 12 }}
+                      className="text-text-muted"
+                    />
+                    <Tooltip 
+                      formatter={(value: number) => [`${value} phim`, 'Số lượng']}
+                      labelFormatter={(label, payload) => payload && payload[0] ? payload[0].payload.fullGenre : label}
+                      contentStyle={{ 
+                        backgroundColor: 'var(--color-surface)',
+                        border: '1px solid rgba(255, 255, 255, 0.1)',
+                        borderRadius: '8px'
+                      }}
+                    />
+                    <Bar dataKey="count" fill="#14b8a6" radius={[8, 8, 0, 0]} />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+            ) : (
+              <div className="h-80 flex flex-col items-center justify-center text-center text-text-muted">
+                <Film size={48} className="opacity-50 mb-4" />
+                <p className="text-sm">Chưa có dữ liệu thể loại</p>
+              </div>
+            )}
           </div>
-        )}
+
+        </div>
       </div>
     </div>
   );
