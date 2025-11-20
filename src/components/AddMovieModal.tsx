@@ -165,54 +165,6 @@ const AddMovieModal: React.FC<AddMovieModalProps> = ({ isOpen, onClose, movieToE
     }
   };
 
-  // Shared Form Fields Component
-  const AdditionalFields = () => (
-    <div className="space-y-4 pt-4 border-t border-white/10">
-      <div className="grid grid-cols-2 gap-4">
-        <div>
-          <label className="block text-sm text-gray-400 mb-1">Ngày xem</label>
-          <div className="relative">
-            <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500" size={16} />
-            <input
-              type="date"
-              value={formData.date}
-              onChange={(e) => setFormData({ ...formData, date: e.target.value })}
-              className="w-full bg-black/20 border border-white/10 rounded-lg p-3 pl-10 text-white focus:border-primary/50 focus:outline-none"
-            />
-          </div>
-        </div>
-        <div>
-          <label className="block text-sm text-gray-400 mb-1">Đánh giá</label>
-          <div className="flex space-x-2 items-center h-[46px] bg-black/20 border border-white/10 rounded-lg px-3">
-            {[1, 2, 3, 4, 5].map((star) => (
-              <button
-                key={star}
-                type="button"
-                onClick={() => setFormData({ ...formData, rating: star })}
-                className="focus:outline-none transition-transform hover:scale-110"
-              >
-                <Star
-                  size={20}
-                  className={`${star <= formData.rating ? 'text-yellow-500 fill-yellow-500' : 'text-gray-600'}`}
-                />
-              </button>
-            ))}
-          </div>
-        </div>
-      </div>
-
-      <div>
-        <label className="block text-sm text-gray-400 mb-1">Đánh giá / Ghi chú</label>
-        <textarea
-          value={formData.review}
-          onChange={(e) => setFormData({ ...formData, review: e.target.value })}
-          className="w-full bg-black/20 border border-white/10 rounded-lg p-3 text-white focus:border-primary/50 focus:outline-none min-h-[100px]"
-          placeholder="Bạn nghĩ gì về phim này?"
-        />
-      </div>
-    </div>
-  );
-
   if (!isOpen) return null;
 
   return (
@@ -331,7 +283,7 @@ const AddMovieModal: React.FC<AddMovieModalProps> = ({ isOpen, onClose, movieToE
                   </button>
                 </div>
               </div>
-              <AdditionalFields />
+              <AdditionalFields formData={formData} setFormData={setFormData} />
               <div className="pt-4">
                 <button
                   type="submit"
@@ -384,7 +336,7 @@ const AddMovieModal: React.FC<AddMovieModalProps> = ({ isOpen, onClose, movieToE
                 </div>
               </div>
 
-              <AdditionalFields />
+              <AdditionalFields formData={formData} setFormData={setFormData} />
 
               <div className="pt-4">
                 <button
@@ -403,5 +355,71 @@ const AddMovieModal: React.FC<AddMovieModalProps> = ({ isOpen, onClose, movieToE
     </div>
   );
 };
+
+interface AdditionalFieldsProps {
+  formData: {
+    title: string;
+    runtime: string;
+    poster: string;
+    date: string;
+    rating: number;
+    review: string;
+  };
+  setFormData: React.Dispatch<React.SetStateAction<{
+    title: string;
+    runtime: string;
+    poster: string;
+    date: string;
+    rating: number;
+    review: string;
+  }>>;
+}
+
+const AdditionalFields: React.FC<AdditionalFieldsProps> = ({ formData, setFormData }) => (
+  <div className="space-y-4 pt-4 border-t border-white/10">
+    <div className="grid grid-cols-2 gap-4">
+      <div>
+        <label className="block text-sm text-gray-400 mb-1">Ngày xem</label>
+        <div className="relative">
+          <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500" size={16} />
+          <input
+            type="date"
+            value={formData.date}
+            onChange={(e) => setFormData({ ...formData, date: e.target.value })}
+            className="w-full bg-black/20 border border-white/10 rounded-lg p-3 pl-10 text-white focus:border-primary/50 focus:outline-none"
+          />
+        </div>
+      </div>
+      <div>
+        <label className="block text-sm text-gray-400 mb-1">Đánh giá</label>
+        <div className="flex space-x-2 items-center h-[46px] bg-black/20 border border-white/10 rounded-lg px-3">
+          {[1, 2, 3, 4, 5].map((star) => (
+            <button
+              key={star}
+              type="button"
+              onClick={() => setFormData({ ...formData, rating: star })}
+              className="focus:outline-none transition-transform hover:scale-110"
+            >
+              <Star
+                size={20}
+                className={`${star <= formData.rating ? 'text-yellow-500 fill-yellow-500' : 'text-gray-600'}`}
+              />
+            </button>
+          ))}
+        </div>
+      </div>
+    </div>
+
+    <div>
+      <label className="block text-sm text-gray-400 mb-1">Đánh giá / Ghi chú</label>
+      <textarea
+        value={formData.review}
+        onChange={(e) => setFormData({ ...formData, review: e.target.value })}
+        className="w-full bg-black/20 border border-white/10 rounded-lg p-3 text-white focus:border-primary/50 focus:outline-none min-h-[100px]"
+        placeholder="Bạn nghĩ gì về phim này?"
+      />
+    </div>
+  </div>
+);
 
 export default AddMovieModal;
