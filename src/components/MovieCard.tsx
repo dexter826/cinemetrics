@@ -36,7 +36,7 @@ const MovieCard: React.FC<MovieCardProps> = ({ movie, onDelete, onEdit, onClick 
           className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
           loading="lazy"
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-surface via-transparent to-transparent opacity-80" />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent opacity-100" />
 
         {/* Action Buttons (Visible on Hover) */}
         <div className="absolute top-2 right-2 flex space-x-2 opacity-0 group-hover:opacity-100 transition-opacity z-10">
@@ -74,11 +74,11 @@ const MovieCard: React.FC<MovieCardProps> = ({ movie, onDelete, onEdit, onClick 
 
       {/* Content */}
       <div className="p-4 absolute bottom-0 w-full">
-        <h3 className="font-semibold text-lg leading-tight text-text-main mb-2 line-clamp-1" title={movie.title}>
+        <h3 className="font-semibold text-lg leading-tight text-white mb-2 line-clamp-1" title={movie.title}>
           {movie.title}
         </h3>
 
-        <div className="flex items-center justify-between text-xs text-text-muted">
+        <div className="flex items-center justify-between text-xs text-gray-300">
           <div className="flex items-center space-x-1">
             <Clock size={12} className="text-primary" />
             <span>{movie.runtime}m</span>

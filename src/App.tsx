@@ -1,9 +1,12 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './components/AuthProvider';
 import { ToastProvider } from './components/Toast.tsx';
 import { AlertProvider } from './components/Alert.tsx';
 import Login from './components/Login';
 import Dashboard from './components/Dashboard';
+import SearchPage from './components/SearchPage';
+import AddMoviePage from './components/AddMoviePage';
 import Layout from './components/Layout';
 import SplashScreen from './components/SplashScreen';
 import { ThemeProvider } from './components/ThemeProvider.tsx';
@@ -34,22 +37,36 @@ const AppContent: React.FC = () => {
   }
 
   // Once splash and auth are done, render the appropriate component.
-  return user ? <Dashboard /> : <Login />;
+  if (!user) {
+    return <Login />;
+  }
+
+  return (
+    <Routes>
+      <Route path="/" element={<Dashboard />} />
+      <Route path="/search" element={<SearchPage />} />
+      <Route path="/add" element={<AddMoviePage />} />
+      <Route path="/add/:tmdbId" element={<AddMoviePage />} />
+      <Route path="*" element={<Navigate to="/" />} />
+    </Routes>
+  );
 };
 
 const App: React.FC = () => {
   return (
-    <AuthProvider>
-      <ThemeProvider>
-        <ToastProvider>
-          <AlertProvider>
-            <Layout>
-              <AppContent />
-            </Layout>
-          </AlertProvider>
-        </ToastProvider>
-      </ThemeProvider>
-    </AuthProvider>
+    <Router>
+      <AuthProvider>
+        <ThemeProvider>
+          <ToastProvider>
+            <AlertProvider>
+              <Layout>
+                <AppContent />
+              </Layout>
+            </AlertProvider>
+          </ToastProvider>
+        </ThemeProvider>
+      </AuthProvider>
+    </Router>
   );
 };
 
