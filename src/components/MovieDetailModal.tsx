@@ -42,6 +42,20 @@ const MovieDetailModal: React.FC<MovieDetailModalProps> = ({ isOpen, onClose, mo
     }
   }, [isOpen, movie]);
 
+  // Prevent scroll when modal is open
+  useEffect(() => {
+    if (isOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = 'unset';
+    }
+    
+    // Cleanup function to restore scroll on unmount
+    return () => {
+      document.body.style.overflow = 'unset';
+    };
+  }, [isOpen]);
+
   if (!isOpen || !movie) return null;
 
   const title = details?.title || details?.name || movie.title;
@@ -71,13 +85,13 @@ const MovieDetailModal: React.FC<MovieDetailModalProps> = ({ isOpen, onClose, mo
         </button>
 
         {/* Poster Section */}
-        <div className="w-full md:w-1/3 h-64 md:h-auto relative flex-shrink-0">
+        <div className="w-full md:w-1/3 h-64 md:h-auto relative shrink-0">
             <img 
               src={posterUrl} 
               alt={title} 
               className="w-full h-full object-cover"
             />
-            <div className="absolute inset-0 bg-gradient-to-t from-surface via-transparent to-transparent md:bg-gradient-to-r md:from-transparent md:to-surface" />
+            <div className="absolute inset-0 bg-linear-to-t from-surface via-transparent to-transparent md:bg-linear-to-r md:from-transparent md:to-surface" />
         </div>
 
         {/* Content Section */}
