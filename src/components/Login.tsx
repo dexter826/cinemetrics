@@ -1,6 +1,6 @@
 import React from 'react';
 import { useAuth } from './AuthProvider';
-import { Film, LogIn } from 'lucide-react';
+import { LogIn } from 'lucide-react';
 
 const Login: React.FC = () => {
   const { signInWithGoogle } = useAuth();
@@ -15,7 +15,7 @@ const Login: React.FC = () => {
 
       <div className="z-10 flex flex-col items-center space-y-8 p-8">
         <div className="bg-surface p-4 rounded-2xl shadow-2xl shadow-primary/20 border border-black/5 dark:border-white/5">
-          <Film size={64} className="text-primary" />
+          <img src="/logo512.png" alt="Cinemetrics Logo" className="w-16 h-16" />
         </div>
 
         <div className="text-center space-y-2">
