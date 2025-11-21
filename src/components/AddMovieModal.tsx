@@ -220,7 +220,7 @@ const AddMovieModal: React.FC = () => {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
-      <div className="bg-surface border border-black/10 dark:border-white/10 rounded-2xl w-full max-w-2xl md:max-w-4xl max-h-[90vh] overflow-y-auto shadow-2xl animate-in zoom-in-95 duration-200">
+      <div className="bg-surface border border-black/10 dark:border-white/10 rounded-2xl w-full max-w-2xl md:max-w-4xl max-h-[90vh] overflow-y-auto overflow-x-hidden shadow-2xl animate-in zoom-in-95 duration-200">
         
         {/* Header */}
         <div className="sticky top-0 z-10 flex items-center justify-between p-4 border-b border-black/10 dark:border-white/10 bg-surface/95 backdrop-blur">

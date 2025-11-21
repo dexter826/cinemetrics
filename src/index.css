@@ -37,6 +37,7 @@
         outline: none;
         border: none;
         -webkit-appearance: none;
+        -webkit-tap-highlight-color: transparent;
         -moz-appearance: none;
         appearance: none;
         cursor: pointer;
