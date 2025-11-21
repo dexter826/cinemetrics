@@ -29,17 +29,17 @@ const MovieCard: React.FC<MovieCardProps> = ({ movie, onDelete, onEdit, onClick 
       className="group relative bg-surface rounded-xl overflow-hidden border border-black/5 dark:border-white/5 hover:border-primary/50 transition-all duration-300 hover:shadow-lg hover:shadow-primary/10 cursor-pointer"
     >
       {/* Image Container */}
-      <div className="aspect-[2/3] w-full relative overflow-hidden">
+      <div className="aspect-2/3 w-full relative overflow-hidden">
         <img
           src={imageUrl}
           alt={movie.title}
           className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
           loading="lazy"
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent opacity-100" />
+        <div className="absolute inset-0 bg-linear-to-t from-black/90 via-black/40 to-transparent opacity-100" />
 
-        {/* Action Buttons (Visible on Hover) */}
-        <div className="absolute top-2 right-2 flex space-x-2 opacity-0 group-hover:opacity-100 transition-opacity z-10">
+        {/* Action Buttons (Always visible on mobile, visible on hover on desktop) */}
+        <div className="absolute top-2 right-2 flex space-x-2 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity z-10">
           <button
             onClick={(e) => { e.stopPropagation(); onEdit(movie); }}
             className="p-2 bg-blue-500/20 text-blue-400 rounded-full backdrop-blur-sm hover:bg-blue-500 hover:text-white transition-colors"
