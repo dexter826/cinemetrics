@@ -31,4 +31,16 @@
         --color-text-muted: 156 163 175;
         /* gray-400 */
     }
+
+    /* Remove tap highlight on mobile (iOS) */
+    * {
+        -webkit-tap-highlight-color: transparent;
+        -webkit-touch-callout: none;
+    }
+
+    /* Fix date input width on mobile Safari */
+    input[type="date"] {
+        max-width: 100%;
+        box-sizing: border-box;
+    }
 }
