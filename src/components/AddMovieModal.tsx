@@ -89,7 +89,7 @@ const AddMovieModal: React.FC = () => {
           setIsLoadingDetails(true);
           try {
             const id = initialData.tmdbId || initialData.movie?.id;
-            const type = initialData.mediaType || initialData.movie?.media_type || 'movie';
+            const type = (initialData.mediaType || initialData.movie?.media_type || 'movie') as 'movie' | 'tv';
             
             // Check if movie already exists
             if (user && id) {
@@ -166,6 +166,21 @@ const AddMovieModal: React.FC = () => {
     if (!isManualMode && formData.rating === 0) {
       showToast("Vui lòng đánh giá phim", "error");
       return;
+    }
+    
+    // Validate: watched date must be after release date
+    if (formData.releaseDate) {
+      const [y, m, d] = formData.date.split('-').map(Number);
+      const [hours, minutes] = formData.time.split(':').map(Number);
+      const watchedDate = new Date(y, m - 1, d, hours, minutes, 0);
+      
+      const [ry, rm, rd] = formData.releaseDate.split('-').map(Number);
+      const releaseDate = new Date(ry, rm - 1, rd, 0, 0, 0);
+      
+      if (watchedDate <= releaseDate) {
+        showToast("Ngày xem phải sau ngày phát hành", "error");
+        return;
+      }
     }
     
     setIsSubmitting(true);
