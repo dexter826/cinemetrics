@@ -226,7 +226,7 @@ const Dashboard: React.FC = () => {
           {/* Action Card: Search */}
           <button
             onClick={() => navigate('/search')}
-            className="w-full bg-linear-to-br from-primary/80 to-primary hover:to-primary/90 p-6 rounded-2xl flex items-center justify-between group transition-all shadow-lg shadow-primary/20"
+            className="w-full bg-linear-to-br from-primary/80 to-primary hover:to-primary/90 p-6 rounded-2xl flex items-center justify-between group transition-all shadow-lg shadow-primary/20 cursor-pointer"
           >
             <div>
               <p className="text-white/90 text-sm font-medium mb-1 text-left">Thêm vào bộ sưu tập</p>
@@ -240,7 +240,7 @@ const Dashboard: React.FC = () => {
           {/* Action Card: Manual Add */}
           <button
             onClick={() => openAddModal({})}
-            className="w-full bg-surface border border-black/5 dark:border-white/10 hover:border-primary/50 p-6 rounded-2xl flex items-center justify-between group transition-all shadow-sm hover:shadow-md"
+            className="w-full bg-surface border border-black/5 dark:border-white/10 hover:border-primary/50 p-6 rounded-2xl flex items-center justify-between group transition-all shadow-sm hover:shadow-md cursor-pointer"
           >
             <div>
               <p className="text-text-muted text-sm font-medium mb-1 text-left">Không tìm thấy phim?</p>

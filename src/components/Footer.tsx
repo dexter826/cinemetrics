@@ -4,7 +4,7 @@ import { Facebook, Instagram, Github } from 'lucide-react';
 const Footer: React.FC = () => {
   return (
     <footer className="bg-surface border-t border-black/10 dark:border-white/10 py-8 mt-auto">
-      <div className="max-w-screen-xl mx-auto px-4 md:px-8">
+      <div className="max-w-7xl mx-auto px-4 md:px-8">
         <div className="flex flex-col md:flex-row justify-between items-center gap-4">
           <div className="text-center md:text-left">
             <h3 className="text-lg font-bold text-primary">Cinemetrics</h3>

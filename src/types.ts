@@ -18,6 +18,7 @@ export interface Movie {
   genres?: string;
   release_date?: string;
   country?: string; // Production country
+  content?: string; // Movie content/overview
 }
 
 export interface TMDBMovieResult {

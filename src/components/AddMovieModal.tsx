@@ -23,7 +23,8 @@ const AddMovieModal: React.FC = () => {
     tagline: '',
     genres: '',
     releaseDate: '',
-    country: ''
+    country: '',
+    content: ''
   });
 
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -73,7 +74,8 @@ const AddMovieModal: React.FC = () => {
           tagline: m.tagline || '',
           genres: m.genres || '',
           releaseDate: m.release_date || '',
-          country: m.country || ''
+          country: m.country || '',
+          content: m.content || ''
         });
       } else if (initialData?.tmdbId || initialData?.movie) {
         // Add Mode from Search or ID
@@ -99,6 +101,7 @@ const AddMovieModal: React.FC = () => {
                 const genres = details.genres?.map(g => g.name).join(', ') || '';
                 const releaseDate = details.release_date || details.first_air_date || '';
                 const country = details.production_countries?.map(c => c.name).join(', ') || '';
+                const content = details.overview || '';
                 
                 setFormData(prev => ({
                   ...prev,
@@ -112,7 +115,8 @@ const AddMovieModal: React.FC = () => {
                   tagline: tagline,
                   genres: genres,
                   releaseDate: releaseDate,
-                  country: country
+                  country: country,
+                  content: content
                 }));
               }
             }
@@ -137,7 +141,8 @@ const AddMovieModal: React.FC = () => {
           tagline: '',
           genres: '',
           releaseDate: '',
-          country: ''
+          country: '',
+          content: ''
         });
         setManualMediaType('movie');
         setMovieExists(false);
@@ -148,6 +153,13 @@ const AddMovieModal: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!user) return;
+    
+    // Check if rating is required (when recording movies, not manual mode)
+    if (!isManualMode && formData.rating === 0) {
+      showToast("Vui lòng đánh giá phim", "error");
+      return;
+    }
+    
     setIsSubmitting(true);
 
     try {
@@ -168,7 +180,8 @@ const AddMovieModal: React.FC = () => {
           tagline: formData.tagline,
           genres: formData.genres,
           release_date: formData.releaseDate,
-          country: formData.country
+          country: formData.country,
+          content: formData.content
         });
         showToast("Đã cập nhật phim", "success");
       } else {
@@ -188,7 +201,8 @@ const AddMovieModal: React.FC = () => {
           tagline: formData.tagline,
           genres: formData.genres,
           release_date: formData.releaseDate,
-          country: formData.country
+          country: formData.country,
+          content: formData.content
         });
         showToast("Đã thêm phim mới", "success");
       }
@@ -254,6 +268,17 @@ const AddMovieModal: React.FC = () => {
                       value={formData.title}
                       onChange={e => setFormData({...formData, title: e.target.value})}
                       className="w-full bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-lg px-4 py-2.5 text-text-main placeholder-text-muted focus:outline-none focus:border-primary/50 transition-colors"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-text-muted mb-1">Nội dung (tùy chọn)</label>
+                    <textarea
+                      rows={4}
+                      value={formData.content}
+                      onChange={e => setFormData({...formData, content: e.target.value})}
+                      className="w-full bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-lg px-4 py-2.5 text-text-main placeholder-text-muted focus:outline-none focus:border-primary/50 transition-colors resize-none"
+                      placeholder="Tóm tắt nội dung phim..."
                     />
                   </div>
 
@@ -389,7 +414,9 @@ const AddMovieModal: React.FC = () => {
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-text-muted mb-1">Đánh giá</label>
+                    <label className="block text-sm font-medium text-text-muted mb-1">
+                      Đánh giá {!isManualMode && <span className="text-red-500">*</span>}
+                    </label>
                     <div className="flex gap-2">
                       {[1, 2, 3, 4, 5].map((star) => (
                         <button
