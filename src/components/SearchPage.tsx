@@ -90,7 +90,7 @@ const SearchPage: React.FC = () => {
   const handleSelectMovie = (movie: TMDBMovieResult) => {
     openAddModal({
       movie: movie,
-      mediaType: movie.media_type || (filterType === 'tv' ? 'tv' : 'movie')
+      mediaType: (movie.media_type === 'tv' || movie.media_type === 'movie') ? movie.media_type : (filterType === 'tv' ? 'tv' : 'movie')
     });
   };
 
@@ -168,7 +168,7 @@ const SearchPage: React.FC = () => {
               placeholder="Năm"
               value={filterYear}
               onChange={(e) => setFilterYear(e.target.value)}
-              className="w-24 bg-surface border border-black/10 dark:border-white/10 rounded-xl px-4 py-2 focus:outline-none focus:border-primary/50 text-sm flex-1 sm:flex-none"
+              className="w-24 bg-surface border border-black/10 dark:border-white/10 rounded-xl px-4 py-2 focus:outline-none focus:border-primary/50 text-sm flex-1 sm:flex-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
             />
           </div>
         </div>

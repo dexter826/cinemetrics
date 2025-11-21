@@ -286,7 +286,7 @@ const Dashboard: React.FC = () => {
                     onClick={(e) => { e.stopPropagation(); setShowFilters(!showFilters); }}
                     className={`p-2 rounded-xl border transition-colors cursor-pointer ${showFilters ? 'bg-primary/10 border-primary/20 text-primary' : 'bg-surface border-black/5 dark:border-white/10 text-text-muted hover:text-text-main hover:border-primary/30'}`}
                   >
-                    <Filter size={20} />
+                    {showFilters ? <X size={20} /> : <Filter size={20} />}
                   </button>
                 </div>
 
