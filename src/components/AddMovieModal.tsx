@@ -361,8 +361,8 @@ const AddMovieModal: React.FC = () => {
                       required={isManualMode}
                       value={formData.releaseDate}
                       onChange={e => setFormData({...formData, releaseDate: e.target.value})}
-                      disabled={!isManualMode && !initialData?.movieToEdit}
-                      className={`w-full max-w-full bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-lg px-4 py-2.5 text-text-main focus:outline-none focus:border-primary/50 transition-colors scheme-light dark:scheme-dark ${!isManualMode && !initialData?.movieToEdit ? 'opacity-60 cursor-not-allowed' : ''}`}
+                      disabled={!isManualMode}
+                      className={`w-full max-w-full bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-lg px-4 py-2.5 text-text-main focus:outline-none focus:border-primary/50 transition-colors scheme-light dark:scheme-dark ${!isManualMode ? 'opacity-60 cursor-not-allowed' : ''}`}
                     />
                   </div>
 
