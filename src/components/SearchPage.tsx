@@ -11,6 +11,7 @@ import { useAuth } from './AuthProvider';
 import { subscribeToMovies } from '../services/movieService';
 import { getAIRecommendations } from '../services/aiService';
 import { Movie } from '../types';
+import Lottie from 'lottie-react';
 import { Sparkles } from 'lucide-react';
 
 const SearchPage: React.FC = () => {
@@ -28,6 +29,14 @@ const SearchPage: React.FC = () => {
   const [historyMovies, setHistoryMovies] = useState<Movie[]>([]);
   const [aiRecommendations, setAiRecommendations] = useState<TMDBMovieResult[]>([]);
   const [isAiLoading, setIsAiLoading] = useState(false);
+  const [suggestAnimation, setSuggestAnimation] = useState(null);
+
+  useEffect(() => {
+    fetch('/loading_suggest.json')
+      .then(res => res.json())
+      .then(data => setSuggestAnimation(data))
+      .catch(err => console.error('Error loading animation:', err));
+  }, []);
 
   // Filters
   const [filterType, setFilterType] = useState<'all' | 'movie' | 'tv'>('all');
@@ -256,8 +265,10 @@ const SearchPage: React.FC = () => {
           <Loading fullScreen={false} size={40} className="py-20" />
         ) : isAiLoading ? (
           <div className="flex flex-col items-center justify-center py-20 space-y-4">
-            <Sparkles className="text-primary animate-pulse" size={48} />
-            <p className="text-lg font-medium text-text-muted animate-pulse">Đang gợi ý phim cho bạn...</p>
+            <div className="w-24 h-24">
+              {suggestAnimation && <Lottie animationData={suggestAnimation} loop={true} />}
+            </div>
+            <p className="text-lg font-medium text-primary animate-pulse">Đang gợi ý phim cho bạn...</p>
           </div>
         ) : (
           <>
