@@ -7,6 +7,11 @@ import { useNavigate } from 'react-router-dom';
 import Navbar from './Navbar';
 import { useAddMovie } from './AddMovieContext';
 import Loading from './Loading';
+import { useAuth } from './AuthProvider';
+import { subscribeToMovies } from '../services/movieService';
+import { getAIRecommendations } from '../services/aiService';
+import { Movie } from '../types';
+import { Sparkles } from 'lucide-react';
 
 const SearchPage: React.FC = () => {
   const navigate = useNavigate();
@@ -18,33 +23,102 @@ const SearchPage: React.FC = () => {
   const [initialLoading, setInitialLoading] = useState(true);
   const [searchPage, setSearchPage] = useState(1);
   const [totalSearchPages, setTotalSearchPages] = useState(1);
-  
+
+  const { user } = useAuth();
+  const [historyMovies, setHistoryMovies] = useState<Movie[]>([]);
+  const [aiRecommendations, setAiRecommendations] = useState<TMDBMovieResult[]>([]);
+  const [isAiLoading, setIsAiLoading] = useState(false);
+
   // Filters
   const [filterType, setFilterType] = useState<'all' | 'movie' | 'tv'>('all');
   const [filterYear, setFilterYear] = useState<string>('');
   const [filterGenre, setFilterGenre] = useState<string>('');
   const [filterCountry, setFilterCountry] = useState<string>('');
-  const [genres, setGenres] = useState<{id: number, name: string}[]>([]);
-  const [countries, setCountries] = useState<{iso_3166_1: string, english_name: string, native_name: string}[]>([]);
+  const [genres, setGenres] = useState<{ id: number, name: string }[]>([]);
+  const [countries, setCountries] = useState<{ iso_3166_1: string, english_name: string, native_name: string }[]>([]);
 
+  // 1. Lấy lịch sử xem phim của user
+  useEffect(() => {
+    if (!user) return;
+    const unsubscribe = subscribeToMovies(user.uid, (data) => {
+      setHistoryMovies(data);
+    });
+    return () => unsubscribe();
+  }, [user]);
+
+  // 2. Logic lấy dữ liệu ban đầu
   useEffect(() => {
     const fetchInitialData = async () => {
       setInitialLoading(true);
       try {
-        const [genreList, countriesList, trendingData] = await Promise.all([
+        const [genreList, countriesList] = await Promise.all([
           getGenres(),
           getCountries(),
-          getTrendingMovies()
         ]);
         setGenres(genreList);
         setCountries(countriesList);
-        setTrendingMovies(trendingData.results);
+
+        // Nếu có lịch sử xem, gọi AI. Nếu không, gọi Trending
+        if (historyMovies.length > 3) { // Chỉ gọi AI nếu đã xem ít nhất 3 phim
+
+          // Check cache first
+          const cacheKey = user ? `ai_recs_${user.uid}` : '';
+          const cachedData = cacheKey ? sessionStorage.getItem(cacheKey) : null;
+
+          if (cachedData) {
+            const parsedCache = JSON.parse(cachedData);
+            if (parsedCache.historyLength === historyMovies.length) {
+              setAiRecommendations(parsedCache.data);
+              setInitialLoading(false);
+              return;
+            }
+          }
+
+          setIsAiLoading(true);
+          try {
+            // Gọi AI lấy danh sách tên phim
+            const aiRecs = await getAIRecommendations(historyMovies);
+
+            // Dùng tên phim để tìm chi tiết từ TMDB (lấy ảnh poster)
+            const tmdbPromises = aiRecs.map(async (rec) => {
+              const searchRes = await searchMovies(rec.title);
+              // Lấy kết quả đầu tiên tìm thấy
+              return searchRes.results.length > 0 ? searchRes.results[0] : null;
+            });
+
+            const tmdbResults = (await Promise.all(tmdbPromises)).filter(m => m !== null) as TMDBMovieResult[];
+            setAiRecommendations(tmdbResults);
+
+            // Save to cache
+            sessionStorage.setItem(cacheKey, JSON.stringify({
+              historyLength: historyMovies.length,
+              data: tmdbResults
+            }));
+
+          } catch (e) {
+            // Fallback về trending nếu lỗi
+            const trendingData = await getTrendingMovies();
+            setTrendingMovies(trendingData.results);
+          } finally {
+            setIsAiLoading(false);
+          }
+        } else {
+          // User mới -> Lấy Trending như cũ
+          const trendingData = await getTrendingMovies();
+          setTrendingMovies(trendingData.results);
+        }
+
       } finally {
         setInitialLoading(false);
       }
     };
-    fetchInitialData();
-  }, []);
+
+    // Chỉ chạy khi historyMovies đã được load (hoặc user chưa login)
+    if (!user || historyMovies.length > 0 || initialLoading) {
+      fetchInitialData();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [historyMovies.length, user]);
 
   useEffect(() => {
     const timer = setTimeout(async () => {
@@ -67,9 +141,13 @@ const SearchPage: React.FC = () => {
     setSearchPage(1);
   }, [query]);
 
-  const filteredResults = (query ? results : trendingMovies).filter(movie => {
+  const displayMovies = query
+    ? results
+    : (aiRecommendations.length > 0 ? aiRecommendations : trendingMovies);
+
+  const filteredResults = displayMovies.filter(movie => {
     if (filterType !== 'all' && movie.media_type !== filterType) return false;
-    
+
     if (filterYear) {
       const date = movie.release_date || movie.first_air_date;
       if (!date || !date.startsWith(filterYear)) return false;
@@ -101,7 +179,7 @@ const SearchPage: React.FC = () => {
   return (
     <div className="min-h-screen bg-background text-text-main pb-20">
       <Navbar />
-      
+
       <div className="max-w-7xl mx-auto p-4 md:p-8 space-y-6">
         {/* Header */}
         <div className="flex items-center gap-4">
@@ -124,7 +202,7 @@ const SearchPage: React.FC = () => {
               autoFocus
             />
           </div>
-          
+
           <div className="flex flex-wrap gap-3">
             <div className="hidden sm:flex items-center gap-2 bg-surface border border-black/10 dark:border-white/10 rounded-xl px-3 py-2">
               <Filter size={16} className="text-text-muted" />
@@ -176,110 +254,123 @@ const SearchPage: React.FC = () => {
         {/* Results */}
         {loading ? (
           <Loading fullScreen={false} size={40} className="py-20" />
+        ) : isAiLoading ? (
+          <div className="flex flex-col items-center justify-center py-20 space-y-4">
+            <Sparkles className="text-primary animate-pulse" size={48} />
+            <p className="text-lg font-medium text-text-muted animate-pulse">Đang gợi ý phim cho bạn...</p>
+          </div>
         ) : (
           <>
-            {!query && filteredResults.length > 0 && (
-               <div className="mb-4">
-                 <h2 className="text-xl font-bold">Phim thịnh hành</h2>
-               </div>
+            {!query && (
+              <div className="mb-4 flex items-center gap-2">
+                {aiRecommendations.length > 0 ? (
+                  <>
+                    <Sparkles className="text-primary" size={24} />
+                    <h2 className="text-xl font-bold text-primary">
+                      Gợi ý dành riêng cho bạn
+                    </h2>
+                  </>
+                ) : (
+                  <h2 className="text-xl font-bold">Phim thịnh hành</h2>
+                )}
+              </div>
             )}
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 md:gap-6">
-            {filteredResults.map(movie => (
-              <div
-                key={movie.id}
-                onClick={() => handleSelectMovie(movie)}
-                className="group relative bg-surface rounded-xl overflow-hidden border border-black/5 dark:border-white/5 cursor-pointer hover:shadow-lg transition-all"
-              >
-                <div className="aspect-2/3 w-full relative overflow-hidden">
-                  {movie.poster_path ? (
-                    <img
-                      src={`${TMDB_IMAGE_BASE_URL}${movie.poster_path}`}
-                      alt={movie.title || movie.name}
-                      className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
-                    />
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center bg-gray-200 dark:bg-gray-800 text-text-muted">
-                      <Film size={32} />
-                    </div>
-                  )}
-                  <div className="absolute inset-0 bg-linear-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+              {filteredResults.map(movie => (
+                <div
+                  key={movie.id}
+                  onClick={() => handleSelectMovie(movie)}
+                  className="group relative bg-surface rounded-xl overflow-hidden border border-black/5 dark:border-white/5 cursor-pointer hover:shadow-lg transition-all"
+                >
+                  <div className="aspect-2/3 w-full relative overflow-hidden">
+                    {movie.poster_path ? (
+                      <img
+                        src={`${TMDB_IMAGE_BASE_URL}${movie.poster_path}`}
+                        alt={movie.title || movie.name}
+                        className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                      />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center bg-gray-200 dark:bg-gray-800 text-text-muted">
+                        <Film size={32} />
+                      </div>
+                    )}
+                    <div className="absolute inset-0 bg-linear-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+                  </div>
+                  <div className="p-3">
+                    <h3 className="font-semibold text-sm line-clamp-1" title={movie.title || movie.name}>
+                      {movie.title || movie.name}
+                    </h3>
+                    <p className="text-xs text-text-muted mt-1">
+                      {(movie.release_date || movie.first_air_date)?.split('-')[0] || 'N/A'} • {movie.media_type === 'tv' ? 'TV' : 'Movie'}
+                    </p>
+                  </div>
                 </div>
-                <div className="p-3">
-                  <h3 className="font-semibold text-sm line-clamp-1" title={movie.title || movie.name}>
-                    {movie.title || movie.name}
-                  </h3>
-                  <p className="text-xs text-text-muted mt-1">
-                    {(movie.release_date || movie.first_air_date)?.split('-')[0] || 'N/A'} • {movie.media_type === 'tv' ? 'TV' : 'Movie'}
-                  </p>
+              ))}
+              {query.length > 2 && filteredResults.length === 0 && (
+                <div className="col-span-full text-center py-10 text-text-muted">
+                  Không tìm thấy kết quả nào.
                 </div>
-              </div>
-            ))}
-            {query.length > 2 && filteredResults.length === 0 && (
-              <div className="col-span-full text-center py-10 text-text-muted">
-                Không tìm thấy kết quả nào.
-              </div>
-            )}
-            {!query && filteredResults.length === 0 && (
-              <div className="col-span-full flex flex-col items-center justify-center py-20 text-text-muted opacity-50">
-                <Search size={48} className="mb-4" />
-                <p>Nhập tên phim để bắt đầu tìm kiếm</p>
-              </div>
-            )}
-          </div>
+              )}
+              {!query && filteredResults.length === 0 && (
+                <div className="col-span-full flex flex-col items-center justify-center py-20 text-text-muted opacity-50">
+                  <Search size={48} className="mb-4" />
+                  <p>Nhập tên phim để bắt đầu tìm kiếm</p>
+                </div>
+              )}
+            </div>
 
-          {/* Pagination Controls - Only for Search Results */}
-          {!loading && query && filteredResults.length > 0 && totalSearchPages > 1 && (
-            <div className="flex items-center justify-center gap-2 pt-6">
-              <button
-                onClick={() => setSearchPage(prev => Math.max(1, prev - 1))}
-                disabled={searchPage === 1}
-                className="px-4 py-2 rounded-lg bg-surface border border-black/10 dark:border-white/10 text-text-main disabled:opacity-50 disabled:cursor-not-allowed hover:bg-black/5 dark:hover:bg-white/5 transition-colors cursor-pointer"
-              >
-                Trước
-              </button>
-              
-              <div className="flex items-center gap-1">
-                {Array.from({ length: Math.min(5, totalSearchPages) }, (_, i) => {
-                  let pageNum;
-                  if (totalSearchPages <= 5) {
-                    pageNum = i + 1;
-                  } else if (searchPage <= 3) {
-                    pageNum = i + 1;
-                  } else if (searchPage >= totalSearchPages - 2) {
-                    pageNum = totalSearchPages - 4 + i;
-                  } else {
-                    pageNum = searchPage - 2 + i;
-                  }
-                  
-                  return (
-                    <button
-                      key={pageNum}
-                      onClick={() => setSearchPage(pageNum)}
-                      className={`w-10 h-10 rounded-lg transition-colors cursor-pointer ${
-                        searchPage === pageNum
+            {/* Pagination Controls - Only for Search Results */}
+            {!loading && query && filteredResults.length > 0 && totalSearchPages > 1 && (
+              <div className="flex items-center justify-center gap-2 pt-6">
+                <button
+                  onClick={() => setSearchPage(prev => Math.max(1, prev - 1))}
+                  disabled={searchPage === 1}
+                  className="px-4 py-2 rounded-lg bg-surface border border-black/10 dark:border-white/10 text-text-main disabled:opacity-50 disabled:cursor-not-allowed hover:bg-black/5 dark:hover:bg-white/5 transition-colors cursor-pointer"
+                >
+                  Trước
+                </button>
+
+                <div className="flex items-center gap-1">
+                  {Array.from({ length: Math.min(5, totalSearchPages) }, (_, i) => {
+                    let pageNum;
+                    if (totalSearchPages <= 5) {
+                      pageNum = i + 1;
+                    } else if (searchPage <= 3) {
+                      pageNum = i + 1;
+                    } else if (searchPage >= totalSearchPages - 2) {
+                      pageNum = totalSearchPages - 4 + i;
+                    } else {
+                      pageNum = searchPage - 2 + i;
+                    }
+
+                    return (
+                      <button
+                        key={pageNum}
+                        onClick={() => setSearchPage(pageNum)}
+                        className={`w-10 h-10 rounded-lg transition-colors cursor-pointer ${searchPage === pageNum
                           ? 'bg-primary text-white font-medium'
                           : 'bg-surface border border-black/10 dark:border-white/10 text-text-main hover:bg-black/5 dark:hover:bg-white/5'
-                      }`}
-                    >
-                      {pageNum}
-                    </button>
-                  );
-                })}
+                          }`}
+                      >
+                        {pageNum}
+                      </button>
+                    );
+                  })}
+                </div>
+
+                <button
+                  onClick={() => setSearchPage(prev => Math.min(totalSearchPages, prev + 1))}
+                  disabled={searchPage === totalSearchPages}
+                  className="px-4 py-2 rounded-lg bg-surface border border-black/10 dark:border-white/10 text-text-main disabled:opacity-50 disabled:cursor-not-allowed hover:bg-black/5 dark:hover:bg-white/5 transition-colors"
+                >
+                  Tiếp
+                </button>
+
+                <span className="ml-4 text-sm text-text-muted">
+                  Trang {searchPage} / {totalSearchPages}
+                </span>
               </div>
-              
-              <button
-                onClick={() => setSearchPage(prev => Math.min(totalSearchPages, prev + 1))}
-                disabled={searchPage === totalSearchPages}
-                className="px-4 py-2 rounded-lg bg-surface border border-black/10 dark:border-white/10 text-text-main disabled:opacity-50 disabled:cursor-not-allowed hover:bg-black/5 dark:hover:bg-white/5 transition-colors"
-              >
-                Tiếp
-              </button>
-              
-              <span className="ml-4 text-sm text-text-muted">
-                Trang {searchPage} / {totalSearchPages}
-              </span>
-            </div>
-          )}
+            )}
           </>
         )}
       </div>
