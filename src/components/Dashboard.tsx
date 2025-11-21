@@ -165,10 +165,7 @@ const Dashboard: React.FC = () => {
     setCurrentPage(1);
   }, [searchQuery, filterRating, filterYear, filterCountry, filterContentType, sortBy, sortOrder, filterVersion]);
 
-  // Monitor processedMovies changes
-  useEffect(() => {
-    console.log('Processed movies updated:', processedMovies.length);
-  }, [processedMovies]);
+
 
   const handleDelete = async (docId: string) => {
     showAlert({
