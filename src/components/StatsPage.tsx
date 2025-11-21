@@ -238,7 +238,7 @@ const StatsPage: React.FC = () => {
             </h3>
             {Object.keys(stats.moviesByCountry).length > 0 ? (
               <div className="h-80">
-                <ResponsiveContainer width="100%" height="100%">
+                <ResponsiveContainer width="100%" height="100%" minWidth={0}>
                   <BarChart
                     data={Object.entries(stats.moviesByCountry)
                       .sort((a, b) => Number(b[1]) - Number(a[1]))
@@ -292,7 +292,7 @@ const StatsPage: React.FC = () => {
             </h3>
             {Object.keys(stats.moviesByGenre).length > 0 ? (
               <div className="h-80">
-                <ResponsiveContainer width="100%" height="100%">
+                <ResponsiveContainer width="100%" height="100%" minWidth={0}>
                   <PieChart>
                     <Pie
                       data={Object.entries(stats.moviesByGenre)
