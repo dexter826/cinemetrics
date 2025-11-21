@@ -4,7 +4,6 @@ import { useAuth } from './AuthProvider';
 import { subscribeToMovies, deleteMovie } from '../services/movieService';
 import { Movie, Stats } from '../types';
 import { Film, Plus, Loader, AlertTriangle, Calendar, Type, ArrowUp, ArrowDown, Search, X, Filter, Star } from 'lucide-react';
-import StatsCard from './StatsCard';
 import MovieCard from './MovieCard';
 import MovieDetailModal from './MovieDetailModal';
 import Navbar from './Navbar';
@@ -241,7 +240,7 @@ const Dashboard: React.FC = () => {
               <p className="text-text-muted text-sm font-medium mb-1 text-left">Không tìm thấy phim?</p>
               <h3 className="text-2xl font-bold text-text-main text-left">Thêm thủ công</h3>
             </div>
-            <div className="bg-black/5 dark:bg-white/10 p-3 rounded-xl group-hover:bg-primary/10 transition-colors duration-300">
+            <div className="bg-black/5 dark:bg-white/10 p-3 rounded-xl group-hover:bg-primary/10 group-hover:rotate-90 transition-all duration-300">
               <Plus size={24} className="text-text-main group-hover:text-primary transition-colors" />
             </div>
           </button>
@@ -285,7 +284,7 @@ const Dashboard: React.FC = () => {
                   {/* Filter Toggle Button */}
                   <button
                     onClick={(e) => { e.stopPropagation(); setShowFilters(!showFilters); }}
-                    className={`p-2 rounded-xl border transition-colors ${showFilters ? 'bg-primary/10 border-primary/20 text-primary' : 'bg-surface border-black/5 dark:border-white/10 text-text-muted hover:text-text-main'}`}
+                    className={`p-2 rounded-xl border transition-colors cursor-pointer ${showFilters ? 'bg-primary/10 border-primary/20 text-primary' : 'bg-surface border-black/5 dark:border-white/10 text-text-muted hover:text-text-main hover:border-primary/30'}`}
                   >
                     <Filter size={20} />
                   </button>
@@ -301,21 +300,21 @@ const Dashboard: React.FC = () => {
                       <div className="flex gap-2">
                         <button
                           onClick={() => setSortBy('date')}
-                          className={`flex items-center justify-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-all ${sortBy === 'date' ? 'bg-primary/10 text-primary' : 'bg-black/5 dark:bg-white/5 text-text-muted hover:text-text-main'}`}
+                          className={`flex items-center justify-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-all cursor-pointer ${sortBy === 'date' ? 'bg-primary/10 text-primary' : 'bg-black/5 dark:bg-white/5 text-text-muted hover:text-text-main'}`}
                         >
                           <Calendar size={14} />
                           <span>Ngày</span>
                         </button>
                         <button
                           onClick={() => setSortBy('title')}
-                          className={`flex items-center justify-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-all ${sortBy === 'title' ? 'bg-primary/10 text-primary' : 'bg-black/5 dark:bg-white/5 text-text-muted hover:text-text-main'}`}
+                          className={`flex items-center justify-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-all cursor-pointer ${sortBy === 'title' ? 'bg-primary/10 text-primary' : 'bg-black/5 dark:bg-white/5 text-text-muted hover:text-text-main'}`}
                         >
                           <Type size={14} />
                           <span>Tên</span>
                         </button>
                         <button
                           onClick={toggleSortOrder}
-                          className="flex items-center justify-center gap-2 px-3 py-2 rounded-lg text-sm font-medium bg-black/5 dark:bg-white/5 text-text-muted hover:text-text-main transition-colors"
+                          className="flex items-center justify-center gap-2 px-3 py-2 rounded-lg text-sm font-medium bg-black/5 dark:bg-white/5 text-text-muted hover:text-text-main transition-colors cursor-pointer"
                         >
                           {sortOrder === 'asc' ? <ArrowUp size={14} /> : <ArrowDown size={14} />}
                           <span>{sortOrder === 'asc' ? 'Tăng' : 'Giảm'}</span>
@@ -353,7 +352,7 @@ const Dashboard: React.FC = () => {
                             value={filterContentType}
                             onChange={(e) => {
                     setFilterContentType(e.target.value as 'all' | 'movie' | 'tv');
-                    setFilterVersion(v => v + 1); // Force re-render
+                    setFilterVersion(v => v + 1);
                   }}
                             className="w-full bg-black/5 dark:bg-white/5 border-none rounded-lg text-sm text-text-main py-2 px-3 focus:ring-1 focus:ring-primary appearance-none cursor-pointer"
                           >
@@ -375,7 +374,7 @@ const Dashboard: React.FC = () => {
                             <button
                               key={star}
                               onClick={() => setFilterRating(filterRating === star ? null : star)}
-                              className={`p-1.5 rounded-lg transition-colors ${
+                              className={`p-1.5 rounded-lg transition-colors cursor-pointer ${
                                 (filterRating || 0) >= star ? 'text-yellow-500 bg-yellow-500/10' : 'text-text-muted bg-black/5 dark:bg-white/5 hover:bg-black/10 dark:hover:bg-white/10'
                               }`}
                             >

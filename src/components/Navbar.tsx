@@ -45,6 +45,14 @@ const Navbar: React.FC = () => {
               <BarChart2 size={20} />
             </button>
 
+            <button
+              onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+              className="p-2 hover:bg-primary/10 hover:text-primary rounded-lg transition-colors text-text-main cursor-pointer"
+              title={theme === 'dark' ? 'Chuyển sang chế độ sáng' : 'Chuyển sang chế độ tối'}
+            >
+              {theme === 'dark' ? <Sun size={20} /> : <Moon size={20} />}
+            </button>
+
             <div className="flex items-center space-x-3 px-3 py-1.5 rounded-full bg-black/5 dark:bg-white/5 border border-black/5 dark:border-white/5">
               {user?.photoURL ? (
                 <img src={user.photoURL} alt="Avatar" className="w-6 h-6 rounded-full" />
@@ -53,13 +61,7 @@ const Navbar: React.FC = () => {
               )}
               <span className="hidden md:inline text-sm font-medium text-text-main">{user?.displayName}</span>
             </div>
-            <button
-              onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
-              className="p-2 hover:bg-primary/10 hover:text-primary rounded-lg transition-colors text-text-main cursor-pointer"
-              title={theme === 'dark' ? 'Chuyển sang chế độ sáng' : 'Chuyển sang chế độ tối'}
-            >
-              {theme === 'dark' ? <Sun size={20} /> : <Moon size={20} />}
-            </button>
+
             <button
               onClick={logout}
               className="p-2 hover:bg-red-500/10 hover:text-red-400 rounded-lg transition-colors text-text-main cursor-pointer"
