@@ -55,10 +55,9 @@ const SearchPage: React.FC = () => {
     return () => unsubscribe();
   }, [user]);
 
-  // 2. Logic lấy dữ liệu ban đầu
+  // 2. Logic lấy dữ liệu ban đầu (Genres & Countries)
   useEffect(() => {
-    const fetchInitialData = async () => {
-      setInitialLoading(true);
+    const fetchStaticData = async () => {
       try {
         const [genreList, countriesList] = await Promise.all([
           getGenres(),
@@ -66,68 +65,75 @@ const SearchPage: React.FC = () => {
         ]);
         setGenres(genreList);
         setCountries(countriesList);
-
-        // Nếu có lịch sử xem, gọi AI. Nếu không, gọi Trending
-        if (historyMovies.length > 3) { // Chỉ gọi AI nếu đã xem ít nhất 3 phim
-
-          // Check cache first
-          const cacheKey = user ? `ai_recs_${user.uid}` : '';
-          const cachedData = cacheKey ? sessionStorage.getItem(cacheKey) : null;
-
-          if (cachedData) {
-            const parsedCache = JSON.parse(cachedData);
-            if (parsedCache.historyLength === historyMovies.length) {
-              setAiRecommendations(parsedCache.data);
-              setInitialLoading(false);
-              return;
-            }
-          }
-
-          setIsAiLoading(true);
-          try {
-            // Gọi AI lấy danh sách tên phim
-            const aiRecs = await getAIRecommendations(historyMovies);
-
-            // Dùng tên phim để tìm chi tiết từ TMDB (lấy ảnh poster)
-            const tmdbPromises = aiRecs.map(async (rec) => {
-              const searchRes = await searchMovies(rec.title);
-              // Lấy kết quả đầu tiên tìm thấy
-              return searchRes.results.length > 0 ? searchRes.results[0] : null;
-            });
-
-            const tmdbResults = (await Promise.all(tmdbPromises)).filter(m => m !== null) as TMDBMovieResult[];
-            setAiRecommendations(tmdbResults);
-
-            // Save to cache
-            sessionStorage.setItem(cacheKey, JSON.stringify({
-              historyLength: historyMovies.length,
-              data: tmdbResults
-            }));
-
-          } catch (e) {
-            // Fallback về trending nếu lỗi
-            const trendingData = await getTrendingMovies();
-            setTrendingMovies(trendingData.results);
-          } finally {
-            setIsAiLoading(false);
-          }
-        } else {
-          // User mới -> Lấy Trending như cũ
-          const trendingData = await getTrendingMovies();
-          setTrendingMovies(trendingData.results);
-        }
-
+      } catch (error) {
+        console.error("Error fetching static data:", error);
       } finally {
         setInitialLoading(false);
       }
     };
 
-    // Chỉ chạy khi historyMovies đã được load (hoặc user chưa login)
-    if (!user || historyMovies.length > 0 || initialLoading) {
-      fetchInitialData();
-    }
+    fetchStaticData();
+  }, []);
+
+  // 3. Logic lấy AI Recommendations khi history thay đổi
+  useEffect(() => {
+    const fetchRecommendations = async () => {
+      // Nếu chưa có user hoặc chưa có history, và chưa load xong static data thì bỏ qua
+      if (initialLoading) return;
+
+      // Nếu có lịch sử xem, gọi AI. Nếu không, gọi Trending
+      if (historyMovies.length > 3) { // Chỉ gọi AI nếu đã xem ít nhất 3 phim
+
+        // Check cache first
+        const cacheKey = user ? `ai_recs_${user.uid}` : '';
+        const cachedData = cacheKey ? sessionStorage.getItem(cacheKey) : null;
+
+        if (cachedData) {
+          const parsedCache = JSON.parse(cachedData);
+          if (parsedCache.historyLength === historyMovies.length) {
+            setAiRecommendations(parsedCache.data);
+            return;
+          }
+        }
+
+        setIsAiLoading(true);
+        try {
+          // Gọi AI lấy danh sách tên phim
+          const aiRecs = await getAIRecommendations(historyMovies);
+
+          // Dùng tên phim để tìm chi tiết từ TMDB (lấy ảnh poster)
+          const tmdbPromises = aiRecs.map(async (rec) => {
+            const searchRes = await searchMovies(rec.title);
+            // Lấy kết quả đầu tiên tìm thấy
+            return searchRes.results.length > 0 ? searchRes.results[0] : null;
+          });
+
+          const tmdbResults = (await Promise.all(tmdbPromises)).filter(m => m !== null) as TMDBMovieResult[];
+          setAiRecommendations(tmdbResults);
+
+          // Save to cache
+          sessionStorage.setItem(cacheKey, JSON.stringify({
+            historyLength: historyMovies.length,
+            data: tmdbResults
+          }));
+
+        } catch (e) {
+          // Fallback về trending nếu lỗi
+          const trendingData = await getTrendingMovies();
+          setTrendingMovies(trendingData.results);
+        } finally {
+          setIsAiLoading(false);
+        }
+      } else {
+        // User mới -> Lấy Trending như cũ
+        const trendingData = await getTrendingMovies();
+        setTrendingMovies(trendingData.results);
+      }
+    };
+
+    fetchRecommendations();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [historyMovies.length, user]);
+  }, [historyMovies.length, user, initialLoading]);
 
   useEffect(() => {
     const timer = setTimeout(async () => {
