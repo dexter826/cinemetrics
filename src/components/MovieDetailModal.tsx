@@ -47,9 +47,8 @@ const MovieDetailModal: React.FC<MovieDetailModalProps> = ({ isOpen, onClose, mo
     }
   }, [isOpen, movie]);
 
-  // Prevent scroll when modal is open
   useEffect(() => {
-    if (isOpen || showAlbumSelector) {
+    if (isOpen) {
       document.body.style.overflow = 'hidden';
     } else {
       document.body.style.overflow = 'unset';
@@ -57,7 +56,7 @@ const MovieDetailModal: React.FC<MovieDetailModalProps> = ({ isOpen, onClose, mo
     return () => {
       document.body.style.overflow = 'unset';
     };
-  }, [isOpen, showAlbumSelector]);
+  }, [isOpen]);
 
   if (!isOpen || !movie) return null;
 
