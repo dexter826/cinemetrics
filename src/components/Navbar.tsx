@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
-import { LogOut, Sun, Moon, BarChart2, Menu, X, Dice5, Folder } from 'lucide-react';
+import { LogOut, Sun, Moon, BarChart2, Menu, X, Dice5, Folder, Download } from 'lucide-react';
 import { useAuth } from './AuthProvider';
 import { useTheme } from './ThemeProvider';
 import { useNavigate, useLocation } from 'react-router-dom';
 import RandomPickerModal from './RandomPickerModal';
+import ExportModal from './ExportModal';
+import { useExport } from './ExportContext';
 
 const Navbar: React.FC = () => {
   const { user, logout } = useAuth();
@@ -12,6 +14,7 @@ const Navbar: React.FC = () => {
   const location = useLocation();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isRandomOpen, setIsRandomOpen] = useState(false);
+  const { isExportModalOpen, setIsExportModalOpen, movies } = useExport();
 
   React.useEffect(() => {
     if (isMenuOpen) {
@@ -54,6 +57,16 @@ const Navbar: React.FC = () => {
             >
               <Folder size={20} />
             </button>
+
+            {location.pathname === '/' && (
+              <button
+                onClick={() => setIsExportModalOpen(true)}
+                className="p-2 rounded-lg transition-colors cursor-pointer hover:bg-primary/10 hover:text-primary text-text-main"
+                title="Xuất dữ liệu"
+              >
+                <Download size={20} />
+              </button>
+            )}
 
             <button
               onClick={() => setIsRandomOpen(true)}
@@ -159,6 +172,16 @@ const Navbar: React.FC = () => {
               <span>Album phim</span>
             </button>
 
+            {location.pathname === '/' && (
+              <button
+                onClick={() => { setIsExportModalOpen(true); setIsMenuOpen(false); }}
+                className="w-full flex items-center space-x-3 p-3 rounded-xl hover:bg-primary/10 text-text-main transition-colors cursor-pointer"
+              >
+                <Download size={20} />
+                <span>Xuất dữ liệu</span>
+              </button>
+            )}
+
             <button
               onClick={() => { setIsRandomOpen(true); setIsMenuOpen(false); }}
               className="w-full flex items-center space-x-3 p-3 rounded-xl hover:bg-primary/10 text-text-main transition-colors cursor-pointer"
@@ -184,6 +207,12 @@ const Navbar: React.FC = () => {
       <RandomPickerModal
         isOpen={isRandomOpen}
         onClose={() => setIsRandomOpen(false)}
+      />
+
+      <ExportModal
+        isOpen={isExportModalOpen}
+        onClose={() => setIsExportModalOpen(false)}
+        movies={movies}
       />
     </>
   );

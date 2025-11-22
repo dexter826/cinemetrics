@@ -4,6 +4,7 @@ import { AuthProvider, useAuth } from './components/AuthProvider';
 import { ToastProvider } from './components/Toast.tsx';
 import { AlertProvider } from './components/Alert.tsx';
 import { AddMovieProvider, useAddMovie } from './components/AddMovieContext';
+import { ExportProvider } from './components/ExportContext';
 import Login from './components/Login';
 import Dashboard from './components/Dashboard';
 import SearchPage from './components/SearchPage';
@@ -68,9 +69,11 @@ const App: React.FC = () => {
           <ToastProvider>
             <AlertProvider>
               <AddMovieProvider>
-                <Layout>
-                  <AppContent />
-                </Layout>
+                <ExportProvider>
+                  <Layout>
+                    <AppContent />
+                  </Layout>
+                </ExportProvider>
               </AddMovieProvider>
             </AlertProvider>
           </ToastProvider>

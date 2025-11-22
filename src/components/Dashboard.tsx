@@ -13,6 +13,7 @@ import { Timestamp } from 'firebase/firestore';
 import { useToast } from './Toast';
 import { useAlert } from './Alert';
 import { useAddMovie } from './AddMovieContext';
+import { useExport } from './ExportContext';
 import Loading from './Loading';
 
 type SortOption = 'date' | 'title';
@@ -23,6 +24,7 @@ const Dashboard: React.FC = () => {
   const { showToast } = useToast();
   const { showAlert } = useAlert();
   const { openAddModal } = useAddMovie();
+  const { setMovies: setExportMovies } = useExport();
   const navigate = useNavigate();
   const [movies, setMovies] = useState<Movie[]>([]);
   const [loading, setLoading] = useState(true);
@@ -68,11 +70,12 @@ const Dashboard: React.FC = () => {
 
     const unsubscribe = subscribeToMovies(user.uid, (data) => {
       setMovies(data);
+      setExportMovies(data); // Update export context
       setLoading(false);
     });
 
     return () => unsubscribe();
-  }, [user]);
+  }, [user, setExportMovies]);
 
   const historyMovies = useMemo(() => movies.filter(m => (m.status || 'history') === 'history'), [movies]);
   const watchlistMovies = useMemo(() => movies.filter(m => m.status === 'watchlist'), [movies]);
