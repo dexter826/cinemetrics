@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
-import { LogOut, Sun, Moon, BarChart2, Menu, X, Dice5, Folder, Download } from 'lucide-react';
+import { LogOut, Sun, Moon, BarChart2, Menu, X, Dice5, Folder, Download, ChevronDown } from 'lucide-react';
 import { useAuth } from './AuthProvider';
 import { useTheme } from './ThemeProvider';
 import { useNavigate, useLocation } from 'react-router-dom';
 import RandomPickerModal from './RandomPickerModal';
 import ExportModal from './ExportModal';
 import { useExport } from './ExportContext';
+import { useAlert } from './Alert';
 
 const Navbar: React.FC = () => {
   const { user, logout } = useAuth();
@@ -14,7 +15,9 @@ const Navbar: React.FC = () => {
   const location = useLocation();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isRandomOpen, setIsRandomOpen] = useState(false);
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const { isExportModalOpen, setIsExportModalOpen, movies } = useExport();
+  const { showAlert } = useAlert();
 
   React.useEffect(() => {
     if (isMenuOpen) {
@@ -26,6 +29,16 @@ const Navbar: React.FC = () => {
       document.body.style.overflow = 'unset';
     };
   }, [isMenuOpen]);
+
+  React.useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (isDropdownOpen && !(event.target as Element).closest('.dropdown-container')) {
+        setIsDropdownOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [isDropdownOpen]);
 
   const toggleMenu = () => setIsMenuOpen(!isMenuOpen);
 
@@ -40,42 +53,35 @@ const Navbar: React.FC = () => {
             <img src="/logo_text.png" alt="Cinemetrics Logo" className="h-8 w-auto" />
           </div>
 
-          {/* Desktop Menu */}
-          <div className="hidden md:flex items-center space-x-4">
+          {/* Desktop Menu - Centered */}
+          <div className="hidden md:flex items-center justify-center flex-1 space-x-4">
             <button
               onClick={() => navigate('/stats')}
-              className={`p-2 rounded-lg transition-colors cursor-pointer ${location.pathname === '/stats' ? 'bg-primary/10 text-primary' : 'hover:bg-black/5 dark:hover:bg-white/5 text-text-main'}`}
-              title="Thống kê"
+              className={`flex items-center space-x-2 px-3 py-2 rounded-lg transition-colors cursor-pointer ${location.pathname === '/stats' ? 'bg-primary/10 text-primary' : 'hover:bg-primary/10 hover:text-primary text-text-main'}`}
             >
               <BarChart2 size={20} />
+              <span>Thống kê</span>
             </button>
 
             <button
               onClick={() => navigate('/albums')}
-              className={`p-2 rounded-lg transition-colors cursor-pointer ${location.pathname.startsWith('/albums') ? 'bg-primary/10 text-primary' : 'hover:bg-black/5 dark:hover:bg-white/5 text-text-main'}`}
-              title="Album phim"
+              className={`flex items-center space-x-2 px-3 py-2 rounded-lg transition-colors cursor-pointer ${location.pathname.startsWith('/albums') ? 'bg-primary/10 text-primary' : 'hover:bg-primary/10 hover:text-primary text-text-main'}`}
             >
               <Folder size={20} />
+              <span>Album</span>
             </button>
 
             <button
               onClick={() => setIsRandomOpen(true)}
-              className="p-2 rounded-lg transition-colors cursor-pointer hover:bg-primary/10 hover:text-primary text-text-main"
-              title="Chọn giúp tôi"
+              className="flex items-center space-x-2 px-3 py-2 rounded-lg transition-colors cursor-pointer hover:bg-primary/10 hover:text-primary text-text-main"
             >
               <Dice5 size={20} />
+              <span>Chọn giùm tôi</span>
             </button>
+          </div>
 
-            {location.pathname === '/' && (
-              <button
-                onClick={() => setIsExportModalOpen(true)}
-                className="p-2 rounded-lg transition-colors cursor-pointer hover:bg-primary/10 hover:text-primary text-text-main"
-                title="Xuất dữ liệu"
-              >
-                <Download size={20} />
-              </button>
-            )}
-
+          {/* Desktop Right Menu */}
+          <div className="hidden md:flex items-center space-x-4">
             <button
               onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
               className="p-2 hover:bg-primary/10 hover:text-primary rounded-lg transition-colors text-text-main cursor-pointer"
@@ -84,22 +90,51 @@ const Navbar: React.FC = () => {
               {theme === 'dark' ? <Sun size={20} /> : <Moon size={20} />}
             </button>
 
-            <div className="flex items-center space-x-3 px-3 py-1.5 rounded-full bg-black/5 dark:bg-white/5 border border-black/5 dark:border-white/5">
-              {user?.photoURL ? (
-                <img src={user.photoURL} alt="Avatar" className="w-6 h-6 rounded-full" />
-              ) : (
-                <div className="w-6 h-6 rounded-full bg-secondary"></div>
-              )}
-              <span className="hidden md:inline text-sm font-medium text-text-main">{user?.displayName}</span>
-            </div>
+            <div className="relative dropdown-container">
+              <button
+                onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                className="flex items-center space-x-3 px-3 py-1.5 rounded-full bg-black/5 dark:bg-white/5 border border-black/5 dark:border-white/5 hover:bg-black/10 dark:hover:bg-white/10 transition-colors cursor-pointer"
+              >
+                {user?.photoURL ? (
+                  <img src={user.photoURL} alt="Avatar" className="w-6 h-6 rounded-full" />
+                ) : (
+                  <div className="w-6 h-6 rounded-full bg-secondary"></div>
+                )}
+                <span className="hidden md:inline text-sm font-medium text-text-main">{user?.displayName}</span>
+                <ChevronDown size={16} className={`transition-transform ${isDropdownOpen ? 'rotate-180' : ''}`} />
+              </button>
 
-            <button
-              onClick={logout}
-              className="p-2 hover:bg-red-500/10 hover:text-red-400 rounded-lg transition-colors text-text-main cursor-pointer"
-              title="Đăng xuất"
-            >
-              <LogOut size={20} />
-            </button>
+              {isDropdownOpen && (
+                <div className="absolute right-0 mt-2 w-48 bg-surface border border-black/5 dark:border-white/5 rounded-lg shadow-lg z-50">
+                  {location.pathname === '/' && (
+                    <button
+                      onClick={() => { setIsExportModalOpen(true); setIsDropdownOpen(false); }}
+                      className="w-full flex items-center space-x-3 px-4 py-3 text-left hover:bg-black/5 dark:hover:bg-white/5 transition-colors cursor-pointer rounded-t-lg"
+                    >
+                      <Download size={18} />
+                      <span>Xuất dữ liệu</span>
+                    </button>
+                  )}
+                  <button
+                    onClick={() => {
+                      showAlert({
+                        title: 'Xác nhận đăng xuất',
+                        message: 'Bạn có chắc chắn muốn đăng xuất?',
+                        type: 'danger',
+                        confirmText: 'Đăng xuất',
+                        cancelText: 'Hủy',
+                        onConfirm: logout,
+                      });
+                      setIsDropdownOpen(false);
+                    }}
+                    className={`w-full flex items-center space-x-3 px-4 py-3 text-left hover:bg-red-500/10 hover:text-red-400 transition-colors cursor-pointer ${location.pathname === '/' ? 'rounded-b-lg' : 'rounded-lg'}`}
+                  >
+                    <LogOut size={18} />
+                    <span>Đăng xuất</span>
+                  </button>
+                </div>
+              )}
+            </div>
           </div>
 
           {/* Mobile Menu Button & Theme Toggle */}
