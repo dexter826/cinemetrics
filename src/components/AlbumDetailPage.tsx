@@ -9,7 +9,7 @@ import { subscribeToMovies } from '../services/movieService';
 import { useAuth } from './AuthProvider';
 import { useToast } from './Toast';
 import { useAlert } from './Alert';
-import { TMDB_IMAGE_BASE_URL, PLACEHOLDER_IMAGE } from '../constants';
+import MovieCard from './MovieCard';
 import { Timestamp } from 'firebase/firestore';
 
 const AlbumDetailPage: React.FC = () => {
@@ -24,7 +24,6 @@ const AlbumDetailPage: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState(false);
   const [name, setName] = useState('');
-  const [description, setDescription] = useState('');
   const [saving, setSaving] = useState(false);
   const [managingMovies, setManagingMovies] = useState(false);
 
@@ -35,7 +34,6 @@ const AlbumDetailPage: React.FC = () => {
       setAlbum(data);
       if (data) {
         setName(data.name);
-        setDescription(data.description || '');
       }
       setLoading(false);
     });
@@ -81,7 +79,6 @@ const AlbumDetailPage: React.FC = () => {
       setSaving(true);
       await updateAlbum(album.docId, {
         name: name.trim(),
-        description: description.trim() || undefined,
       });
       showToast('Đã cập nhật album', 'success');
       setEditing(false);
@@ -182,9 +179,6 @@ const AlbumDetailPage: React.FC = () => {
                 <Film className="text-primary" size={24} />
                 <h1 className="text-xl md:text-2xl font-bold truncate">{album.name}</h1>
               </div>
-              <p className="text-sm text-text-muted truncate">
-                {album.description || 'Album phim đã xem'}
-              </p>
               <p className="text-xs text-text-muted mt-1">
                 {album.movieDocIds.length} phim · Tạo ngày {formatDate(album.createdAt)}
               </p>
@@ -226,15 +220,6 @@ const AlbumDetailPage: React.FC = () => {
                   className="w-full bg-background border border-black/10 dark:border-white/10 rounded-xl px-4 py-2 focus:outline-none focus:border-primary/50 text-sm"
                 />
               </div>
-              <div className="space-y-2">
-                <label className="text-sm font-medium text-text-muted">Mô tả</label>
-                <input
-                  type="text"
-                  value={description}
-                  onChange={e => setDescription(e.target.value)}
-                  className="w-full bg-background border border-black/10 dark:border-white/10 rounded-xl px-4 py-2 focus:outline-none focus:border-primary/50 text-sm"
-                />
-              </div>
             </div>
             <div className="flex justify-end gap-2">
               <button
@@ -267,40 +252,26 @@ const AlbumDetailPage: React.FC = () => {
             </div>
           ) : (
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 md:gap-6">
-              {albumMovies.map(movie => {
-                const imageUrl = movie.poster_path
-                  ? movie.source === 'tmdb'
-                    ? `${TMDB_IMAGE_BASE_URL}${movie.poster_path}`
-                    : movie.poster_path
-                  : PLACEHOLDER_IMAGE;
-                return (
-                  <div
-                    key={movie.docId}
-                    className="group bg-surface rounded-xl overflow-hidden border border-black/5 dark:border-white/5 hover:border-primary/50 transition-all relative"
+              {albumMovies.map(movie => (
+                <div key={movie.docId} className="relative">
+                  <MovieCard
+                    movie={movie}
+                    onClick={() => {}}
+                    onEdit={() => {}}
+                    onDelete={() => {
+                      if (!movie.docId) return;
+                      handleRemoveMovie(movie);
+                    }}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => handleRemoveMovie(movie)}
+                    className="absolute top-2 right-2 p-1.5 rounded-full bg-black/60 text-red-400 hover:bg-red-500 hover:text-white transition-colors z-20"
                   >
-                    <div className="aspect-2/3 w-full relative overflow-hidden">
-                      <img
-                        src={imageUrl}
-                        alt={movie.title}
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                      />
-                      <div className="absolute inset-0 bg-linear-to-t from-black/80 via-transparent to-transparent" />
-                      <button
-                        type="button"
-                        onClick={() => handleRemoveMovie(movie)}
-                        className="absolute top-2 right-2 p-1.5 rounded-full bg-black/60 text-red-400 hover:bg-red-500 hover:text-white transition-colors"
-                      >
-                        <Trash2 size={14} />
-                      </button>
-                    </div>
-                    <div className="p-3">
-                      <h3 className="text-sm font-semibold text-white line-clamp-1" title={movie.title}>
-                        {movie.title}
-                      </h3>
-                    </div>
-                  </div>
-                );
-              })}
+                    <Trash2 size={14} />
+                  </button>
+                </div>
+              ))}
             </div>
           )}
         </div>
@@ -317,37 +288,22 @@ const AlbumDetailPage: React.FC = () => {
               </div>
             ) : (
               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 md:gap-6">
-                {availableMovies.map(movie => {
-                  const imageUrl = movie.poster_path
-                    ? movie.source === 'tmdb'
-                      ? `${TMDB_IMAGE_BASE_URL}${movie.poster_path}`
-                      : movie.poster_path
-                    : PLACEHOLDER_IMAGE;
-                  const watchedAt = movie.watched_at instanceof Timestamp
-                    ? movie.watched_at.toDate()
-                    : (movie.watched_at as Date);
-                  return (
+                {availableMovies.map(movie => (
+                  <div key={movie.docId} className="relative">
                     <button
-                      key={movie.docId}
                       type="button"
                       onClick={() => handleAddMovie(movie)}
-                      className="group bg-surface rounded-xl overflow-hidden border border-black/5 dark:border-white/5 hover:border-primary/50 transition-all text-left"
+                      className="w-full text-left"
                     >
-                      <div className="aspect-2/3 w-full relative overflow-hidden">
-                        <img
-                          src={imageUrl}
-                          alt={movie.title}
-                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                        />
-                        <div className="absolute inset-0 bg-linear-to-t from-black/80 via-transparent to-transparent" />
-                        <div className="absolute bottom-2 left-2 right-2 flex items-center justify-between text-[11px] text-gray-200">
-                          <span className="line-clamp-1">{movie.title}</span>
-                          <span>{watchedAt ? watchedAt.getFullYear() : ''}</span>
-                        </div>
-                      </div>
+                      <MovieCard
+                        movie={movie}
+                        onClick={() => {}}
+                        onEdit={() => {}}
+                        onDelete={() => {}}
+                      />
                     </button>
-                  );
-                })}
+                  </div>
+                ))}
               </div>
             )}
           </div>

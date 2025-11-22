@@ -159,11 +159,11 @@ const AlbumsPage: React.FC = () => {
 
         <form
           onSubmit={handleCreate}
-          className="bg-surface border border-black/5 dark:border-white/10 rounded-2xl p-4 md:p-6 space-y-4"
+          className="bg-surface border border-black/15 dark:border-white/10 rounded-2xl p-4 space-y-4"
         >
           <div className="flex flex-col md:flex-row md:items-end gap-4">
-            <div className="flex-1 space-y-2">
-              <label className="text-sm font-medium text-text-muted">Tên album</label>
+            <div className="flex-1 flex items-center gap-3">
+              <label className="text-sm font-medium text-text-muted whitespace-nowrap">Tên album</label>
               <input
                 type="text"
                 value={name}
@@ -200,7 +200,7 @@ const AlbumsPage: React.FC = () => {
             {albums.map(album => (
               <div
                 key={album.docId}
-                className="group relative bg-surface rounded-2xl border border-black/5 dark:border-white/10 hover:border-primary/50 transition-all duration-300 hover:shadow-lg hover:shadow-primary/10 cursor-pointer overflow-hidden"
+                className="group relative bg-surface rounded-2xl border border-black/15 dark:border-white/10 hover:border-primary/50 transition-all duration-300 hover:shadow-lg hover:shadow-primary/10 cursor-pointer overflow-hidden"
                 onClick={() => album.docId && navigate(`/albums/${album.docId}`)}
               >
                 {/* Cover image section */}
