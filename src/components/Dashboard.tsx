@@ -268,29 +268,25 @@ const Dashboard: React.FC = () => {
           <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
             <div className="flex items-baseline gap-3">
               <div className="flex items-center gap-3">
-                <h2 className="text-xl font-semibold text-text-main">
-                  {activeTab === 'history' ? 'Lịch sử xem' : 'Sẽ xem'}
-                </h2>
                 <div className="inline-flex items-center bg-black/5 dark:bg-white/5 rounded-full p-1">
                   <button
                     type="button"
                     onClick={() => setActiveTab('history')}
-                    className={`px-3 py-1 text-xs font-medium rounded-full transition-colors cursor-pointer ${activeTab === 'history' ? 'bg-primary text-white' : 'text-text-muted hover:text-text-main'}`}
+                    className={`px-3 py-1 text-sm md:text-base font-medium rounded-full transition-colors cursor-pointer ${activeTab === 'history' ? 'bg-primary text-white' : 'text-text-muted hover:text-text-main'}`}
                   >
                     Đã xem
                   </button>
                   <button
                     type="button"
                     onClick={() => setActiveTab('watchlist')}
-                    className={`px-3 py-1 text-xs font-medium rounded-full transition-colors cursor-pointer ${activeTab === 'watchlist' ? 'bg-primary text-white' : 'text-text-muted hover:text-text-main'}`}
+                    className={`px-3 py-1 text-sm md:text-base font-medium rounded-full transition-colors cursor-pointer ${activeTab === 'watchlist' ? 'bg-primary text-white' : 'text-text-muted hover:text-text-main'}`}
                   >
                     Sẽ xem
                   </button>
                 </div>
               </div>
               <span className="text-sm text-text-muted">
-                {currentMovies.length} nội dung 
-                ({contentTypeStats.moviesCount} phim, {contentTypeStats.tvCount} series)
+                ({contentTypeStats.moviesCount} phim / {contentTypeStats.tvCount} series)
               </span>
             </div>
 

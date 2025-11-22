@@ -113,21 +113,6 @@ const MovieCard: React.FC<MovieCardProps> = ({ movie, onDelete, onEdit, onClick,
             <span>{formatDate(movie.watched_at)}</span>
           </div>
         </div>
-
-        {movie.status === 'watchlist' && onMarkAsWatched && (
-          <div className="mt-2 flex items-center justify-between text-xs">
-            <span className="px-2 py-0.5 rounded-full bg-yellow-500/20 text-yellow-200 font-medium">
-              Watchlist
-            </span>
-            <button
-              type="button"
-              onClick={(e) => { e.stopPropagation(); onMarkAsWatched(movie); }}
-              className="px-3 py-1 rounded-full bg-primary text-white font-medium hover:bg-primary/90 transition-colors cursor-pointer text-xs"
-            >
-              Đã xem
-            </button>
-          </div>
-        )}
       </div>
     </div>
   );
