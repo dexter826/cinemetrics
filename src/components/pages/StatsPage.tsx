@@ -45,6 +45,7 @@ const StatsPage: React.FC = () => {
   const { user } = useAuth();
   const [movies, setMovies] = useState<Movie[]>([]);
   const [loading, setLoading] = useState(true);
+  const [showAllYears, setShowAllYears] = useState(false);
 
   useEffect(() => {
     if (!user) return;
@@ -137,9 +138,9 @@ const StatsPage: React.FC = () => {
       <Navbar />
       
       <div className="max-w-7xl mx-auto px-4 md:px-8 py-8 space-y-8">
-        <h1 className="text-3xl font-bold flex items-center gap-3">
+        <h1 className="md:text-3xl text-xl font-bold flex items-center gap-3">
           <TrendingUp className="text-primary" />
-          Thống kê chi tiết
+          Thống kê chi tiết phim đã xem
         </h1>
 
         {/* Overview Cards */}
@@ -180,23 +181,34 @@ const StatsPage: React.FC = () => {
               <Calendar size={20} className="text-primary" />
               Phim theo năm
             </h3>
-            <div className="space-y-4">
-              {Object.entries(stats.moviesByYear)
-                .sort((a, b) => Number(b[0]) - Number(a[0]))
-                .map(([year, count]) => (
-                  <div key={year} className="space-y-1">
-                    <div className="flex justify-between text-sm">
-                      <span>{year}</span>
-                      <span className="font-medium">{count} phim</span>
+            <div className="relative">
+              <div className="space-y-4">
+                {Object.entries(stats.moviesByYear)
+                  .sort((a, b) => Number(b[0]) - Number(a[0]))
+                  .slice(0, showAllYears ? undefined : 4)
+                  .map(([year, count]) => (
+                    <div key={year} className="space-y-1">
+                      <div className="flex justify-between text-sm">
+                        <span>{year}</span>
+                        <span className="font-medium">{count} phim</span>
+                      </div>
+                      <div className="h-2 bg-black/5 dark:bg-white/5 rounded-full overflow-hidden">
+                        <div
+                          className="h-full bg-primary rounded-full transition-all duration-500"
+                          style={{ width: `${(Number(count) / (stats.totalMovies || 1)) * 100}%` }}
+                        />
+                      </div>
                     </div>
-                    <div className="h-2 bg-black/5 dark:bg-white/5 rounded-full overflow-hidden">
-                      <div 
-                        className="h-full bg-primary rounded-full transition-all duration-500"
-                        style={{ width: `${(Number(count) / (stats.totalMovies || 1)) * 100}%` }}
-                      />
-                    </div>
-                  </div>
-                ))}
+                  ))}
+              </div>
+              {Object.keys(stats.moviesByYear).length > 4 && !showAllYears && (
+                <div
+                  className="absolute bottom-0 left-0 right-0 h-16 bg-linear-to-t from-surface to-transparent cursor-pointer flex items-end justify-center pb-2"
+                  onClick={() => setShowAllYears(true)}
+                >
+                  <span className="text-primary font-medium text-sm">Xem thêm</span>
+                </div>
+              )}
             </div>
           </div>
 
@@ -308,7 +320,7 @@ const StatsPage: React.FC = () => {
                       cx="50%"
                       cy="50%"
                       labelLine={false}
-                      label={({ name, percentage }) => `${name}: ${percentage}%`}
+                      label={({ name, value }) => `${name}: ${((value / stats.totalMovies) * 100).toFixed(1)}%`}
                       outerRadius={90}
                       fill="#8884d8"
                       dataKey="value"
