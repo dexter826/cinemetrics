@@ -55,24 +55,26 @@ const StatsPage: React.FC = () => {
     return () => unsubscribe();
   }, [user]);
 
+  const watchedMovies = useMemo(() => movies.filter(m => (m.status || 'history') === 'history'), [movies]);
+
   const stats = useMemo(() => {
-    const totalMovies = movies.length;
-    const movieCount = movies.filter(m => m.media_type === 'movie').length;
-    const tvCount = movies.filter(m => m.media_type === 'tv').length;
-    const totalMinutes = movies.reduce((acc, curr) => acc + (curr.runtime || 0), 0);
+    const totalMovies = watchedMovies.length;
+    const movieCount = watchedMovies.filter(m => m.media_type === 'movie').length;
+    const tvCount = watchedMovies.filter(m => m.media_type === 'tv').length;
+    const totalMinutes = watchedMovies.reduce((acc, curr) => acc + (curr.runtime || 0), 0);
     
     const days = Math.floor(totalMinutes / 1440);
     const hours = Math.floor((totalMinutes % 1440) / 60);
     const minutes = totalMinutes % 60;
 
-    const ratedMovies = movies.filter(m => m.rating && m.rating > 0);
+    const ratedMovies = watchedMovies.filter(m => m.rating && m.rating > 0);
     const avgRating = ratedMovies.length > 0
       ? (ratedMovies.reduce((acc, curr) => acc + (curr.rating || 0), 0) / ratedMovies.length).toFixed(1)
       : '0';
 
     // Movies by Year (Watched Year)
     const moviesByYear: Record<string, number> = {};
-    movies.forEach(m => {
+    watchedMovies.forEach(m => {
       const date = m.watched_at instanceof Timestamp ? m.watched_at.toDate() : new Date(m.watched_at as any);
       const year = date.getFullYear();
       moviesByYear[year] = (moviesByYear[year] || 0) + 1;
@@ -124,7 +126,7 @@ const StatsPage: React.FC = () => {
       moviesByGenre,
       totalCountries
     };
-  }, [movies]);
+  }, [watchedMovies]);
 
   if (loading) {
     return <Loading />;

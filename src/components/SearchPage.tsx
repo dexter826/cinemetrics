@@ -81,8 +81,10 @@ const SearchPage: React.FC = () => {
       // Nếu chưa có user hoặc chưa có history, và chưa load xong static data thì bỏ qua
       if (initialLoading) return;
 
+      const watchedHistory = historyMovies.filter(m => (m.status || 'history') === 'history');
+
       // Nếu có lịch sử xem, gọi AI. Nếu không, gọi Trending
-      if (historyMovies.length > 3) { // Chỉ gọi AI nếu đã xem ít nhất 3 phim
+      if (watchedHistory.length > 3) { // Chỉ gọi AI nếu đã xem ít nhất 3 phim
 
         // Check cache first
         const cacheKey = user ? `ai_recs_${user.uid}` : '';
@@ -90,7 +92,7 @@ const SearchPage: React.FC = () => {
 
         if (cachedData) {
           const parsedCache = JSON.parse(cachedData);
-          if (parsedCache.historyLength === historyMovies.length) {
+          if (parsedCache.historyLength === watchedHistory.length) {
             setAiRecommendations(parsedCache.data);
             return;
           }
@@ -99,7 +101,7 @@ const SearchPage: React.FC = () => {
         setIsAiLoading(true);
         try {
           // Gọi AI lấy danh sách tên phim
-          const aiRecs = await getAIRecommendations(historyMovies);
+          const aiRecs = await getAIRecommendations(watchedHistory);
 
           // Dùng tên phim để tìm chi tiết từ TMDB (lấy ảnh poster)
           const tmdbPromises = aiRecs.map(async (rec) => {
@@ -113,7 +115,7 @@ const SearchPage: React.FC = () => {
 
           // Save to cache
           sessionStorage.setItem(cacheKey, JSON.stringify({
-            historyLength: historyMovies.length,
+            historyLength: watchedHistory.length,
             data: tmdbResults
           }));
 

@@ -168,10 +168,12 @@ const MovieDetailModal: React.FC<MovieDetailModalProps> = ({ isOpen, onClose, mo
                 </div>
               )}
               
-              <div className="pt-4 border-t border-white/10 text-xs text-text-muted flex justify-between">
-                 <span>Đã xem: {movie.watched_at instanceof Object && 'toDate' in movie.watched_at ? movie.watched_at.toDate().toLocaleDateString('vi-VN') : new Date(movie.watched_at as any).toLocaleDateString('vi-VN')}</span>
-                 <span>Nguồn: {movie.source === 'tmdb' ? 'TMDB' : 'Thủ công'}</span>
-              </div>
+              {movie.status !== 'watchlist' && (
+                <div className="pt-4 border-t border-white/10 text-xs text-text-muted flex justify-between">
+                  <span>Đã xem: {movie.watched_at instanceof Object && 'toDate' in movie.watched_at ? movie.watched_at.toDate().toLocaleDateString('vi-VN') : new Date(movie.watched_at as any).toLocaleDateString('vi-VN')}</span>
+                  <span>Nguồn: {movie.source === 'tmdb' ? 'TMDB' : 'Thủ công'}</span>
+                </div>
+              )}
             </div>
           )}
         </div>

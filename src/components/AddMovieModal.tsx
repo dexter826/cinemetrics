@@ -33,6 +33,7 @@ const AddMovieModal: React.FC = () => {
   const [isLoadingDetails, setIsLoadingDetails] = useState(false);
   const [manualMediaType, setManualMediaType] = useState<'movie' | 'tv'>('movie');
   const [movieExists, setMovieExists] = useState(false);
+  const [status, setStatus] = useState<'history' | 'watchlist'>('history');
 
   const isManualMode = !initialData?.tmdbId && !initialData?.movie && !initialData?.movieToEdit;
 
@@ -56,6 +57,7 @@ const AddMovieModal: React.FC = () => {
       if (initialData?.movieToEdit) {
         // Edit Mode
         const m = initialData.movieToEdit;
+        setStatus(m.status || 'history');
         const d = m.watched_at instanceof Object && 'toDate' in m.watched_at
           ? m.watched_at.toDate()
           : new Date(m.watched_at as any);
@@ -85,6 +87,7 @@ const AddMovieModal: React.FC = () => {
         });
       } else if (initialData?.tmdbId || initialData?.movie) {
         // Add Mode from Search or ID
+        setStatus('history');
         const fetchDetails = async () => {
           setIsLoadingDetails(true);
           try {
@@ -154,6 +157,7 @@ const AddMovieModal: React.FC = () => {
         });
         setManualMediaType('movie');
         setMovieExists(false);
+        setStatus('history');
       }
     }
   }, [isOpen, initialData, user]);
@@ -161,15 +165,16 @@ const AddMovieModal: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!user) return;
+    const isHistory = status === 'history';
     
     // Check if rating is required (when recording movies, not manual mode)
-    if (!isManualMode && formData.rating === 0) {
+    if (isHistory && !isManualMode && formData.rating === 0) {
       showToast("Vui lòng đánh giá phim", "error");
       return;
     }
     
     // Validate: watched date must be after release date
-    if (formData.releaseDate) {
+    if (isHistory && formData.releaseDate) {
       const [y, m, d] = formData.date.split('-').map(Number);
       const [hours, minutes] = formData.time.split(':').map(Number);
       const watchedDate = new Date(y, m - 1, d, hours, minutes, 0);
@@ -188,7 +193,9 @@ const AddMovieModal: React.FC = () => {
     try {
       const [y, m, d] = formData.date.split('-').map(Number);
       const [hours, minutes] = formData.time.split(':').map(Number);
-      const watchedDate = new Date(y, m - 1, d, hours, minutes, 0);
+      const watchedDate = isHistory
+        ? new Date(y, m - 1, d, hours, minutes, 0)
+        : new Date();
       const isTv = initialData?.mediaType === 'tv' || initialData?.movie?.media_type === 'tv' || (initialData?.movieToEdit?.media_type === 'tv') || (isManualMode && manualMediaType === 'tv');
 
       if (initialData?.movieToEdit && initialData.movieToEdit.docId) {
@@ -199,6 +206,7 @@ const AddMovieModal: React.FC = () => {
           seasons: parseInt(formData.seasons) || 0,
           poster_path: formData.poster,
           watched_at: watchedDate,
+          status,
           rating: Number(formData.rating),
           review: formData.review,
           tagline: formData.tagline,
@@ -220,6 +228,7 @@ const AddMovieModal: React.FC = () => {
           watched_at: watchedDate,
           source: (initialData?.tmdbId || initialData?.movie) ? 'tmdb' : 'manual',
           media_type: isManualMode ? manualMediaType : (initialData?.mediaType || 'movie'),
+          status,
           rating: Number(formData.rating),
           review: formData.review,
           tagline: formData.tagline,
@@ -281,6 +290,26 @@ const AddMovieModal: React.FC = () => {
 
                 {/* Fields */}
                 <div className="w-full md:w-2/3 space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium text-text-muted mb-1">Trạng thái</label>
+                    <div className="inline-flex items-center bg-black/5 dark:bg-white/5 rounded-full p-1">
+                      <button
+                        type="button"
+                        onClick={() => setStatus('history')}
+                        className={`px-3 py-1 text-xs font-medium rounded-full transition-colors cursor-pointer ${status === 'history' ? 'bg-primary text-white' : 'text-text-muted hover:text-text-main'}`}
+                      >
+                        Đã xem
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setStatus('watchlist')}
+                        className={`px-3 py-1 text-xs font-medium rounded-full transition-colors cursor-pointer ${status === 'watchlist' ? 'bg-primary text-white' : 'text-text-muted hover:text-text-main'}`}
+                      >
+                        Muốn xem
+                      </button>
+                    </div>
+                  </div>
+
                   <div>
                     <label className="block text-sm font-medium text-text-muted mb-1">Tên phim</label>
                     <input
@@ -366,25 +395,27 @@ const AddMovieModal: React.FC = () => {
                     />
                   </div>
 
-                  <div>
-                    <label className="block text-sm font-medium text-text-muted mb-1">Ngày xem</label>
-                    <div className="relative">
-                      <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted pointer-events-none" size={16} />
-                      <input
-                        type="datetime-local"
-                        required
-                        value={`${formData.date}T${formData.time}`}
-                        onChange={e => {
-                          const datetimeValue = e.target.value;
-                          if (datetimeValue) {
-                            const [datePart, timePart] = datetimeValue.split('T');
-                            setFormData({...formData, date: datePart, time: timePart});
-                          }
-                        }}
-                        className="w-full bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-lg pl-10 pr-4 py-2.5 text-text-main focus:outline-none focus:border-primary/50 transition-colors scheme-light dark:scheme-dark"
-                      />
+                  {status === 'history' && (
+                    <div>
+                      <label className="block text-sm font-medium text-text-muted mb-1">Ngày xem</label>
+                      <div className="relative">
+                        <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted pointer-events-none" size={16} />
+                        <input
+                          type="datetime-local"
+                          required
+                          value={`${formData.date}T${formData.time}`}
+                          onChange={e => {
+                            const datetimeValue = e.target.value;
+                            if (datetimeValue) {
+                              const [datePart, timePart] = datetimeValue.split('T');
+                              setFormData({...formData, date: datePart, time: timePart});
+                            }
+                          }}
+                          className="w-full bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-lg pl-10 pr-4 py-2.5 text-text-main focus:outline-none focus:border-primary/50 transition-colors scheme-light dark:scheme-dark"
+                        />
+                      </div>
                     </div>
-                  </div>
+                  )}
 
                   <div className="grid grid-cols-2 gap-4">
                     <div>
@@ -439,41 +470,45 @@ const AddMovieModal: React.FC = () => {
                     )}
                   </div>
 
-                  <div>
-                    <label className="block text-sm font-medium text-text-muted mb-1">
-                      Đánh giá {!isManualMode && <span className="text-red-500">*</span>}
-                    </label>
-                    <div className="flex gap-2">
-                      {[1, 2, 3, 4, 5].map((star) => (
-                        <button
-                          key={star}
-                          type="button"
-                          onClick={() => setFormData(prev => ({ ...prev, rating: star }))}
-                          className="p-1 hover:scale-110 transition-transform"
-                        >
-                          <Star
-                            size={32}
-                            className={`${
-                              star <= formData.rating
-                                ? 'fill-yellow-500 text-yellow-500'
-                                : 'text-text-muted hover:text-yellow-500'
-                            } transition-colors`}
-                          />
-                        </button>
-                      ))}
-                    </div>
-                  </div>
+                  {status === 'history' && (
+                    <>
+                      <div>
+                        <label className="block text-sm font-medium text-text-muted mb-1">
+                          Đánh giá {!isManualMode && <span className="text-red-500">*</span>}
+                        </label>
+                        <div className="flex gap-2">
+                          {[1, 2, 3, 4, 5].map((star) => (
+                            <button
+                              key={star}
+                              type="button"
+                              onClick={() => setFormData(prev => ({ ...prev, rating: star }))}
+                              className="p-1 hover:scale-110 transition-transform"
+                            >
+                              <Star
+                                size={32}
+                                className={`${
+                                  star <= formData.rating
+                                    ? 'fill-yellow-500 text-yellow-500'
+                                    : 'text-text-muted hover:text-yellow-500'
+                                } transition-colors`}
+                              />
+                            </button>
+                          ))}
+                        </div>
+                      </div>
 
-                  <div>
-                    <label className="block text-sm font-medium text-text-muted mb-1">Review ngắn (tùy chọn)</label>
-                    <textarea
-                      rows={3}
-                      value={formData.review}
-                      onChange={e => setFormData({...formData, review: e.target.value})}
-                      className="w-full bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-lg px-4 py-2.5 text-text-main placeholder-text-muted focus:outline-none focus:border-primary/50 transition-colors resize-none"
-                      placeholder="Cảm nhận của bạn về phim..."
-                    />
-                  </div>
+                      <div>
+                        <label className="block text-sm font-medium text-text-muted mb-1">Review ngắn (tùy chọn)</label>
+                        <textarea
+                          rows={3}
+                          value={formData.review}
+                          onChange={e => setFormData({...formData, review: e.target.value})}
+                          className="w-full bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-lg px-4 py-2.5 text-text-main placeholder-text-muted focus:outline-none focus:border-primary/50 transition-colors resize-none"
+                          placeholder="Cảm nhận của bạn về phim..."
+                        />
+                      </div>
+                    </>
+                  )}
                 </div>
               </div>
 

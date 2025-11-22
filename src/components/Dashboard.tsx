@@ -2,6 +2,7 @@ import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from './AuthProvider';
 import { subscribeToMovies, deleteMovie } from '../services/movieService';
+
 import { Movie, Stats } from '../types';
 import { Film, Plus, Loader, AlertTriangle, Calendar, Type, ArrowUp, ArrowDown, Search, X, Filter, Star } from 'lucide-react';
 import MovieCard from './MovieCard';
@@ -11,7 +12,6 @@ import { TMDB_API_KEY } from '../constants';
 import { Timestamp } from 'firebase/firestore';
 import { useToast } from './Toast';
 import { useAlert } from './Alert';
-
 import { useAddMovie } from './AddMovieContext';
 import Loading from './Loading';
 
@@ -46,6 +46,8 @@ const Dashboard: React.FC = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [moviesPerPage] = useState(18);
 
+  const [activeTab, setActiveTab] = useState<'history' | 'watchlist'>('history');
+
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (filterRef.current && !filterRef.current.contains(event.target as Node)) {
@@ -72,28 +74,32 @@ const Dashboard: React.FC = () => {
     return () => unsubscribe();
   }, [user]);
 
+  const historyMovies = useMemo(() => movies.filter(m => (m.status || 'history') === 'history'), [movies]);
+  const watchlistMovies = useMemo(() => movies.filter(m => m.status === 'watchlist'), [movies]);
+  const currentMovies = activeTab === 'history' ? historyMovies : watchlistMovies;
+
   const stats: Stats = useMemo(() => {
-    const totalMovies = movies.length;
-    const totalMinutes = movies.reduce((acc, curr) => acc + (curr.runtime || 0), 0);
+    const totalMovies = currentMovies.length;
+    const totalMinutes = currentMovies.reduce((acc, curr) => acc + (curr.runtime || 0), 0);
 
     const days = Math.floor(totalMinutes / 1440);
     const hours = Math.floor((totalMinutes % 1440) / 60);
     const minutes = totalMinutes % 60;
 
     return { totalMovies, totalMinutes, days, hours, minutes };
-  }, [movies]);
+  }, [currentMovies]);
 
   // Content type stats
   const contentTypeStats = useMemo(() => {
-    const moviesCount = movies.filter(m => m.media_type === 'movie' || !m.media_type).length;
-    const tvCount = movies.filter(m => m.media_type === 'tv').length;
+    const moviesCount = currentMovies.filter(m => m.media_type === 'movie' || !m.media_type).length;
+    const tvCount = currentMovies.filter(m => m.media_type === 'tv').length;
     return { moviesCount, tvCount };
-  }, [movies]);
+  }, [currentMovies]);
 
   // Sort & Filter Logic
   const processedMovies = useMemo(() => {
     // 1. Filter first
-    let result = [...movies];
+    let result = [...currentMovies];
 
     if (searchQuery.trim()) {
       const q = searchQuery.toLowerCase();
@@ -123,8 +129,6 @@ const Dashboard: React.FC = () => {
       });
     }
 
-    
-
     // 2. Sort
     result.sort((a, b) => {
       let comparison = 0;
@@ -147,7 +151,7 @@ const Dashboard: React.FC = () => {
     });
 
     return result;
-  }, [movies, sortBy, sortOrder, searchQuery, filterRating, filterYear, filterCountry, filterContentType, filterVersion]);
+  }, [currentMovies, sortBy, sortOrder, searchQuery, filterRating, filterYear, filterCountry, filterContentType, filterVersion]);
 
   // Pagination Logic
   const totalPages = Math.ceil(processedMovies.length / moviesPerPage);
@@ -161,8 +165,6 @@ const Dashboard: React.FC = () => {
   useEffect(() => {
     setCurrentPage(1);
   }, [searchQuery, filterRating, filterYear, filterCountry, filterContentType, sortBy, sortOrder, filterVersion]);
-
-
 
   const handleDelete = async (docId: string) => {
     showAlert({
@@ -192,6 +194,21 @@ const Dashboard: React.FC = () => {
   const handleMovieClick = (movie: Movie) => {
     setSelectedMovie(movie);
     setIsDetailModalOpen(true);
+  };
+
+  const handleMarkAsWatched = (movie: Movie) => {
+    const now = new Date();
+    const existingDate = movie.watched_at instanceof Timestamp
+      ? movie.watched_at.toDate()
+      : (movie.watched_at as Date | undefined);
+
+    openAddModal({
+      movieToEdit: {
+        ...movie,
+        status: 'history',
+        watched_at: existingDate || now,
+      },
+    });
   };
 
   if (loading) {
@@ -250,9 +267,29 @@ const Dashboard: React.FC = () => {
         <div className="space-y-4">
           <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
             <div className="flex items-baseline gap-3">
-              <h2 className="text-xl font-semibold text-text-main">Lịch sử xem</h2>
+              <div className="flex items-center gap-3">
+                <h2 className="text-xl font-semibold text-text-main">
+                  {activeTab === 'history' ? 'Lịch sử xem' : 'Sẽ xem'}
+                </h2>
+                <div className="inline-flex items-center bg-black/5 dark:bg-white/5 rounded-full p-1">
+                  <button
+                    type="button"
+                    onClick={() => setActiveTab('history')}
+                    className={`px-3 py-1 text-xs font-medium rounded-full transition-colors cursor-pointer ${activeTab === 'history' ? 'bg-primary text-white' : 'text-text-muted hover:text-text-main'}`}
+                  >
+                    Đã xem
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setActiveTab('watchlist')}
+                    className={`px-3 py-1 text-xs font-medium rounded-full transition-colors cursor-pointer ${activeTab === 'watchlist' ? 'bg-primary text-white' : 'text-text-muted hover:text-text-main'}`}
+                  >
+                    Sẽ xem
+                  </button>
+                </div>
+              </div>
               <span className="text-sm text-text-muted">
-                {movies.length} nội dung 
+                {currentMovies.length} nội dung 
                 ({contentTypeStats.moviesCount} phim, {contentTypeStats.tvCount} series)
               </span>
             </div>
@@ -331,12 +368,12 @@ const Dashboard: React.FC = () => {
                         {(filterRating !== null || filterYear !== null || filterCountry || filterContentType !== 'all') && (
                           <button 
                             onClick={() => { 
-                            setFilterRating(null); 
-                            setFilterYear(null); 
-                            setFilterCountry(''); 
-                            setFilterContentType('all');
-                            setFilterVersion(v => v + 1); // Force re-render
-                          }}
+                              setFilterRating(null); 
+                              setFilterYear(null); 
+                              setFilterCountry(''); 
+                              setFilterContentType('all');
+                              setFilterVersion(v => v + 1); // Force re-render
+                            }}
                             className="text-xs text-primary hover:underline"
                           >
                             Xóa lọc
@@ -351,9 +388,9 @@ const Dashboard: React.FC = () => {
                           <select
                             value={filterContentType}
                             onChange={(e) => {
-                    setFilterContentType(e.target.value as 'all' | 'movie' | 'tv');
-                    setFilterVersion(v => v + 1);
-                  }}
+                              setFilterContentType(e.target.value as 'all' | 'movie' | 'tv');
+                              setFilterVersion(v => v + 1);
+                            }}
                             className="w-full bg-black/5 dark:bg-white/5 border-none rounded-lg text-sm text-text-main py-2 px-3 focus:ring-1 focus:ring-primary appearance-none cursor-pointer"
                           >
                             <option value="all" className="bg-surface text-text-main dark:bg-gray-800">Tất cả</option>
@@ -394,7 +431,7 @@ const Dashboard: React.FC = () => {
                             className="w-full bg-black/5 dark:bg-white/5 border-none rounded-lg text-sm text-text-main py-2 px-3 focus:ring-1 focus:ring-primary appearance-none cursor-pointer"
                           >
                             <option value="" className="bg-surface text-text-main dark:bg-gray-800">Tất cả các năm</option>
-                            {Array.from(new Set(movies.map(m => {
+                            {Array.from(new Set(currentMovies.map(m => {
                               const d = m.watched_at instanceof Timestamp ? m.watched_at.toDate() : (m.watched_at as Date);
                               return d ? d.getFullYear() : null;
                             }).filter(Boolean))).sort((a, b) => (b as number) - (a as number)).map(year => (
@@ -414,14 +451,14 @@ const Dashboard: React.FC = () => {
                           <select
                             value={filterCountry}
                             onChange={(e) => {
-                    setFilterCountry(e.target.value);
-                    setFilterVersion(v => v + 1); // Force re-render
-                  }}
+                              setFilterCountry(e.target.value);
+                              setFilterVersion(v => v + 1); // Force re-render
+                            }}
                             className="w-full bg-black/5 dark:bg-white/5 border-none rounded-lg text-sm text-text-main py-2 px-3 focus:ring-1 focus:ring-primary appearance-none cursor-pointer"
                           >
                             <option value="" className="bg-surface text-text-main dark:bg-gray-800">Tất cả quốc gia</option>
                             {Array.from(new Set(
-                              movies
+                              currentMovies
                                 .filter(m => m.country && m.country.trim().length > 0)
                                 .flatMap(m => m.country!.split(',').map(c => c.trim()))
                                 .filter(c => c.length > 0)
@@ -448,10 +485,18 @@ const Dashboard: React.FC = () => {
               </div>
               <div>
                 <h3 className="text-lg font-medium text-text-main">
-                  {searchQuery ? "Không tìm thấy nội dung phù hợp" : "Chưa có nội dung nào"}
+                  {searchQuery
+                    ? "Không tìm thấy nội dung phù hợp"
+                    : activeTab === 'history'
+                      ? "Chưa có nội dung nào trong lịch sử"
+                      : "Danh sách Sẽ xem đang trống"}
                 </h3>
                 <p className="text-text-muted max-w-xs mx-auto">
-                  {searchQuery ? "Hãy thử điều chỉnh truy vấn tìm kiếm của bạn." : "Bắt đầu xây dựng lịch sử điện ảnh cá nhân của bạn bằng cách thêm bộ phim hoặc series đầu tiên."}
+                  {searchQuery
+                    ? "Hãy thử điều chỉnh truy vấn tìm kiếm của bạn."
+                    : activeTab === 'history'
+                      ? "Bắt đầu xây dựng lịch sử điện ảnh cá nhân của bạn bằng cách thêm bộ phim hoặc series đầu tiên."
+                      : "Tìm kiếm và thêm những phim bạn muốn xem sau."}
                 </p>
               </div>
               {!searchQuery && (
@@ -473,6 +518,7 @@ const Dashboard: React.FC = () => {
                     onDelete={handleDelete}
                     onEdit={handleEdit}
                     onClick={handleMovieClick}
+                    onMarkAsWatched={activeTab === 'watchlist' ? handleMarkAsWatched : undefined}
                   />
                 ))}
               </div>

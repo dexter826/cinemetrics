@@ -12,6 +12,7 @@ export interface Movie {
   watched_at: Timestamp | Date;
   source: 'tmdb' | 'manual';
   media_type?: 'movie' | 'tv';
+  status?: 'history' | 'watchlist';
   rating?: number; // 1-5
   review?: string;
   tagline?: string;
