@@ -1,5 +1,5 @@
 ﻿<center>
-  <img src="public/logo_text.png" alt="Logo dự án">
+  <img src="public/logo.gif" alt="Logo dự án">
 </center>
 
 Chào mừng đến với **Cinemetrics**! Đây là một ứng dụng để theo dõi và quản lý danh sách phim đã xem, giúp bạn lưu giữ những khoảnh khắc điện ảnh đáng nhớ. 🍿✨
@@ -10,17 +10,17 @@ Cinemetrics là một ứng dụng quản lý phim cá nhân thông minh với A
 
 ## ✨ Tính năng nổi bật
 
-- **🔐 Đăng nhập/Đăng ký:** Bảo mật tài khoản với Firebase Authentication (Google Sign-in).
+- **🔐 Đăng nhập/Đăng ký:** Bảo mật tài khoản với Authentication (Google Sign-in).
 - **🔍 Tìm kiếm phim:** Tìm kiếm phim và TV shows nhanh chóng thông qua TMDB API với bộ lọc chi tiết.
-- **🤖 Gợi ý phim bằng AI:** Nhận gợi ý phim cá nhân hóa dựa trên lịch sử xem của bạn (OpenRouter AI).
+- **🤖 Gợi ý phim bằng AI:** Nhận gợi ý phim cá nhân hóa dựa trên lịch sử xem của bạn.
 - **📝 Quản lý danh sách:** Thêm phim đã xem, watchlist, ghi chú ngày xem, đánh giá và review.
 - **📁 Quản lý Album:** Tạo album phim cá nhân, sắp xếp và quản lý bộ sưu tập.
-- **📊 Thống kê chi tiết:** Biểu đồ về số lượng phim, thể loại, quốc gia, đánh giá và xu hướng xem.
+- **📊 Thống kê chi tiết:** Biểu đồ về số lượng phim, thể loại, quốc gia, đánh giá,...
 - **🎲 Random Picker:** Chọn phim ngẫu nhiên từ bộ sưu tập của bạn.
-- **🌟 Splash Screen:** Màn hình khởi động với animation đẹp mắt.
 - **🌓 Giao diện Dark/Light:** Chế độ sáng tối linh hoạt.
 - **📱 Responsive:** Giao diện đẹp mắt, tương thích tốt trên cả máy tính và điện thoại.
-- **📄 Phân trang:** Hiển thị danh sách phim với phân trang cho hiệu suất tốt.
+
+![Mockup của ứng dụng](public/mockup.png)
 
 ## 🛠️ Công nghệ sử dụng
 
