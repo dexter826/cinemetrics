@@ -19,6 +19,24 @@ export default defineConfig(({ mode }) => {
       alias: {
         '@': path.resolve(__dirname, '.'),
       }
+    },
+    build: {
+      rollupOptions: {
+        onwarn: (warning, warn) => {
+          if (warning.code === 'EVAL') return;
+          warn(warning);
+        },
+        output: {
+          manualChunks: {
+            vendor: ['react', 'react-dom'],
+            firebase: ['firebase/app', 'firebase/auth', 'firebase/firestore'],
+            charts: ['recharts'],
+            lottie: ['lottie-react'],
+            utils: ['xlsx', 'file-saver']
+          }
+        }
+      },
+      chunkSizeWarningLimit: 2000
     }
   };
 });

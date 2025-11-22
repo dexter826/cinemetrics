@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, Suspense, lazy } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './components/providers/AuthProvider';
 import { ToastProvider } from './components/contexts/Toast';
@@ -6,14 +6,15 @@ import { AlertProvider } from './components/contexts/Alert';
 import { AddMovieProvider, useAddMovie } from './components/contexts/AddMovieContext';
 import { ExportProvider } from './components/contexts/ExportContext';
 import Login from './components/auth/Login';
-import Dashboard from './components/pages/Dashboard';
-import SearchPage from './components/pages/SearchPage';
-import StatsPage from './components/pages/StatsPage';
-import AlbumsPage from './components/pages/AlbumsPage';
-import AlbumDetailPage from './components/pages/AlbumDetailPage';
-import AddMovieModal from './components/modals/AddMovieModal';
+const Dashboard = lazy(() => import('./components/pages/Dashboard'));
+const SearchPage = lazy(() => import('./components/pages/SearchPage'));
+const StatsPage = lazy(() => import('./components/pages/StatsPage'));
+const AlbumsPage = lazy(() => import('./components/pages/AlbumsPage'));
+const AlbumDetailPage = lazy(() => import('./components/pages/AlbumDetailPage'));
+const AddMovieModal = lazy(() => import('./components/modals/AddMovieModal'));
 import Layout from './components/layout/Layout';
 import SplashScreen from './components/ui/SplashScreen';
+import Loading from './components/ui/Loading';
 import { ThemeProvider } from './components/providers/ThemeProvider';
 
 const AppContent: React.FC = () => {
@@ -48,15 +49,17 @@ const AppContent: React.FC = () => {
 
   return (
     <>
-      <Routes>
-        <Route path="/" element={<Dashboard />} />
-        <Route path="/search" element={<SearchPage />} />
-        <Route path="/stats" element={<StatsPage />} />
-        <Route path="/albums" element={<AlbumsPage />} />
-        <Route path="/albums/:albumId" element={<AlbumDetailPage />} />
-        <Route path="*" element={<Navigate to="/" />} />
-      </Routes>
-      <AddMovieModal />
+      <Suspense fallback={<Loading />}>
+        <Routes>
+          <Route path="/" element={<Dashboard />} />
+          <Route path="/search" element={<SearchPage />} />
+          <Route path="/stats" element={<StatsPage />} />
+          <Route path="/albums" element={<AlbumsPage />} />
+          <Route path="/albums/:albumId" element={<AlbumDetailPage />} />
+          <Route path="*" element={<Navigate to="/" />} />
+        </Routes>
+        <AddMovieModal />
+      </Suspense>
     </>
   );
 };
