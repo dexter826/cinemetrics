@@ -1,9 +1,11 @@
 import React, { useEffect, useState } from 'react';
-import { X, Calendar, Clock, Star, Film, Info } from 'lucide-react';
+import { X, Calendar, Clock, Star, Film, Info, FolderPlus } from 'lucide-react';
 import { Movie, TMDBMovieDetail } from '../types';
 import { getMovieDetails } from '../services/tmdbService';
 import { TMDB_IMAGE_BASE_URL, PLACEHOLDER_IMAGE } from '../constants';
 import Loading from './Loading';
+import AlbumSelectorModal from './AlbumSelectorModal';
+import { useToast } from './Toast';
 
 interface MovieDetailModalProps {
   isOpen: boolean;
@@ -14,6 +16,8 @@ interface MovieDetailModalProps {
 const MovieDetailModal: React.FC<MovieDetailModalProps> = ({ isOpen, onClose, movie }) => {
   const [details, setDetails] = useState<TMDBMovieDetail | null>(null);
   const [loading, setLoading] = useState(false);
+  const [showAlbumSelector, setShowAlbumSelector] = useState(false);
+  const { showToast } = useToast();
 
   useEffect(() => {
     const fetchDetails = async () => {
@@ -45,17 +49,15 @@ const MovieDetailModal: React.FC<MovieDetailModalProps> = ({ isOpen, onClose, mo
 
   // Prevent scroll when modal is open
   useEffect(() => {
-    if (isOpen) {
+    if (isOpen || showAlbumSelector) {
       document.body.style.overflow = 'hidden';
     } else {
       document.body.style.overflow = 'unset';
     }
-    
-    // Cleanup function to restore scroll on unmount
     return () => {
       document.body.style.overflow = 'unset';
     };
-  }, [isOpen]);
+  }, [isOpen, showAlbumSelector]);
 
   if (!isOpen || !movie) return null;
 
@@ -73,6 +75,16 @@ const MovieDetailModal: React.FC<MovieDetailModalProps> = ({ isOpen, onClose, mo
   const rating = details?.vote_average ? details.vote_average.toFixed(1) : null;
   const releaseDate = details?.release_date || details?.first_air_date;
   const country = details?.production_countries?.map(c => c.name).join(', ') || movie.country;
+
+  const canAddToAlbum = (movie.status || 'history') === 'history' && movie.docId;
+
+  const handleAddToAlbum = () => {
+    if (!canAddToAlbum) {
+      showToast('Chỉ có thể thêm phim đã xem vào album', 'error');
+      return;
+    }
+    setShowAlbumSelector(true);
+  };
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-fade-in">
@@ -167,6 +179,27 @@ const MovieDetailModal: React.FC<MovieDetailModalProps> = ({ isOpen, onClose, mo
                   <p className="text-text-muted italic">"{movie.review}"</p>
                 </div>
               )}
+
+              {/* Album Actions */}
+              <div className="pt-2">
+                <button
+                  onClick={handleAddToAlbum}
+                  disabled={!canAddToAlbum}
+                  className={`w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl font-medium transition-all cursor-pointer ${
+                    canAddToAlbum
+                      ? 'bg-primary hover:bg-primary-dark text-white shadow-lg hover:shadow-xl'
+                      : 'bg-gray-500/20 text-gray-400 cursor-not-allowed'
+                  }`}
+                >
+                  <FolderPlus size={20} />
+                  <span>{canAddToAlbum ? 'Thêm vào album' : 'Không thể thêm vào album'}</span>
+                </button>
+                {!canAddToAlbum && (
+                  <p className="text-xs text-text-muted text-center mt-2">
+                    Chỉ có thể thêm phim đã xem vào album
+                  </p>
+                )}
+              </div>
               
               {movie.status !== 'watchlist' && (
                 <div className="pt-4 border-t border-white/10 text-xs text-text-muted flex justify-between">
@@ -178,6 +211,13 @@ const MovieDetailModal: React.FC<MovieDetailModalProps> = ({ isOpen, onClose, mo
           )}
         </div>
       </div>
+
+      {/* Album Selector Modal */}
+      <AlbumSelectorModal
+        isOpen={showAlbumSelector}
+        onClose={() => setShowAlbumSelector(false)}
+        movie={movie}
+      />
     </div>
   );
 };
