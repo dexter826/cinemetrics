@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
-import { LogOut, Sun, Moon, BarChart2, Menu, X } from 'lucide-react';
+import { LogOut, Sun, Moon, BarChart2, Menu, X, Dice5 } from 'lucide-react';
 import { useAuth } from './AuthProvider';
 import { useTheme } from './ThemeProvider';
 import { useNavigate, useLocation } from 'react-router-dom';
+import RandomPickerModal from './RandomPickerModal';
 
 const Navbar: React.FC = () => {
   const { user, logout } = useAuth();
@@ -10,6 +11,7 @@ const Navbar: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isRandomOpen, setIsRandomOpen] = useState(false);
 
   React.useEffect(() => {
     if (isMenuOpen) {
@@ -43,6 +45,14 @@ const Navbar: React.FC = () => {
               title="Thống kê"
             >
               <BarChart2 size={20} />
+            </button>
+
+            <button
+              onClick={() => setIsRandomOpen(true)}
+              className="p-2 rounded-lg transition-colors cursor-pointer hover:bg-primary/10 hover:text-primary text-text-main"
+              title="Chọn giúp tôi"
+            >
+              <Dice5 size={20} />
             </button>
 
             <button
@@ -127,6 +137,14 @@ const Navbar: React.FC = () => {
             </button>
 
             <button
+              onClick={() => { setIsRandomOpen(true); setIsMenuOpen(false); }}
+              className="w-full flex items-center space-x-3 p-3 rounded-xl hover:bg-primary/10 text-text-main transition-colors cursor-pointer"
+            >
+              <Dice5 size={20} />
+              <span>Chọn giúp tôi</span>
+            </button>
+
+            <button
               onClick={() => { setTheme(theme === 'dark' ? 'light' : 'dark'); setIsMenuOpen(false); }}
               className="w-full flex items-center space-x-3 p-3 rounded-xl hover:bg-black/5 dark:hover:bg-white/5 text-text-main transition-colors cursor-pointer"
             >
@@ -146,6 +164,11 @@ const Navbar: React.FC = () => {
           </div>
         </div>
       </div>
+
+      <RandomPickerModal
+        isOpen={isRandomOpen}
+        onClose={() => setIsRandomOpen(false)}
+      />
     </>
   );
 };
