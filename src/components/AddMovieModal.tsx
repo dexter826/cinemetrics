@@ -218,9 +218,10 @@ const AddMovieModal: React.FC = () => {
         showToast("Đã cập nhật phim", "success");
       } else {
         // Add New
+        const usedId = initialData?.tmdbId || initialData?.movie?.id || Date.now();
         await addMovie({
           uid: user.uid,
-          id: initialData?.tmdbId || initialData?.movie?.id || Date.now(), // Fallback ID
+          id: usedId, // Fallback ID
           title: formData.title,
           poster_path: formData.poster,
           runtime: parseInt(formData.runtime) || 0,
@@ -238,6 +239,10 @@ const AddMovieModal: React.FC = () => {
           content: formData.content
         });
         showToast("Đã thêm phim mới", "success");
+
+        if (initialData?.onMovieAdded) {
+          initialData.onMovieAdded(usedId);
+        }
       }
       closeAddModal();
     } catch (error) {

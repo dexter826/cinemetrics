@@ -30,6 +30,7 @@ const SearchPage: React.FC = () => {
   const [aiRecommendations, setAiRecommendations] = useState<TMDBMovieResult[]>([]);
   const [isAiLoading, setIsAiLoading] = useState(false);
   const [suggestAnimation, setSuggestAnimation] = useState(null);
+  const [lastAiHistoryLength, setLastAiHistoryLength] = useState(0);
 
   useEffect(() => {
     fetch('/loading_suggest.json')
@@ -75,67 +76,62 @@ const SearchPage: React.FC = () => {
     fetchStaticData();
   }, []);
 
-  // 3. Logic lấy AI Recommendations khi history thay đổi
-  useEffect(() => {
-    const fetchRecommendations = async () => {
-      // Nếu chưa có user hoặc chưa có history, và chưa load xong static data thì bỏ qua
-      if (initialLoading) return;
+  // 3. Logic lấy AI Recommendations / Trending
+  const refreshRecommendations = async () => {
+    if (!user) return;
 
-      const watchedHistory = historyMovies.filter(m => (m.status || 'history') === 'history');
+    const watchedHistory = historyMovies.filter(m => (m.status || 'history') === 'history');
 
-      // Nếu có lịch sử xem, gọi AI. Nếu không, gọi Trending
-      if (watchedHistory.length > 3) { // Chỉ gọi AI nếu đã xem ít nhất 3 phim
+    // Nếu có lịch sử xem, gọi AI. Nếu không, gọi Trending
+    if (watchedHistory.length > 3) { // Chỉ gọi AI nếu đã xem ít nhất 3 phim
+      const cacheKey = user ? `ai_recs_${user.uid}` : '';
+      const cachedData = cacheKey ? sessionStorage.getItem(cacheKey) : null;
 
-        // Check cache first
-        const cacheKey = user ? `ai_recs_${user.uid}` : '';
-        const cachedData = cacheKey ? sessionStorage.getItem(cacheKey) : null;
-
-        if (cachedData) {
-          const parsedCache = JSON.parse(cachedData);
-          if (parsedCache.historyLength === watchedHistory.length) {
-            setAiRecommendations(parsedCache.data);
-            return;
-          }
+      // Ưu tiên dùng cache nếu historyLength trùng
+      if (cachedData) {
+        const parsedCache = JSON.parse(cachedData);
+        if (parsedCache.historyLength === watchedHistory.length && parsedCache.data) {
+          setAiRecommendations(parsedCache.data);
+          setLastAiHistoryLength(watchedHistory.length);
+          return;
         }
+      }
 
-        setIsAiLoading(true);
-        try {
-          // Gọi AI lấy danh sách tên phim
-          const aiRecs = await getAIRecommendations(watchedHistory);
+      setIsAiLoading(true);
+      try {
+        const aiRecs = await getAIRecommendations(watchedHistory);
+        const tmdbPromises = aiRecs.map(async (rec) => {
+          const searchRes = await searchMovies(rec.title);
+          return searchRes.results.length > 0 ? searchRes.results[0] : null;
+        });
 
-          // Dùng tên phim để tìm chi tiết từ TMDB (lấy ảnh poster)
-          const tmdbPromises = aiRecs.map(async (rec) => {
-            const searchRes = await searchMovies(rec.title);
-            // Lấy kết quả đầu tiên tìm thấy
-            return searchRes.results.length > 0 ? searchRes.results[0] : null;
-          });
+        const tmdbResults = (await Promise.all(tmdbPromises)).filter(m => m !== null) as TMDBMovieResult[];
+        setAiRecommendations(tmdbResults);
+        setLastAiHistoryLength(watchedHistory.length);
 
-          const tmdbResults = (await Promise.all(tmdbPromises)).filter(m => m !== null) as TMDBMovieResult[];
-          setAiRecommendations(tmdbResults);
-
-          // Save to cache
-          sessionStorage.setItem(cacheKey, JSON.stringify({
-            historyLength: watchedHistory.length,
-            data: tmdbResults
-          }));
-
-        } catch (e) {
-          // Fallback về trending nếu lỗi
-          const trendingData = await getTrendingMovies();
-          setTrendingMovies(trendingData.results);
-        } finally {
-          setIsAiLoading(false);
-        }
-      } else {
-        // User mới -> Lấy Trending như cũ
+        sessionStorage.setItem(cacheKey, JSON.stringify({
+          historyLength: watchedHistory.length,
+          data: tmdbResults
+        }));
+      } catch (e) {
         const trendingData = await getTrendingMovies();
         setTrendingMovies(trendingData.results);
+      } finally {
+        setIsAiLoading(false);
       }
-    };
+    } else {
+      const trendingData = await getTrendingMovies();
+      setTrendingMovies(trendingData.results);
+    }
+  };
 
-    fetchRecommendations();
+  // Lần đầu sau khi initialLoading xong, tự lấy gợi ý 1 lần
+  useEffect(() => {
+    if (!initialLoading && user) {
+      refreshRecommendations();
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [historyMovies.length, user, initialLoading]);
+  }, [initialLoading, user]);
 
   useEffect(() => {
     const timer = setTimeout(async () => {
@@ -185,7 +181,12 @@ const SearchPage: React.FC = () => {
   const handleSelectMovie = (movie: TMDBMovieResult) => {
     openAddModal({
       movie: movie,
-      mediaType: (movie.media_type === 'tv' || movie.media_type === 'movie') ? movie.media_type : (filterType === 'tv' ? 'tv' : 'movie')
+      mediaType: (movie.media_type === 'tv' || movie.media_type === 'movie') ? movie.media_type : (filterType === 'tv' ? 'tv' : 'movie'),
+      // Cập nhật gợi ý cục bộ sau khi thêm phim thành công
+      onMovieAdded: (tmdbId) => {
+        setAiRecommendations(prev => prev.filter(item => item.id !== tmdbId));
+        setTrendingMovies(prev => prev.filter(item => item.id !== tmdbId));
+      }
     });
   };
 
@@ -281,17 +282,28 @@ const SearchPage: React.FC = () => {
         ) : (
           <>
             {!query && (
-              <div className="mb-4 flex items-center gap-2">
-                {aiRecommendations.length > 0 ? (
-                  <>
-                    <Sparkles className="text-primary" size={24} />
-                    <h2 className="text-xl font-bold text-primary">
-                      Gợi ý dành riêng cho bạn
-                    </h2>
-                  </>
-                ) : (
-                  <h2 className="text-xl font-bold">Phim thịnh hành</h2>
-                )}
+              <div className="mb-4 flex items-center justify-between gap-4">
+                <div className="flex items-center gap-2">
+                  {aiRecommendations.length > 0 ? (
+                    <>
+                      <Sparkles className="text-primary" size={24} />
+                      <h2 className="text-xl font-bold text-primary">
+                        Gợi ý dành riêng cho bạn
+                      </h2>
+                    </>
+                  ) : (
+                    <h2 className="text-xl font-bold">Phim thịnh hành</h2>
+                  )}
+                </div>
+
+                <button
+                  type="button"
+                  onClick={refreshRecommendations}
+                  className="inline-flex items-center gap-2 px-3 py-2 rounded-xl text-sm bg-surface border border-black/10 dark:border-white/10 hover:bg-black/5 dark:hover:bg-white/5 transition-colors cursor-pointer text-text-main"
+                >
+                  {isAiLoading && <Loader2 size={16} className="animate-spin" />}
+                  <span>Làm mới gợi ý</span>
+                </button>
               </div>
             )}
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 md:gap-6">

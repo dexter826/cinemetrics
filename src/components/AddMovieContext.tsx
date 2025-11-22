@@ -8,6 +8,7 @@ interface AddMovieContextType {
     movie?: TMDBMovieResult; // From search
     movieToEdit?: Movie;     // For editing
     mediaType?: 'movie' | 'tv';
+    onMovieAdded?: (tmdbId: number | string) => void;
   } | null;
   openAddModal: (data?: AddMovieContextType['initialData']) => void;
   closeAddModal: () => void;
