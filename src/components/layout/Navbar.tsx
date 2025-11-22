@@ -1,12 +1,12 @@
 import React, { useState } from 'react';
 import { LogOut, Sun, Moon, BarChart2, Menu, X, Dice5, Folder, Download, ChevronDown } from 'lucide-react';
-import { useAuth } from './AuthProvider';
-import { useTheme } from './ThemeProvider';
+import { useAuth } from '../providers/AuthProvider';
+import { useTheme } from '../providers/ThemeProvider';
 import { useNavigate, useLocation } from 'react-router-dom';
-import RandomPickerModal from './RandomPickerModal';
-import ExportModal from './ExportModal';
-import { useExport } from './ExportContext';
-import { useAlert } from './Alert';
+import RandomPickerModal from '../modals/RandomPickerModal';
+import ExportModal from '../modals/ExportModal';
+import { useExport } from '../contexts/ExportContext';
+import { useAlert } from '../contexts/Alert';
 
 const Navbar: React.FC = () => {
   const { user, logout } = useAuth();

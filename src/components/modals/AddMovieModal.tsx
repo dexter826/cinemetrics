@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { X, Calendar, Star, Save, Loader2 } from 'lucide-react';
-import { useAuth } from './AuthProvider';
-import { addMovie, updateMovie, checkMovieExists } from '../services/movieService';
-import { getMovieDetails } from '../services/tmdbService';
-import { useToast } from './Toast';
-import { TMDB_IMAGE_BASE_URL } from '../constants';
-import { useAddMovie } from './AddMovieContext';
-import Loading from './Loading';
+import { useAuth } from '../providers/AuthProvider';
+import { addMovie, updateMovie, checkMovieExists } from '../../services/movieService';
+import { getMovieDetails } from '../../services/tmdbService';
+import { useToast } from '../contexts/Toast';
+import { TMDB_IMAGE_BASE_URL } from '../../constants';
+import { useAddMovie } from '../contexts/AddMovieContext';
+import Loading from '../ui/Loading';
 
 const AddMovieModal: React.FC = () => {
   const { isOpen, closeAddModal, initialData } = useAddMovie();

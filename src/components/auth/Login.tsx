@@ -1,5 +1,5 @@
 import React from 'react';
-import { useAuth } from './AuthProvider';
+import { useAuth } from '../providers/AuthProvider';
 import { LogIn } from 'lucide-react';
 
 const Login: React.FC = () => {

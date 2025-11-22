@@ -1,20 +1,20 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import { AuthProvider, useAuth } from './components/AuthProvider';
-import { ToastProvider } from './components/Toast.tsx';
-import { AlertProvider } from './components/Alert.tsx';
-import { AddMovieProvider, useAddMovie } from './components/AddMovieContext';
-import { ExportProvider } from './components/ExportContext';
-import Login from './components/Login';
-import Dashboard from './components/Dashboard';
-import SearchPage from './components/SearchPage';
-import StatsPage from './components/StatsPage';
-import AlbumsPage from './components/AlbumsPage';
-import AlbumDetailPage from './components/AlbumDetailPage';
-import AddMovieModal from './components/AddMovieModal';
-import Layout from './components/Layout';
-import SplashScreen from './components/SplashScreen';
-import { ThemeProvider } from './components/ThemeProvider.tsx';
+import { AuthProvider, useAuth } from './components/providers/AuthProvider';
+import { ToastProvider } from './components/contexts/Toast';
+import { AlertProvider } from './components/contexts/Alert';
+import { AddMovieProvider, useAddMovie } from './components/contexts/AddMovieContext';
+import { ExportProvider } from './components/contexts/ExportContext';
+import Login from './components/auth/Login';
+import Dashboard from './components/pages/Dashboard';
+import SearchPage from './components/pages/SearchPage';
+import StatsPage from './components/pages/StatsPage';
+import AlbumsPage from './components/pages/AlbumsPage';
+import AlbumDetailPage from './components/pages/AlbumDetailPage';
+import AddMovieModal from './components/modals/AddMovieModal';
+import Layout from './components/layout/Layout';
+import SplashScreen from './components/ui/SplashScreen';
+import { ThemeProvider } from './components/providers/ThemeProvider';
 
 const AppContent: React.FC = () => {
   const { user, loading: authLoading } = useAuth();

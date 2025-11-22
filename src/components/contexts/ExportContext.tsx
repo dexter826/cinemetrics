@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, ReactNode } from 'react';
-import { Movie } from '../types';
+import { Movie } from '../../types';
 
 interface ExportContextType {
   isExportModalOpen: boolean;

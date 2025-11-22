@@ -1,16 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import { Search, Loader2, Film, ArrowLeft, Filter } from 'lucide-react';
-import { searchMovies, getGenres, getTrendingMovies, getCountries } from '../services/tmdbService';
-import { TMDBMovieResult } from '../types';
-import { TMDB_IMAGE_BASE_URL } from '../constants';
+import { searchMovies, getGenres, getTrendingMovies, getCountries } from '../../services/tmdbService';
+import { TMDBMovieResult } from '../../types';
+import { TMDB_IMAGE_BASE_URL } from '../../constants';
 import { useNavigate } from 'react-router-dom';
-import Navbar from './Navbar';
-import { useAddMovie } from './AddMovieContext';
-import Loading from './Loading';
-import { useAuth } from './AuthProvider';
-import { subscribeToMovies } from '../services/movieService';
-import { getAIRecommendations } from '../services/aiService';
-import { Movie } from '../types';
+import Navbar from '../layout/Navbar';
+import { useAddMovie } from '../contexts/AddMovieContext';
+import Loading from '../ui/Loading';
+import { useAuth } from '../providers/AuthProvider';
+import { subscribeToMovies } from '../../services/movieService';
+import { getAIRecommendations } from '../../services/aiService';
+import { Movie } from '../../types';
 import Lottie from 'lottie-react';
 import { Sparkles } from 'lucide-react';
 

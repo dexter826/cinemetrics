@@ -1,6 +1,6 @@
 import React from 'react';
-import { Movie } from '../types';
-import { TMDB_IMAGE_BASE_URL, PLACEHOLDER_IMAGE } from '../constants';
+import { Movie } from '../../types';
+import { TMDB_IMAGE_BASE_URL, PLACEHOLDER_IMAGE } from '../../constants';
 import { Trash2, Clock, Calendar, Star, Edit2, MessageCircle, Film, Tv, CheckCircle } from 'lucide-react';
 import { Timestamp } from 'firebase/firestore';
 

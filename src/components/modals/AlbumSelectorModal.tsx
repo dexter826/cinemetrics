@@ -1,11 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import { X, FolderPlus, Film } from 'lucide-react';
-import { Movie, Album } from '../types';
-import { subscribeToAlbums } from '../services/albumService';
-import { useAuth } from './AuthProvider';
-import { useToast } from './Toast';
-import { updateAlbum, addAlbum } from '../services/albumService';
-import Loading from './Loading';
+import { Movie, Album } from '../../types';
+import { subscribeToAlbums } from '../../services/albumService';
+import { useAuth } from '../providers/AuthProvider';
+import { useToast } from '../contexts/Toast';
+import { updateAlbum, addAlbum } from '../../services/albumService';
+import Loading from '../ui/Loading';
 
 interface AlbumSelectorModalProps {
   isOpen: boolean;

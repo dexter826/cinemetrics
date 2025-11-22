@@ -1,15 +1,15 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Film, PlusCircle, Trash2, Edit2, X as XIcon } from 'lucide-react';
-import Navbar from './Navbar';
-import Loading from './Loading';
-import { Album, Movie } from '../types';
-import { subscribeToAlbum, updateAlbum } from '../services/albumService';
-import { subscribeToMovies } from '../services/movieService';
-import { useAuth } from './AuthProvider';
-import { useToast } from './Toast';
-import { useAlert } from './Alert';
-import MovieCard from './MovieCard';
+import Navbar from '../layout/Navbar';
+import Loading from '../ui/Loading';
+import { Album, Movie } from '../../types';
+import { subscribeToAlbum, updateAlbum } from '../../services/albumService';
+import { subscribeToMovies } from '../../services/movieService';
+import { useAuth } from '../providers/AuthProvider';
+import { useToast } from '../contexts/Toast';
+import { useAlert } from '../contexts/Alert';
+import MovieCard from '../ui/MovieCard';
 import { Timestamp } from 'firebase/firestore';
 
 const AlbumDetailPage: React.FC = () => {

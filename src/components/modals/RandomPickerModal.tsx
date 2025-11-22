@@ -1,14 +1,14 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { X, Dice5 } from 'lucide-react';
 import Lottie from 'lottie-react';
-import { useAuth } from './AuthProvider';
-import { subscribeToMovies } from '../services/movieService';
-import { getTrendingMovies } from '../services/tmdbService';
-import { Movie, TMDBMovieResult } from '../types';
-import { TMDB_IMAGE_BASE_URL, PLACEHOLDER_IMAGE } from '../constants';
-import { useAddMovie } from './AddMovieContext';
+import { useAuth } from '../providers/AuthProvider';
+import { subscribeToMovies } from '../../services/movieService';
+import { getTrendingMovies } from '../../services/tmdbService';
+import { Movie, TMDBMovieResult } from '../../types';
+import { TMDB_IMAGE_BASE_URL, PLACEHOLDER_IMAGE } from '../../constants';
+import { useAddMovie } from '../contexts/AddMovieContext';
 import { Timestamp } from 'firebase/firestore';
-import Loading from './Loading';
+import Loading from '../ui/Loading';
 
 interface RandomPickerModalProps {
   isOpen: boolean;

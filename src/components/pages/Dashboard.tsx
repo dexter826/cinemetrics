@@ -1,20 +1,20 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useAuth } from './AuthProvider';
-import { subscribeToMovies, deleteMovie } from '../services/movieService';
+import { useAuth } from '../providers/AuthProvider';
+import { subscribeToMovies, deleteMovie } from '../../services/movieService';
 
-import { Movie, Stats } from '../types';
+import { Movie, Stats } from '../../types';
 import { Film, Plus, Loader, AlertTriangle, Calendar, Type, ArrowUp, ArrowDown, Search, X, Filter, Star } from 'lucide-react';
-import MovieCard from './MovieCard';
-import MovieDetailModal from './MovieDetailModal';
-import Navbar from './Navbar';
-import { TMDB_API_KEY } from '../constants';
+import MovieCard from '../ui/MovieCard';
+import MovieDetailModal from '../modals/MovieDetailModal';
+import Navbar from '../layout/Navbar';
+import { TMDB_API_KEY } from '../../constants';
 import { Timestamp } from 'firebase/firestore';
-import { useToast } from './Toast';
-import { useAlert } from './Alert';
-import { useAddMovie } from './AddMovieContext';
-import { useExport } from './ExportContext';
-import Loading from './Loading';
+import { useToast } from '../contexts/Toast';
+import { useAlert } from '../contexts/Alert';
+import { useAddMovie } from '../contexts/AddMovieContext';
+import { useExport } from '../contexts/ExportContext';
+import Loading from '../ui/Loading';
 
 type SortOption = 'date' | 'title';
 type SortOrder = 'asc' | 'desc';
@@ -309,7 +309,7 @@ const Dashboard: React.FC = () => {
                       value={searchQuery}
                       onChange={(e) => setSearchQuery(e.target.value)}
                       placeholder="Lọc phim..."
-                      className="w-full sm:w-64 bg-surface border border-black/5 dark:border-white/10 rounded-xl py-2 pl-10 pr-8 text-sm text-text-main placeholder-text-muted focus:outline-none focus:border-primary/50 transition-all"
+                      className="w-full sm:w-64 bg-surface border-2 border-black/10 dark:border-white/10 rounded-xl py-2 pl-10 pr-8 text-sm text-text-main placeholder-text-muted focus:outline-none focus:border-primary/50 transition-all"
                     />
                     {searchQuery && (
                       <button
@@ -324,7 +324,7 @@ const Dashboard: React.FC = () => {
                   {/* Filter Toggle Button */}
                   <button
                     onClick={(e) => { e.stopPropagation(); setShowFilters(!showFilters); }}
-                    className={`p-2 rounded-xl border transition-colors cursor-pointer ${showFilters ? 'bg-primary/10 border-primary/20 text-primary' : 'bg-surface border-black/5 dark:border-white/10 text-text-muted hover:text-text-main hover:border-primary/30'}`}
+                    className={`p-2 rounded-xl border-2 transition-colors cursor-pointer ${showFilters ? 'bg-primary/10 border-primary/20 text-primary' : 'bg-surface border-black/10 dark:border-white/10 text-text-muted hover:text-text-main hover:border-primary/30'}`}
                   >
                     {showFilters ? <X size={20} /> : <Filter size={20} />}
                   </button>

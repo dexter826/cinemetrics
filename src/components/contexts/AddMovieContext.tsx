@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, ReactNode } from 'react';
-import { Movie, TMDBMovieResult } from '../types';
+import { Movie, TMDBMovieResult } from '../../types';
 
 interface AddMovieContextType {
   isOpen: boolean;

@@ -1,11 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import { X, Calendar, Clock, Star, Film, Info, FolderPlus } from 'lucide-react';
-import { Movie, TMDBMovieDetail } from '../types';
-import { getMovieDetails } from '../services/tmdbService';
-import { TMDB_IMAGE_BASE_URL, PLACEHOLDER_IMAGE } from '../constants';
-import Loading from './Loading';
+import { Movie, TMDBMovieDetail } from '../../types';
+import { getMovieDetails } from '../../services/tmdbService';
+import { TMDB_IMAGE_BASE_URL, PLACEHOLDER_IMAGE } from '../../constants';
+import Loading from '../ui/Loading';
 import AlbumSelectorModal from './AlbumSelectorModal';
-import { useToast } from './Toast';
+import { useToast } from '../contexts/Toast';
 
 interface MovieDetailModalProps {
   isOpen: boolean;

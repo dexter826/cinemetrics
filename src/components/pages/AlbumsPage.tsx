@@ -1,12 +1,12 @@
 import React, { useEffect, useState } from 'react';
 import { Plus, Folder, Film, Trash2 } from 'lucide-react';
-import { useAuth } from './AuthProvider';
-import Navbar from './Navbar';
-import Loading from './Loading';
-import { Album, Movie } from '../types';
-import { addAlbum, deleteAlbum, subscribeToAlbums } from '../services/albumService';
-import { useToast } from './Toast';
-import { useAlert } from './Alert';
+import { useAuth } from '../providers/AuthProvider';
+import Navbar from '../layout/Navbar';
+import Loading from '../ui/Loading';
+import { Album, Movie } from '../../types';
+import { addAlbum, deleteAlbum, subscribeToAlbums } from '../../services/albumService';
+import { useToast } from '../contexts/Toast';
+import { useAlert } from '../contexts/Alert';
 import { useNavigate } from 'react-router-dom';
 import { Timestamp, collection, doc, getDoc, getFirestore } from 'firebase/firestore';
 

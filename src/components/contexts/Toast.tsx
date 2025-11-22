@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useCallback } from 'react';
 import { CheckCircle, AlertCircle, Info, X } from 'lucide-react';
-import { ToastContextType, ToastType } from '../types';
+import { ToastContextType, ToastType } from '../../types';
 
 const ToastContext = createContext<ToastContextType | undefined>(undefined);
 
