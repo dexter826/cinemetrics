@@ -6,23 +6,29 @@ Chào mừng đến với **Cinemetrics**! Đây là một ứng dụng để th
 
 ## 🚀 Giới thiệu
 
-Cinemetrics cho phép bạn tìm kiếm phim từ cơ sở dữ liệu khổng lồ (TMDB), thêm vào danh sách cá nhân, đánh giá, viết review và xem thống kê chi tiết về thói quen xem phim của mình.
+Cinemetrics là một ứng dụng quản lý phim cá nhân thông minh với AI, cho phép bạn tìm kiếm phim từ cơ sở dữ liệu TMDB, nhận gợi ý phim từ AI, tạo album phim, theo dõi thống kê chi tiết và xây dựng bộ sưu tập điện ảnh của riêng bạn.
 
 ## ✨ Tính năng nổi bật
 
-- **🔐 Đăng nhập/Đăng ký:** Bảo mật tài khoản với Firebase Authentication.
-- **🔍 Tìm kiếm phim:** Tìm kiếm phim và TV shows nhanh chóng thông qua TMDB API.
-- **📝 Quản lý danh sách:** Thêm phim đã xem, ghi chú ngày xem, đánh giá và review.
-- **📊 Thống kê (Stats):** Biểu đồ trực quan về số lượng phim đã xem, thể loại yêu thích.
+- **🔐 Đăng nhập/Đăng ký:** Bảo mật tài khoản với Firebase Authentication (Google Sign-in).
+- **🔍 Tìm kiếm phim:** Tìm kiếm phim và TV shows nhanh chóng thông qua TMDB API với bộ lọc chi tiết.
+- **🤖 Gợi ý phim bằng AI:** Nhận gợi ý phim cá nhân hóa dựa trên lịch sử xem của bạn (OpenRouter AI).
+- **📝 Quản lý danh sách:** Thêm phim đã xem, watchlist, ghi chú ngày xem, đánh giá và review.
+- **📁 Quản lý Album:** Tạo album phim cá nhân, sắp xếp và quản lý bộ sưu tập.
+- **📊 Thống kê chi tiết:** Biểu đồ về số lượng phim, thể loại, quốc gia, đánh giá và xu hướng xem.
+- **🎲 Random Picker:** Chọn phim ngẫu nhiên từ bộ sưu tập của bạn.
+- **🌟 Splash Screen:** Màn hình khởi động với animation đẹp mắt.
 - **🌓 Giao diện Dark/Light:** Chế độ sáng tối linh hoạt.
 - **📱 Responsive:** Giao diện đẹp mắt, tương thích tốt trên cả máy tính và điện thoại.
+- **📄 Phân trang:** Hiển thị danh sách phim với phân trang cho hiệu suất tốt.
 
 ## 🛠️ Công nghệ sử dụng
 
 - **Frontend:** [React](https://react.dev/) (v19), [TypeScript](https://www.typescriptlang.org/), [Vite](https://vitejs.dev/)
 - **Styling:** [Tailwind CSS](https://tailwindcss.com/) (v4), [Lucide React](https://lucide.dev/) (Icons)
+- **Routing:** [React Router DOM](https://reactrouter.com/) (v7)
 - **Backend & Database:** [Firebase](https://firebase.google.com/) (Firestore, Auth)
-- **API:** [The Movie Database (TMDB)](https://www.themoviedb.org/)
+- **API:** [The Movie Database (TMDB)](https://www.themoviedb.org/), [OpenRouter AI](https://openrouter.ai/)
 - **Charts:** [Recharts](https://recharts.org/)
 - **Animation:** [Lottie React](https://lottiereact.com/)
 
@@ -42,17 +48,25 @@ Cinemetrics cho phép bạn tìm kiếm phim từ cơ sở dữ liệu khổng l
     ```
 
 3.  **Cấu hình môi trường:**
-    Tạo file `.env` ở thư mục gốc và thêm các key cần thiết (Firebase config, TMDB API Key). Ví dụ:
+    Tạo file `.env` ở thư mục gốc và thêm các key cần thiết (Firebase config, TMDB API Key, OpenRouter API Key). Ví dụ:
 
     ```env
+    # Firebase Configuration
     VITE_FIREBASE_API_KEY=...
     VITE_FIREBASE_AUTH_DOMAIN=...
     VITE_FIREBASE_PROJECT_ID=...
-    ...
+    VITE_FIREBASE_STORAGE_BUCKET=...
+    VITE_FIREBASE_MESSAGING_SENDER_ID=...
+    VITE_FIREBASE_APP_ID=...
+
+    # TMDB API
     VITE_TMDB_API_KEY=...
+
+    # OpenRouter AI (for movie recommendations)
+    VITE_OPENROUTER_API_KEY=...
     ```
 
-    _(Lưu ý: Cần tự tạo project trên Firebase và đăng ký tài khoản TMDB để lấy key nhé)_
+    _(Lưu ý: Cần tự tạo project trên Firebase, đăng ký tài khoản TMDB để lấy key, và đăng ký OpenRouter để sử dụng AI recommendations)_
 
 4.  **Chạy dự án:**
     ```bash
@@ -64,18 +78,23 @@ Cinemetrics cho phép bạn tìm kiếm phim từ cơ sở dữ liệu khổng l
 
 ```
 cinemetrics/
- public/              # File tĩnh (manifest, robots.txt,...)
+ public/              # File tĩnh (manifest, robots.txt, logo, animations,...)
  src/
-    components/      # Các component React (Dashboard, Login, MovieCard,...)
-    services/        # Xử lý API (Firebase, TMDB)
-    App.tsx          # Component chính, routing
-    firebase.ts      # Cấu hình Firebase
-    types.ts         # Định nghĩa kiểu dữ liệu (TypeScript)
-    ...
+    components/       # Các component React (Dashboard, SearchPage, StatsPage,...)
+    services/         # Xử lý API (Firebase, TMDB, AI)
+    styles/           # Các file CSS custom
+    App.tsx           # Component chính, routing
+    firebase.ts       # Cấu hình Firebase
+    types.ts          # Định nghĩa kiểu dữ liệu TypeScript
+    constants.ts      # Hằng số và cấu hình
+    index.tsx         # Entry point
+    index.css         # Global styles
  index.html           # File HTML chính
  package.json         # Khai báo dependencies
  tailwind.config.js   # Cấu hình Tailwind
  vite.config.ts       # Cấu hình Vite
+ .env.example         # Template cho environment variables
+ firebase.json        # Cấu hình Firebase
 ```
 
 ---

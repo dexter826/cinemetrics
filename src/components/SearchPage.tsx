@@ -302,7 +302,7 @@ const SearchPage: React.FC = () => {
                   className="inline-flex items-center gap-2 px-3 py-2 rounded-xl text-sm bg-surface border border-black/10 dark:border-white/10 hover:bg-black/5 dark:hover:bg-white/5 transition-colors cursor-pointer text-text-main"
                 >
                   {isAiLoading && <Loader2 size={16} className="animate-spin" />}
-                  <span>Làm mới gợi ý</span>
+                  <span>Làm mới</span>
                 </button>
               </div>
             )}
