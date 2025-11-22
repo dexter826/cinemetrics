@@ -26,7 +26,6 @@ export interface Album {
   docId?: string;
   uid: string;
   name: string;
-  description?: string;
   movieDocIds: string[];
   createdAt: Timestamp | Date;
   updatedAt?: Timestamp | Date;
