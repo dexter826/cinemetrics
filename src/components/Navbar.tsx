@@ -81,8 +81,15 @@ const Navbar: React.FC = () => {
             </button>
           </div>
 
-          {/* Mobile Menu Button */}
-          <div className="md:hidden flex items-center">
+          {/* Mobile Menu Button & Theme Toggle */}
+          <div className="md:hidden flex items-center gap-1">
+            <button
+              onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+              className="p-2 mr-1 hover:bg-primary/10 hover:text-primary rounded-lg transition-colors text-text-main cursor-pointer"
+              title={theme === 'dark' ? 'Chuyển sang chế độ sáng' : 'Chuyển sang chế độ tối'}
+            >
+              {theme === 'dark' ? <Sun size={20} /> : <Moon size={20} />}
+            </button>
             <button
               onClick={() => setIsMenuOpen(true)}
               className="p-2 hover:bg-black/5 dark:hover:bg-white/5 rounded-lg transition-colors text-text-main cursor-pointer"
@@ -144,13 +151,6 @@ const Navbar: React.FC = () => {
               <span>Chọn giúp tôi</span>
             </button>
 
-            <button
-              onClick={() => { setTheme(theme === 'dark' ? 'light' : 'dark'); setIsMenuOpen(false); }}
-              className="w-full flex items-center space-x-3 p-3 rounded-xl hover:bg-black/5 dark:hover:bg-white/5 text-text-main transition-colors cursor-pointer"
-            >
-              {theme === 'dark' ? <Sun size={20} /> : <Moon size={20} />}
-              <span>{theme === 'dark' ? 'Chế độ sáng' : 'Chế độ tối'}</span>
-            </button>
           </div>
 
           <div className="p-4 border-t border-black/5 dark:border-white/5">

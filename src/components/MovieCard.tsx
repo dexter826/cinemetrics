@@ -1,7 +1,7 @@
 import React from 'react';
 import { Movie } from '../types';
 import { TMDB_IMAGE_BASE_URL, PLACEHOLDER_IMAGE } from '../constants';
-import { Trash2, Clock, Calendar, Star, Edit2, MessageCircle, Film, Tv } from 'lucide-react';
+import { Trash2, Clock, Calendar, Star, Edit2, MessageCircle, Film, Tv, CheckCircle } from 'lucide-react';
 import { Timestamp } from 'firebase/firestore';
 
 interface MovieCardProps {
@@ -41,13 +41,24 @@ const MovieCard: React.FC<MovieCardProps> = ({ movie, onDelete, onEdit, onClick,
 
         {/* Action Buttons (Always visible on mobile, visible on hover on desktop) */}
         <div className="absolute top-2 right-2 flex space-x-2 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity z-10">
-          <button
-            onClick={(e) => { e.stopPropagation(); onEdit(movie); }}
-            className="p-2 bg-blue-500/20 text-blue-400 rounded-full backdrop-blur-sm hover:bg-blue-500 hover:text-white transition-colors cursor-pointer"
-            title="Chỉnh sửa phim"
-          >
-            <Edit2 size={16} />
-          </button>
+          {!onMarkAsWatched && (
+            <button
+              onClick={(e) => { e.stopPropagation(); onEdit(movie); }}
+              className="p-2 bg-blue-500/20 text-blue-400 rounded-full backdrop-blur-sm hover:bg-blue-500 hover:text-white transition-colors cursor-pointer"
+              title="Chỉnh sửa phim"
+            >
+              <Edit2 size={16} />
+            </button>
+          )}
+          {onMarkAsWatched && (
+            <button
+              onClick={(e) => { e.stopPropagation(); onMarkAsWatched(movie); }}
+              className="p-2 bg-green-500/20 text-green-400 rounded-full backdrop-blur-sm hover:bg-green-500 hover:text-white transition-colors cursor-pointer"
+              title="Đánh dấu đã xem"
+            >
+              <CheckCircle size={16} />
+            </button>
+          )}
           <button
             onClick={(e) => { e.stopPropagation(); movie.docId && onDelete(movie.docId); }}
             className="p-2 bg-red-500/20 text-red-400 rounded-full backdrop-blur-sm hover:bg-red-500 hover:text-white transition-colors cursor-pointer"

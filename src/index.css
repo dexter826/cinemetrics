@@ -76,6 +76,7 @@
     * {
         scrollbar-width: thin;
         scrollbar-color: rgb(var(--color-text-muted) / 0.3) transparent;
+        -webkit-tap-highlight-color: transparent;
     }
 
     *:hover {
