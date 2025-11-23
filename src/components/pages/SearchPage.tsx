@@ -130,7 +130,6 @@ const SearchPage: React.FC = () => {
     if (!initialLoading && user) {
       refreshRecommendations();
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [initialLoading, user]);
 
   useEffect(() => {
@@ -272,7 +271,7 @@ const SearchPage: React.FC = () => {
         {/* Results */}
         {loading ? (
           <Loading fullScreen={false} size={40} className="py-20" />
-        ) : isAiLoading ? (
+        ) : !query && isAiLoading ? (
           <div className="flex flex-col items-center justify-center py-20 space-y-4">
             <div className="w-24 h-24">
               {suggestAnimation && <Lottie animationData={suggestAnimation} loop={true} />}
