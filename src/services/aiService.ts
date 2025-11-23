@@ -7,22 +7,36 @@ interface AIRecommendation {
     reason: string;
 }
 
-export const getAIRecommendations = async (history: Movie[]): Promise<AIRecommendation[]> => {
+export const getAIRecommendations = async (history: Movie[], allMovies: Movie[]): Promise<AIRecommendation[]> => {
     if (!history || history.length === 0) return [];
 
     // 1. Chuẩn bị dữ liệu lịch sử gọn nhẹ để tiết kiệm token
-    // Chỉ lấy phim được đánh giá cao (>= 3 sao) hoặc mới xem gần đây
-    const watchedList = history
-        .filter(m => (m.rating || 0) >= 3) // Chỉ lấy phim user thích
-        .slice(0, 50) // Giới hạn 50 phim gần nhất
+    // Chỉ lấy phim được đánh giá cao (>= 3 sao)
+    const filteredMovies = history.filter(m => (m.rating || 0) >= 3); // Chỉ lấy phim user thích
+
+    // Hàm chọn ngẫu nhiên
+    const getRandomItems = (array: Movie[], count: number): Movie[] => {
+        const shuffled = [...array].sort(() => 0.5 - Math.random());
+        return shuffled.slice(0, Math.min(count, array.length));
+    };
+
+    const selectedMovies = getRandomItems(filteredMovies, 30); // Giới hạn 30 phim ngẫu nhiên
+
+    const watchedList = selectedMovies
         .map(m => `${m.title} (${m.rating}/5 stars) - Genre: ${m.genres || 'Unknown'}`)
         .join('\n');
 
+    // Danh sách phim đã có trong collection để loại trừ
+    const existingTitles = allMovies.map(m => m.title).join(', ');
+
     const prompt = `
-    Based on the user's watched movie history below, recommend 10 similar movies that they haven't watched.
-    
+    Based on the user's watched movie history below, recommend 10 similar movies that they haven't watched and are not already in their collection.
+
     User History:
     ${watchedList}
+
+    Exclude these movies (already in user's collection):
+    ${existingTitles}
 
     Return ONLY a JSON array with the following format, no other text:
     [

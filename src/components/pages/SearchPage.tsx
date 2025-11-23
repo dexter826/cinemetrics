@@ -77,7 +77,7 @@ const SearchPage: React.FC = () => {
   }, []);
 
   // 3. Logic lấy AI Recommendations / Trending
-  const refreshRecommendations = async () => {
+  const refreshRecommendations = async (forceRefresh = false) => {
     if (!user) return;
 
     const watchedHistory = historyMovies.filter(m => (m.status || 'history') === 'history');
@@ -87,8 +87,8 @@ const SearchPage: React.FC = () => {
       const cacheKey = user ? `ai_recs_${user.uid}` : '';
       const cachedData = cacheKey ? sessionStorage.getItem(cacheKey) : null;
 
-      // Ưu tiên dùng cache nếu historyLength trùng
-      if (cachedData) {
+      // Ưu tiên dùng cache nếu historyLength trùng và không force refresh
+      if (cachedData && !forceRefresh) {
         const parsedCache = JSON.parse(cachedData);
         if (parsedCache.historyLength === watchedHistory.length && parsedCache.data) {
           setAiRecommendations(parsedCache.data);
@@ -99,7 +99,7 @@ const SearchPage: React.FC = () => {
 
       setIsAiLoading(true);
       try {
-        const aiRecs = await getAIRecommendations(watchedHistory);
+        const aiRecs = await getAIRecommendations(watchedHistory, historyMovies);
         const tmdbPromises = aiRecs.map(async (rec) => {
           const searchRes = await searchMovies(rec.title);
           return searchRes.results.length > 0 ? searchRes.results[0] : null;
@@ -298,7 +298,7 @@ const SearchPage: React.FC = () => {
 
                 <button
                   type="button"
-                  onClick={refreshRecommendations}
+                  onClick={() => refreshRecommendations(true)}
                   className="inline-flex items-center gap-2 px-3 py-2 rounded-xl text-sm bg-surface border border-black/10 dark:border-white/10 hover:bg-black/5 dark:hover:bg-white/5 transition-colors cursor-pointer text-text-main"
                 >
                   {isAiLoading && <Loader2 size={16} className="animate-spin" />}
