@@ -310,7 +310,7 @@ const AddMovieModal: React.FC = () => {
                         onClick={() => setStatus('watchlist')}
                         className={`px-3 py-1 text-xs font-medium rounded-full transition-colors cursor-pointer ${status === 'watchlist' ? 'bg-primary text-white' : 'text-text-muted hover:text-text-main'}`}
                       >
-                        Muốn xem
+                        Sẽ xem
                       </button>
                     </div>
                   </div>
