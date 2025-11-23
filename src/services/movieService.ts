@@ -1,12 +1,12 @@
-import { 
-  collection, 
-  addDoc, 
-  deleteDoc, 
+import {
+  collection,
+  addDoc,
+  deleteDoc,
   updateDoc,
-  doc, 
-  query, 
-  where, 
-  orderBy, 
+  doc,
+  query,
+  where,
+  orderBy,
   onSnapshot,
   serverTimestamp,
   Timestamp,
@@ -25,8 +25,9 @@ export const addMovie = async (movie: Omit<Movie, 'docId'>) => {
       ...movie,
       watched_at: movie.watched_at || serverTimestamp()
     };
-    
-    await addDoc(collection(db, COLLECTION_NAME), payload);
+
+    const docRef = await addDoc(collection(db, COLLECTION_NAME), payload);
+    return docRef.id;
   } catch (error) {
     console.error("Error adding movie: ", error);
     throw error;
@@ -105,7 +106,7 @@ export const subscribeToMovies = (uid: string, callback: (movies: Movie[]) => vo
   }, (error) => {
     console.error("Snapshot error:", error);
     if (error.code === 'permission-denied') {
-        console.error("Permission Denied: Check Firestore Security Rules.");
+      console.error("Permission Denied: Check Firestore Security Rules.");
     }
   });
 };

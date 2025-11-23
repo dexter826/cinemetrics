@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { X, Calendar, Star, Save, Loader2 } from 'lucide-react';
+import { X, Calendar, Star, Save, Loader2, FolderPlus, Check } from 'lucide-react';
 import { useAuth } from '../providers/AuthProvider';
 import { addMovie, updateMovie, checkMovieExists } from '../../services/movieService';
 import { getMovieDetails, getMovieDetailsWithLanguage } from '../../services/tmdbService';
@@ -7,6 +7,8 @@ import { useToast } from '../contexts/Toast';
 import { TMDB_IMAGE_BASE_URL } from '../../constants';
 import { useAddMovie } from '../contexts/AddMovieContext';
 import Loading from '../ui/Loading';
+import { subscribeToAlbums, updateAlbum, addAlbum } from '../../services/albumService';
+import { Album } from '../../types';
 
 const AddMovieModal: React.FC = () => {
   const { isOpen, closeAddModal, initialData } = useAddMovie();
@@ -36,13 +38,33 @@ const AddMovieModal: React.FC = () => {
   const [movieExists, setMovieExists] = useState(false);
   const [status, setStatus] = useState<'history' | 'watchlist'>('history');
 
+  // Album selection states
+  const [albums, setAlbums] = useState<Album[]>([]);
+  const [selectedAlbumIds, setSelectedAlbumIds] = useState<string[]>([]);
+  const [showCreateAlbum, setShowCreateAlbum] = useState(false);
+  const [newAlbumName, setNewAlbumName] = useState('');
+  const [creatingAlbum, setCreatingAlbum] = useState(false);
+
   const isManualMode = !initialData?.tmdbId && !initialData?.movie && !initialData?.movieToEdit;
+
+  // Subscribe to albums
+  useEffect(() => {
+    if (!user) return;
+    const unsubscribe = subscribeToAlbums(user.uid, (data) => {
+      setAlbums(data);
+    });
+    return () => unsubscribe();
+  }, [user]);
 
   // Reset form when modal opens with new data
   useEffect(() => {
     if (isOpen) {
       // Prevent body scroll when modal is open
       document.body.style.overflow = 'hidden';
+      // Reset album selection
+      setSelectedAlbumIds([]);
+      setShowCreateAlbum(false);
+      setNewAlbumName('');
     } else {
       // Restore body scroll when modal is closed
       document.body.style.overflow = 'unset';
@@ -95,13 +117,13 @@ const AddMovieModal: React.FC = () => {
           try {
             const id = initialData.tmdbId || initialData.movie?.id;
             const type = (initialData.mediaType || initialData.movie?.media_type || 'movie') as 'movie' | 'tv';
-            
+
             // Check if movie already exists
             if (user && id) {
               const exists = await checkMovieExists(user.uid, id);
               setMovieExists(exists);
             }
-            
+
             if (id) {
               const details = await getMovieDetails(Number(id), type);
               let displayTitle = '';
@@ -181,32 +203,61 @@ const AddMovieModal: React.FC = () => {
     }
   }, [isOpen, initialData, user]);
 
+  const handleCreateAlbum = async () => {
+    if (!newAlbumName.trim() || !user) return;
+
+    try {
+      setCreatingAlbum(true);
+      const newAlbumId = await addAlbum({
+        uid: user.uid,
+        name: newAlbumName.trim(),
+        movieDocIds: [],
+      });
+      showToast(`Đã tạo album "${newAlbumName}"`, 'success');
+      setSelectedAlbumIds([...selectedAlbumIds, newAlbumId]);
+      setNewAlbumName('');
+      setShowCreateAlbum(false);
+    } catch (error) {
+      showToast('Tạo album thất bại', 'error');
+    } finally {
+      setCreatingAlbum(false);
+    }
+  };
+
+  const toggleAlbumSelection = (albumId: string) => {
+    setSelectedAlbumIds(prev =>
+      prev.includes(albumId)
+        ? prev.filter(id => id !== albumId)
+        : [...prev, albumId]
+    );
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!user) return;
     const isHistory = status === 'history';
-    
+
     // Check if rating is required (when recording movies, not manual mode)
     if (isHistory && !isManualMode && formData.rating === 0) {
       showToast("Vui lòng đánh giá phim", "error");
       return;
     }
-    
+
     // Validate: watched date must be after release date
     if (isHistory && formData.releaseDate) {
       const [y, m, d] = formData.date.split('-').map(Number);
       const [hours, minutes] = formData.time.split(':').map(Number);
       const watchedDate = new Date(y, m - 1, d, hours, minutes, 0);
-      
+
       const [ry, rm, rd] = formData.releaseDate.split('-').map(Number);
       const releaseDate = new Date(ry, rm - 1, rd, 0, 0, 0);
-      
+
       if (watchedDate <= releaseDate) {
         showToast("Ngày xem phải sau ngày phát hành", "error");
         return;
       }
     }
-    
+
     setIsSubmitting(true);
 
     try {
@@ -239,9 +290,9 @@ const AddMovieModal: React.FC = () => {
       } else {
         // Add New
         const usedId = initialData?.tmdbId || initialData?.movie?.id || Date.now();
-        await addMovie({
+        const movieDocId = await addMovie({
           uid: user.uid,
-          id: usedId, // Fallback ID
+          id: usedId,
           title: formData.title,
           title_vi: formData.title_vi,
           poster_path: formData.poster,
@@ -259,7 +310,30 @@ const AddMovieModal: React.FC = () => {
           country: formData.country,
           content: formData.content
         });
-        showToast("Đã thêm phim mới", "success");
+
+        // Add to selected albums if status is history
+        if (isHistory && selectedAlbumIds.length > 0 && movieDocId) {
+          try {
+            for (const albumId of selectedAlbumIds) {
+              const album = albums.find(a => a.docId === albumId);
+              if (album && album.docId) {
+                const newIds = Array.from(new Set([...(album.movieDocIds || []), movieDocId]));
+                await updateAlbum(album.docId, { movieDocIds: newIds });
+              }
+            }
+
+            if (selectedAlbumIds.length === 1) {
+              showToast("Đã thêm phim và lưu vào album", "success");
+            } else {
+              showToast(`Đã thêm phim và lưu vào ${selectedAlbumIds.length} album`, "success");
+            }
+          } catch (error) {
+            console.error('Error adding to albums:', error);
+            showToast("Đã thêm phim nhưng không thể thêm vào album", "error");
+          }
+        } else {
+          showToast("Đã thêm phim mới", "success");
+        }
 
         if (initialData?.onMovieAdded) {
           initialData.onMovieAdded(usedId);
@@ -279,7 +353,7 @@ const AddMovieModal: React.FC = () => {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
       <div className="bg-surface border border-black/10 dark:border-white/10 rounded-2xl w-full max-w-2xl md:max-w-4xl max-h-[90vh] overflow-y-auto overflow-x-hidden shadow-2xl animate-in zoom-in-95 duration-200">
-        
+
         {/* Header */}
         <div className="sticky top-0 z-10 flex items-center justify-between p-4 border-b border-black/10 dark:border-white/10 bg-surface/95 backdrop-blur">
           <h2 className="text-xl font-bold text-text-main">
@@ -301,9 +375,9 @@ const AddMovieModal: React.FC = () => {
                 <div className="w-full md:w-1/3 flex flex-col gap-4">
                   <div className="aspect-2/3 rounded-xl overflow-hidden bg-black/10 dark:bg-black/20 border border-black/10 dark:border-white/5 relative group">
                     {formData.poster ? (
-                      <img 
+                      <img
                         src={formData.poster.startsWith('http') ? formData.poster : `${TMDB_IMAGE_BASE_URL}${formData.poster}`}
-                        alt="Poster" 
+                        alt="Poster"
                         className="w-full h-full object-cover"
                       />
                     ) : (
@@ -342,7 +416,7 @@ const AddMovieModal: React.FC = () => {
                       type="text"
                       required
                       value={formData.title}
-                      onChange={e => setFormData({...formData, title: e.target.value})}
+                      onChange={e => setFormData({ ...formData, title: e.target.value })}
                       className="w-full bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-lg px-4 py-2.5 text-text-main placeholder-text-muted focus:outline-none focus:border-primary/50 transition-colors"
                     />
                   </div>
@@ -352,7 +426,7 @@ const AddMovieModal: React.FC = () => {
                     <textarea
                       rows={8}
                       value={formData.content}
-                      onChange={e => setFormData({...formData, content: e.target.value})}
+                      onChange={e => setFormData({ ...formData, content: e.target.value })}
                       className="w-full bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-lg px-4 py-2.5 text-text-main placeholder-text-muted focus:outline-none focus:border-primary/50 transition-colors resize-none"
                       placeholder="Tóm tắt nội dung phim..."
                     />
@@ -363,7 +437,7 @@ const AddMovieModal: React.FC = () => {
                     <input
                       type="text"
                       value={formData.tagline}
-                      onChange={e => setFormData({...formData, tagline: e.target.value})}
+                      onChange={e => setFormData({ ...formData, tagline: e.target.value })}
                       placeholder="Câu slogan của phim..."
                       disabled={!isManualMode && !initialData?.movieToEdit}
                       className={`w-full bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-lg px-4 py-2.5 text-text-main placeholder-text-muted focus:outline-none focus:border-primary/50 transition-colors ${!isManualMode && !initialData?.movieToEdit ? 'opacity-60 cursor-not-allowed' : ''}`}
@@ -376,7 +450,7 @@ const AddMovieModal: React.FC = () => {
                       <input
                         type="url"
                         value={formData.poster}
-                        onChange={e => setFormData({...formData, poster: e.target.value})}
+                        onChange={e => setFormData({ ...formData, poster: e.target.value })}
                         placeholder="https://example.com/poster.jpg"
                         className="w-full bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-lg px-4 py-2.5 text-text-main placeholder-text-muted focus:outline-none focus:border-primary/50 transition-colors"
                       />
@@ -389,7 +463,7 @@ const AddMovieModal: React.FC = () => {
                       type="text"
                       required={isManualMode}
                       value={formData.genres}
-                      onChange={e => setFormData({...formData, genres: e.target.value})}
+                      onChange={e => setFormData({ ...formData, genres: e.target.value })}
                       placeholder="Hành động, Phiêu lưu, Khoa học viễn tưởng..."
                       disabled={!isManualMode && !initialData?.movieToEdit}
                       className={`w-full bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-lg px-4 py-2.5 text-text-main placeholder-text-muted focus:outline-none focus:border-primary/50 transition-colors ${!isManualMode && !initialData?.movieToEdit ? 'opacity-60 cursor-not-allowed' : ''}`}
@@ -402,7 +476,7 @@ const AddMovieModal: React.FC = () => {
                       type="text"
                       required={isManualMode}
                       value={formData.country}
-                      onChange={e => setFormData({...formData, country: e.target.value})}
+                      onChange={e => setFormData({ ...formData, country: e.target.value })}
                       placeholder="Việt Nam, Mỹ, Hàn Quốc..."
                       disabled={!isManualMode && !initialData?.movieToEdit}
                       className={`w-full bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-lg px-4 py-2.5 text-text-main placeholder-text-muted focus:outline-none focus:border-primary/50 transition-colors ${!isManualMode && !initialData?.movieToEdit ? 'opacity-60 cursor-not-allowed' : ''}`}
@@ -415,7 +489,7 @@ const AddMovieModal: React.FC = () => {
                       type="date"
                       required={isManualMode}
                       value={formData.releaseDate}
-                      onChange={e => setFormData({...formData, releaseDate: e.target.value})}
+                      onChange={e => setFormData({ ...formData, releaseDate: e.target.value })}
                       disabled={!isManualMode}
                       className={`w-full max-w-full bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-lg px-4 py-2.5 text-text-main focus:outline-none focus:border-primary/50 transition-colors scheme-light dark:scheme-dark ${!isManualMode ? 'opacity-60 cursor-not-allowed' : ''}`}
                     />
@@ -434,7 +508,7 @@ const AddMovieModal: React.FC = () => {
                             const datetimeValue = e.target.value;
                             if (datetimeValue) {
                               const [datePart, timePart] = datetimeValue.split('T');
-                              setFormData({...formData, date: datePart, time: timePart});
+                              setFormData({ ...formData, date: datePart, time: timePart });
                             }
                           }}
                           className="w-full bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-lg pl-10 pr-4 py-2.5 text-text-main focus:outline-none focus:border-primary/50 transition-colors scheme-light dark:scheme-dark"
@@ -477,7 +551,7 @@ const AddMovieModal: React.FC = () => {
                           required
                           disabled={!isManualMode}
                           value={formData.seasons}
-                          onChange={e => setFormData({...formData, seasons: e.target.value})}
+                          onChange={e => setFormData({ ...formData, seasons: e.target.value })}
                           className={`w-full bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-lg px-4 py-2.5 text-text-main focus:outline-none focus:border-primary/50 transition-colors ${!isManualMode ? 'opacity-60 cursor-not-allowed' : ''}`}
                         />
                       </div>
@@ -489,7 +563,7 @@ const AddMovieModal: React.FC = () => {
                           required
                           disabled={!isManualMode}
                           value={formData.runtime}
-                          onChange={e => setFormData({...formData, runtime: e.target.value})}
+                          onChange={e => setFormData({ ...formData, runtime: e.target.value })}
                           className={`w-full bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-lg px-4 py-2.5 text-text-main focus:outline-none focus:border-primary/50 transition-colors ${!isManualMode ? 'opacity-60 cursor-not-allowed' : ''}`}
                         />
                       </div>
@@ -512,11 +586,10 @@ const AddMovieModal: React.FC = () => {
                             >
                               <Star
                                 size={32}
-                                className={`${
-                                  star <= formData.rating
-                                    ? 'fill-yellow-500 text-yellow-500'
-                                    : 'text-text-muted hover:text-yellow-500'
-                                } transition-colors`}
+                                className={`${star <= formData.rating
+                                  ? 'fill-yellow-500 text-yellow-500'
+                                  : 'text-text-muted hover:text-yellow-500'
+                                  } transition-colors`}
                               />
                             </button>
                           ))}
@@ -528,7 +601,7 @@ const AddMovieModal: React.FC = () => {
                         <textarea
                           rows={3}
                           value={formData.review}
-                          onChange={e => setFormData({...formData, review: e.target.value})}
+                          onChange={e => setFormData({ ...formData, review: e.target.value })}
                           className="w-full bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-lg px-4 py-2.5 text-text-main placeholder-text-muted focus:outline-none focus:border-primary/50 transition-colors resize-none"
                           placeholder="Cảm nhận của bạn về phim..."
                         />
@@ -537,6 +610,104 @@ const AddMovieModal: React.FC = () => {
                   )}
                 </div>
               </div>
+
+              {/* Album Selection - Only show when adding new movie with history status */}
+              {!initialData?.movieToEdit && status === 'history' && (
+                <div className="border-t border-black/10 dark:border-white/10 pt-6">
+                  <div className="flex items-center justify-between mb-4">
+                    <div>
+                      <h3 className="text-lg font-semibold text-text-main">Thêm vào Album</h3>
+                      <p className="text-sm text-text-muted">Chọn album để lưu phim này (tùy chọn)</p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setShowCreateAlbum(!showCreateAlbum)}
+                      className="flex items-center gap-2 px-3 py-2 bg-primary/10 hover:bg-primary/20 text-primary rounded-lg transition-colors text-sm font-medium"
+                    >
+                      <FolderPlus size={16} />
+                      Tạo album mới
+                    </button>
+                  </div>
+
+                  {showCreateAlbum && (
+                    <div className="mb-4 p-4 border border-primary/20 rounded-xl bg-primary/5">
+                      <div className="space-y-3">
+                        <input
+                          type="text"
+                          placeholder="Tên album"
+                          value={newAlbumName}
+                          onChange={(e) => setNewAlbumName(e.target.value)}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter') {
+                              e.preventDefault();
+                              handleCreateAlbum();
+                            }
+                          }}
+                          className="w-full p-3 rounded-lg border border-black/10 dark:border-white/10 bg-surface text-text-main placeholder-text-muted focus:border-primary focus:outline-none"
+                        />
+                        <div className="flex gap-2">
+                          <button
+                            type="button"
+                            onClick={handleCreateAlbum}
+                            disabled={creatingAlbum || !newAlbumName.trim()}
+                            className="flex-1 px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-sm font-medium"
+                          >
+                            {creatingAlbum ? 'Đang tạo...' : 'Tạo album'}
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setShowCreateAlbum(false);
+                              setNewAlbumName('');
+                            }}
+                            className="px-4 py-2 border border-black/10 dark:border-white/10 text-text-main rounded-lg hover:bg-black/5 dark:hover:bg-white/5 transition-colors text-sm"
+                          >
+                            Hủy
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {albums.length === 0 ? (
+                    <div className="text-center py-6 text-text-muted text-sm">
+                      Bạn chưa có album nào. Tạo album mới để bắt đầu.
+                    </div>
+                  ) : (
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-h-60 overflow-y-auto custom-scrollbar pr-2">
+                      {albums.map(album => (
+                        <button
+                          key={album.docId}
+                          type="button"
+                          onClick={() => album.docId && toggleAlbumSelection(album.docId)}
+                          className={`p-3 rounded-lg border-2 transition-all text-left ${selectedAlbumIds.includes(album.docId || '')
+                            ? 'border-primary bg-primary/10'
+                            : 'border-black/10 dark:border-white/10 hover:border-primary/50 hover:bg-black/5 dark:hover:bg-white/5'
+                            }`}
+                        >
+                          <div className="flex items-center justify-between">
+                            <div className="flex-1 min-w-0">
+                              <h4 className="font-medium text-text-main truncate">{album.name}</h4>
+                              <p className="text-xs text-text-muted">{album.movieDocIds.length} phim</p>
+                            </div>
+                            {selectedAlbumIds.includes(album.docId || '') && (
+                              <div className="ml-2 w-5 h-5 bg-primary rounded-full flex items-center justify-center shrink-0">
+                                <Check size={14} className="text-white" />
+                              </div>
+                            )}
+                          </div>
+                        </button>
+                      ))}
+                    </div>
+                  )}
+
+                  {selectedAlbumIds.length > 0 && (
+                    <div className="mt-3 text-sm text-primary">
+                      Đã chọn {selectedAlbumIds.length} album
+                    </div>
+                  )}
+                </div>
+              )}
 
               <div className="flex justify-end pt-4 border-t border-black/10 dark:border-white/10">
                 <button
