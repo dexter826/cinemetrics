@@ -20,7 +20,9 @@ Cinemetrics là một ứng dụng quản lý phim cá nhân thông minh với A
 - **🌓 Giao diện Dark/Light:** Chế độ sáng tối linh hoạt.
 - **📱 Responsive:** Giao diện đẹp mắt, tương thích tốt trên cả máy tính và điện thoại.
 
-![Mockup của ứng dụng](https://i.ibb.co/qMY21Rf9/mockup.png)
+<center>
+  ![Mockup của ứng dụng](https://i.ibb.co/qMY21Rf9/mockup.png)
+</center>
 
 ## 🛠️ Công nghệ sử dụng
 
