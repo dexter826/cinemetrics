@@ -1,6 +1,6 @@
-﻿<center>
+﻿<div align="center">
   <img src="public/logo.gif" alt="Logo dự án">
-</center>
+</div>
 
 Chào mừng đến với **Cinemetrics**! Đây là một ứng dụng để theo dõi và quản lý danh sách phim đã xem, giúp bạn lưu giữ những khoảnh khắc điện ảnh đáng nhớ. 🍿✨
 
@@ -20,9 +20,9 @@ Cinemetrics là một ứng dụng quản lý phim cá nhân thông minh với A
 - **🌓 Giao diện Dark/Light:** Chế độ sáng tối linh hoạt.
 - **📱 Responsive:** Giao diện đẹp mắt, tương thích tốt trên cả máy tính và điện thoại.
 
-<center>
-  ![Mockup của ứng dụng](https://i.ibb.co/qMY21Rf9/mockup.png)
-</center>
+<div align="center">
+  <img src="https://i.ibb.co/qMY21Rf9/mockup.png" alt="Mockup của ứng dụng">
+</div>
 
 ## 🛠️ Công nghệ sử dụng
 
