@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Film, PlusCircle, Trash2, Edit2, X as XIcon } from 'lucide-react';
+import { ArrowLeft, Film, PlusCircle, Trash2, Edit2, X as XIcon, Search, ChevronLeft, ChevronRight } from 'lucide-react';
 import Navbar from '../layout/Navbar';
 import Loading from '../ui/Loading';
 import { Album, Movie } from '../../types';
@@ -26,6 +26,9 @@ const AlbumDetailPage: React.FC = () => {
   const [name, setName] = useState('');
   const [saving, setSaving] = useState(false);
   const [managingMovies, setManagingMovies] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
 
   useEffect(() => {
     if (!albumId) return;
@@ -67,6 +70,34 @@ const AlbumDetailPage: React.FC = () => {
     const ids = new Set(album.movieDocIds || []);
     return watchedMovies.filter(m => m.docId && !ids.has(m.docId));
   }, [album, watchedMovies]);
+
+  // Helper function to normalize Vietnamese text for search
+  const normalizeVietnamese = (str: string) => {
+    return str
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .toLowerCase();
+  };
+
+  const filteredAvailableMovies = useMemo(() => {
+    if (!searchQuery.trim()) return availableMovies;
+    const query = normalizeVietnamese(searchQuery.trim());
+    return availableMovies.filter(movie => {
+      const title = normalizeVietnamese(movie.title || '');
+      const titleVi = normalizeVietnamese(movie.title_vi || '');
+      return title.includes(query) || titleVi.includes(query);
+    });
+  }, [availableMovies, searchQuery]);
+
+  const totalPages = Math.ceil(filteredAvailableMovies.length / itemsPerPage);
+  const paginatedMovies = useMemo(() => {
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    return filteredAvailableMovies.slice(startIndex, startIndex + itemsPerPage);
+  }, [filteredAvailableMovies, currentPage, itemsPerPage]);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchQuery]);
 
   const handleSaveInfo = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -257,8 +288,8 @@ const AlbumDetailPage: React.FC = () => {
                 <div key={movie.docId} className="relative">
                   <MovieCard
                     movie={movie}
-                    onClick={() => {}}
-                    onEdit={() => {}}
+                    onClick={() => { }}
+                    onEdit={() => { }}
                     onDelete={() => {
                       if (!movie.docId) return;
                       handleRemoveMovie(movie);
@@ -279,33 +310,117 @@ const AlbumDetailPage: React.FC = () => {
 
         {managingMovies && (
           <div className="space-y-4">
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
               <h2 className="text-lg font-semibold">Chọn thêm phim đã xem</h2>
-              <span className="text-sm text-text-muted">{availableMovies.length} phim khả dụng</span>
+              <div className="flex items-center gap-3">
+                <div className="relative flex-1 md:w-64">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted" size={18} />
+                  <input
+                    type="text"
+                    value={searchQuery}
+                    onChange={e => setSearchQuery(e.target.value)}
+                    placeholder="Tìm kiếm phim..."
+                    className="w-full bg-surface border border-black/10 dark:border-white/10 rounded-xl pl-10 pr-4 py-2 focus:outline-none focus:border-primary/50 text-sm"
+                  />
+                </div>
+                <span className="text-sm text-text-muted whitespace-nowrap">
+                  {filteredAvailableMovies.length} phim
+                </span>
+              </div>
             </div>
+
             {availableMovies.length === 0 ? (
               <div className="border border-dashed border-black/10 dark:border-white/10 rounded-2xl p-8 text-center text-sm text-text-muted">
                 Tất cả phim đã xem của bạn đều đã nằm trong album này.
               </div>
+            ) : filteredAvailableMovies.length === 0 ? (
+              <div className="border border-dashed border-black/10 dark:border-white/10 rounded-2xl p-8 text-center text-sm text-text-muted">
+                Không tìm thấy phim nào phù hợp với từ khóa "{searchQuery}".
+              </div>
             ) : (
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 md:gap-6">
-                {availableMovies.map(movie => (
-                  <div key={movie.docId} className="relative">
+              <>
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 md:gap-6">
+                  {paginatedMovies.map(movie => (
+                    <div key={movie.docId} className="relative">
+                      <button
+                        type="button"
+                        onClick={() => handleAddMovie(movie)}
+                        className="w-full text-left group"
+                      >
+                        <MovieCard
+                          movie={movie}
+                          onClick={() => { }}
+                          onEdit={() => { }}
+                          onDelete={() => { }}
+                        />
+                        <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors rounded-xl flex items-center justify-center">
+                          <PlusCircle
+                            className="opacity-0 group-hover:opacity-100 transition-opacity text-white"
+                            size={32}
+                          />
+                        </div>
+                      </button>
+                    </div>
+                  ))}
+                </div>
+
+                {totalPages > 1 && (
+                  <div className="flex items-center justify-center gap-2 pt-6">
                     <button
                       type="button"
-                      onClick={() => handleAddMovie(movie)}
-                      className="w-full text-left"
+                      onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                      disabled={currentPage === 1}
+                      className="p-2.5 rounded-xl bg-surface border border-black/10 dark:border-white/10 text-text-main disabled:opacity-40 disabled:cursor-not-allowed hover:bg-black/5 dark:hover:bg-white/5 hover:border-primary/30 transition-all shadow-sm"
                     >
-                      <MovieCard
-                        movie={movie}
-                        onClick={() => {}}
-                        onEdit={() => {}}
-                        onDelete={() => {}}
-                      />
+                      <ChevronLeft size={20} />
+                    </button>
+
+                    <div className="flex items-center gap-2">
+                      {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => {
+                        const isActive = currentPage === page;
+                        const showPage =
+                          page === 1 ||
+                          page === totalPages ||
+                          (page >= currentPage - 1 && page <= currentPage + 1);
+
+                        if (!showPage) {
+                          if (page === currentPage - 2 || page === currentPage + 2) {
+                            return (
+                              <span key={page} className="px-1 text-text-muted select-none">
+                                •••
+                              </span>
+                            );
+                          }
+                          return null;
+                        }
+
+                        return (
+                          <button
+                            key={page}
+                            type="button"
+                            onClick={() => setCurrentPage(page)}
+                            className={`min-w-[40px] h-10 px-3 rounded-xl text-sm font-semibold transition-all ${isActive
+                              ? 'bg-primary text-white shadow-lg shadow-primary/25'
+                              : 'bg-surface border border-black/10 dark:border-white/10 text-text-main hover:bg-black/5 dark:hover:bg-white/5 hover:border-primary/30'
+                              }`}
+                          >
+                            {page}
+                          </button>
+                        );
+                      })}
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                      disabled={currentPage === totalPages}
+                      className="p-2.5 rounded-xl bg-surface border border-black/10 dark:border-white/10 text-text-main disabled:opacity-40 disabled:cursor-not-allowed hover:bg-black/5 dark:hover:bg-white/5 hover:border-primary/30 transition-all shadow-sm"
+                    >
+                      <ChevronRight size={20} />
                     </button>
                   </div>
-                ))}
-              </div>
+                )}
+              </>
             )}
           </div>
         )}

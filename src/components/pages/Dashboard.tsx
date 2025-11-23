@@ -42,8 +42,8 @@ const Dashboard: React.FC = () => {
   const [filterYear, setFilterYear] = useState<number | null>(null);
   const [filterCountry, setFilterCountry] = useState<string>('');
   const [filterContentType, setFilterContentType] = useState<'all' | 'movie' | 'tv'>('all');
-  const [filterVersion, setFilterVersion] = useState(0); 
-  
+  const [filterVersion, setFilterVersion] = useState(0);
+
   // Pagination State
   const [currentPage, setCurrentPage] = useState(1);
   const [moviesPerPage] = useState(18);
@@ -320,7 +320,7 @@ const Dashboard: React.FC = () => {
                       </button>
                     )}
                   </div>
-                  
+
                   {/* Filter Toggle Button */}
                   <button
                     onClick={(e) => { e.stopPropagation(); setShowFilters(!showFilters); }}
@@ -333,7 +333,7 @@ const Dashboard: React.FC = () => {
                 {/* Sorting Controls (Dropdown/Expandable) */}
                 {showFilters && (
                   <div ref={filterRef} className="absolute top-full right-0 mt-2 z-20 bg-surface p-4 rounded-xl border border-black/5 dark:border-white/10 shadow-xl flex flex-col gap-4 min-w-[280px] animate-fade-in">
-                    
+
                     {/* Sort Section */}
                     <div className="space-y-2">
                       <div className="text-xs font-semibold text-text-muted uppercase tracking-wider">Sắp xếp</div>
@@ -369,11 +369,11 @@ const Dashboard: React.FC = () => {
                       <div className="flex items-center justify-between">
                         <div className="text-xs font-semibold text-text-muted uppercase tracking-wider">Lọc</div>
                         {(filterRating !== null || filterYear !== null || filterCountry || filterContentType !== 'all') && (
-                          <button 
-                            onClick={() => { 
-                              setFilterRating(null); 
-                              setFilterYear(null); 
-                              setFilterCountry(''); 
+                          <button
+                            onClick={() => {
+                              setFilterRating(null);
+                              setFilterYear(null);
+                              setFilterCountry('');
                               setFilterContentType('all');
                               setFilterVersion(v => v + 1); // Force re-render
                             }}
@@ -383,7 +383,7 @@ const Dashboard: React.FC = () => {
                           </button>
                         )}
                       </div>
-                      
+
                       {/* Content Type Filter */}
                       <div>
                         <label className="text-xs text-text-muted mb-1.5 block">Loại nội dung</label>
@@ -405,7 +405,7 @@ const Dashboard: React.FC = () => {
                           </div>
                         </div>
                       </div>
-                      
+
                       {/* Rating Filter */}
                       <div>
                         <label className="text-xs text-text-muted mb-1.5 block">Đánh giá tối thiểu</label>
@@ -414,9 +414,8 @@ const Dashboard: React.FC = () => {
                             <button
                               key={star}
                               onClick={() => setFilterRating(filterRating === star ? null : star)}
-                              className={`p-1.5 rounded-lg transition-colors cursor-pointer ${
-                                (filterRating || 0) >= star ? 'text-yellow-500 bg-yellow-500/10' : 'text-text-muted bg-black/5 dark:bg-white/5 hover:bg-black/10 dark:hover:bg-white/10'
-                              }`}
+                              className={`p-1.5 rounded-lg transition-colors cursor-pointer ${(filterRating || 0) >= star ? 'text-yellow-500 bg-yellow-500/10' : 'text-text-muted bg-black/5 dark:bg-white/5 hover:bg-black/10 dark:hover:bg-white/10'
+                                }`}
                             >
                               <Star size={16} fill={(filterRating || 0) >= star ? "currentColor" : "none"} />
                             </button>
@@ -525,58 +524,62 @@ const Dashboard: React.FC = () => {
                   />
                 ))}
               </div>
-              
+
               {/* Pagination Controls */}
               {totalPages > 1 && (
-                <div className="flex items-center justify-center gap-2 pt-4">
+                <div className="flex items-center justify-center gap-2 pt-6">
                   <button
+                    type="button"
                     onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
                     disabled={currentPage === 1}
-                    className="px-4 py-2 rounded-lg bg-surface border border-black/10 dark:border-white/10 text-text-main disabled:opacity-50 disabled:cursor-not-allowed hover:bg-black/5 dark:hover:bg-white/5 transition-colors cursor-pointer"
+                    className="p-2.5 rounded-xl bg-surface border border-black/10 dark:border-white/10 text-text-main disabled:opacity-40 disabled:cursor-not-allowed hover:bg-black/5 dark:hover:bg-white/5 hover:border-primary/30 transition-all shadow-sm cursor-pointer"
                   >
-                    Trước
+                    <ArrowDown size={20} className="rotate-90" />
                   </button>
-                  
-                  <div className="flex items-center gap-1">
-                    {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
-                      let pageNum;
-                      if (totalPages <= 5) {
-                        pageNum = i + 1;
-                      } else if (currentPage <= 3) {
-                        pageNum = i + 1;
-                      } else if (currentPage >= totalPages - 2) {
-                        pageNum = totalPages - 4 + i;
-                      } else {
-                        pageNum = currentPage - 2 + i;
+
+                  <div className="flex items-center gap-2">
+                    {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => {
+                      const isActive = currentPage === page;
+                      const showPage =
+                        page === 1 ||
+                        page === totalPages ||
+                        (page >= currentPage - 1 && page <= currentPage + 1);
+
+                      if (!showPage) {
+                        if (page === currentPage - 2 || page === currentPage + 2) {
+                          return (
+                            <span key={page} className="px-1 text-text-muted select-none">
+                              •••
+                            </span>
+                          );
+                        }
+                        return null;
                       }
-                      
+
                       return (
                         <button
-                          key={pageNum}
-                          onClick={() => setCurrentPage(pageNum)}
-                          className={`w-10 h-10 rounded-lg transition-colors cursor-pointer ${
-                            currentPage === pageNum
-                              ? 'bg-primary text-white font-medium'
-                              : 'bg-surface border border-black/10 dark:border-white/10 text-text-main hover:bg-black/5 dark:hover:bg-white/5'
-                          }`}
+                          key={page}
+                          type="button"
+                          onClick={() => setCurrentPage(page)}
+                          className={`min-w-[40px] h-10 px-3 rounded-xl text-sm font-semibold transition-all cursor-pointer ${isActive
+                            ? 'bg-primary text-white shadow-lg shadow-primary/25'
+                            : 'bg-surface border border-black/10 dark:border-white/10 text-text-main hover:bg-black/5 dark:hover:bg-white/5 hover:border-primary/30'
+                            }`}
                         >
-                          {pageNum}
+                          {page}
                         </button>
                       );
                     })}
                   </div>
-                  
+
                   <button
+                    type="button"
                     onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
                     disabled={currentPage === totalPages}
-                    className="px-4 py-2 rounded-lg bg-surface border border-black/10 dark:border-white/10 text-text-main disabled:opacity-50 disabled:cursor-not-allowed hover:bg-black/5 dark:hover:bg-white/5 transition-colors cursor-pointer"
+                    className="p-2.5 rounded-xl bg-surface border border-black/10 dark:border-white/10 text-text-main disabled:opacity-40 disabled:cursor-not-allowed hover:bg-black/5 dark:hover:bg-white/5 hover:border-primary/30 transition-all shadow-sm cursor-pointer"
                   >
-                    Tiếp
+                    <ArrowDown size={20} className="-rotate-90" />
                   </button>
-                  
-                  <span className="ml-4 text-sm text-text-muted">
-                    Trang {currentPage} / {totalPages}
-                  </span>
                 </div>
               )}
             </>

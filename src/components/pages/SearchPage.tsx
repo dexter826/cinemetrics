@@ -279,52 +279,57 @@ const SearchPage: React.FC = () => {
             {!loading && query && filteredResults.length > 0 && totalSearchPages > 1 && (
               <div className="flex items-center justify-center gap-2 pt-6">
                 <button
+                  type="button"
                   onClick={() => setSearchPage(prev => Math.max(1, prev - 1))}
                   disabled={searchPage === 1}
-                  className="px-4 py-2 rounded-lg bg-surface border border-black/10 dark:border-white/10 text-text-main disabled:opacity-50 disabled:cursor-not-allowed hover:bg-black/5 dark:hover:bg-white/5 transition-colors cursor-pointer"
+                  className="p-2.5 rounded-xl bg-surface border border-black/10 dark:border-white/10 text-text-main disabled:opacity-40 disabled:cursor-not-allowed hover:bg-black/5 dark:hover:bg-white/5 hover:border-primary/30 transition-all shadow-sm cursor-pointer"
                 >
-                  Trước
+                  <Search size={20} className="rotate-180" />
                 </button>
 
-                <div className="flex items-center gap-1">
-                  {Array.from({ length: Math.min(5, totalSearchPages) }, (_, i) => {
-                    let pageNum;
-                    if (totalSearchPages <= 5) {
-                      pageNum = i + 1;
-                    } else if (searchPage <= 3) {
-                      pageNum = i + 1;
-                    } else if (searchPage >= totalSearchPages - 2) {
-                      pageNum = totalSearchPages - 4 + i;
-                    } else {
-                      pageNum = searchPage - 2 + i;
+                <div className="flex items-center gap-2">
+                  {Array.from({ length: totalSearchPages }, (_, i) => i + 1).map(page => {
+                    const isActive = searchPage === page;
+                    const showPage =
+                      page === 1 ||
+                      page === totalSearchPages ||
+                      (page >= searchPage - 1 && page <= searchPage + 1);
+
+                    if (!showPage) {
+                      if (page === searchPage - 2 || page === searchPage + 2) {
+                        return (
+                          <span key={page} className="px-1 text-text-muted select-none">
+                            •••
+                          </span>
+                        );
+                      }
+                      return null;
                     }
 
                     return (
                       <button
-                        key={pageNum}
-                        onClick={() => setSearchPage(pageNum)}
-                        className={`w-10 h-10 rounded-lg transition-colors cursor-pointer ${searchPage === pageNum
-                          ? 'bg-primary text-white font-medium'
-                          : 'bg-surface border border-black/10 dark:border-white/10 text-text-main hover:bg-black/5 dark:hover:bg-white/5'
+                        key={page}
+                        type="button"
+                        onClick={() => setSearchPage(page)}
+                        className={`min-w-[40px] h-10 px-3 rounded-xl text-sm font-semibold transition-all cursor-pointer ${isActive
+                          ? 'bg-primary text-white shadow-lg shadow-primary/25'
+                          : 'bg-surface border border-black/10 dark:border-white/10 text-text-main hover:bg-black/5 dark:hover:bg-white/5 hover:border-primary/30'
                           }`}
                       >
-                        {pageNum}
+                        {page}
                       </button>
                     );
                   })}
                 </div>
 
                 <button
+                  type="button"
                   onClick={() => setSearchPage(prev => Math.min(totalSearchPages, prev + 1))}
                   disabled={searchPage === totalSearchPages}
-                  className="px-4 py-2 rounded-lg bg-surface border border-black/10 dark:border-white/10 text-text-main disabled:opacity-50 disabled:cursor-not-allowed hover:bg-black/5 dark:hover:bg-white/5 transition-colors"
+                  className="p-2.5 rounded-xl bg-surface border border-black/10 dark:border-white/10 text-text-main disabled:opacity-40 disabled:cursor-not-allowed hover:bg-black/5 dark:hover:bg-white/5 hover:border-primary/30 transition-all shadow-sm cursor-pointer"
                 >
-                  Tiếp
+                  <Search size={20} />
                 </button>
-
-                <span className="ml-4 text-sm text-text-muted">
-                  Trang {searchPage} / {totalSearchPages}
-                </span>
               </div>
             )}
           </>
