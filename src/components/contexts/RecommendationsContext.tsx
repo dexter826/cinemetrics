@@ -14,13 +14,15 @@ interface RecommendationsContextType {
 
 const RecommendationsContext = createContext<RecommendationsContextType | undefined>(undefined);
 
-export const useRecommendations = () => {
+function useRecommendations() {
   const context = useContext(RecommendationsContext);
   if (!context) {
     throw new Error('useRecommendations must be used within a RecommendationsProvider');
   }
   return context;
-};
+}
+
+export { useRecommendations };
 
 export const RecommendationsProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { user } = useAuth();
