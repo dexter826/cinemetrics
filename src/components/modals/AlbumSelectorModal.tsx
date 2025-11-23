@@ -5,6 +5,7 @@ import { subscribeToAlbums } from '../../services/albumService';
 import { useAuth } from '../providers/AuthProvider';
 import { useToast } from '../contexts/Toast';
 import { updateAlbum, addAlbum } from '../../services/albumService';
+import { getDisplayTitle } from '../../utils/movieUtils';
 import Loading from '../ui/Loading';
 
 interface AlbumSelectorModalProps {
@@ -104,14 +105,14 @@ const AlbumSelectorModal: React.FC<AlbumSelectorModalProps> = ({ isOpen, onClose
         <div className="p-6 border-b border-white/10">
           <div className="flex items-center gap-3 mb-3">
             <div className="w-12 h-12 rounded-xl overflow-hidden">
-              <img 
+              <img
                 src={movie.poster_path ? `https://image.tmdb.org/t/p/w200${movie.poster_path}` : '/logo_text.png'}
-                alt={movie.title}
+                alt={getDisplayTitle(movie)}
                 className="w-full h-full object-cover"
               />
             </div>
             <div className="flex-1 min-w-0">
-              <h2 className="text-xl font-bold text-text-main truncate">{movie.title}</h2>
+              <h2 className="text-xl font-bold text-text-main truncate">{getDisplayTitle(movie)}</h2>
               <p className="text-sm text-text-muted">Chọn album để thêm phim này</p>
             </div>
           </div>

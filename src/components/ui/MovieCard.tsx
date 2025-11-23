@@ -1,6 +1,7 @@
 import React from 'react';
 import { Movie } from '../../types';
 import { TMDB_IMAGE_BASE_URL, PLACEHOLDER_IMAGE } from '../../constants';
+import { getDisplayTitle } from '../../utils/movieUtils';
 import { Trash2, Clock, Calendar, Star, Edit2, MessageCircle, Film, Tv, CheckCircle } from 'lucide-react';
 import { Timestamp } from 'firebase/firestore';
 
@@ -33,7 +34,7 @@ const MovieCard: React.FC<MovieCardProps> = ({ movie, onDelete, onEdit, onClick,
       <div className="aspect-2/3 w-full relative overflow-hidden">
         <img
           src={imageUrl}
-          alt={movie.title}
+          alt={getDisplayTitle(movie)}
           className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
           loading="lazy"
         />
@@ -101,8 +102,8 @@ const MovieCard: React.FC<MovieCardProps> = ({ movie, onDelete, onEdit, onClick,
 
       {/* Content */}
       <div className="p-4 absolute bottom-0 w-full">
-        <h3 className="font-semibold text-lg leading-tight text-white mb-2 line-clamp-1" title={movie.title}>
-          {movie.title}
+        <h3 className="font-semibold text-lg leading-tight text-white mb-2 line-clamp-1" title={getDisplayTitle(movie)}>
+          {getDisplayTitle(movie)}
         </h3>
 
         <div className="flex items-center justify-between text-xs text-gray-300">
