@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { LogOut, Sun, Moon, BarChart2, Menu, X, Dice5, Folder, Download, ChevronDown } from 'lucide-react';
+import { LogOut, Sun, Moon, BarChart2, Menu, X, Dice5, Folder, Download, ChevronDown, Clapperboard, Search } from 'lucide-react';
 import { useAuth } from '../providers/AuthProvider';
 import { useTheme } from '../providers/ThemeProvider';
 import { useNavigate, useLocation } from 'react-router-dom';
@@ -55,6 +55,14 @@ const Navbar: React.FC = () => {
 
           {/* Desktop Menu - Centered */}
           <div className="hidden md:flex items-center justify-center flex-1 space-x-4">
+            <button
+              onClick={() => navigate('/search')}
+              className={`flex items-center space-x-2 px-3 py-2 rounded-lg transition-colors cursor-pointer ${location.pathname === '/search' ? 'bg-primary/10 text-primary' : 'hover:bg-primary/10 hover:text-primary text-text-main'}`}
+            >
+              <Clapperboard size={20} />
+              <span>Tìm phim</span>
+            </button>
+
             <button
               onClick={() => navigate('/stats')}
               className={`flex items-center space-x-2 px-3 py-2 rounded-lg transition-colors cursor-pointer ${location.pathname === '/stats' ? 'bg-primary/10 text-primary' : 'hover:bg-primary/10 hover:text-primary text-text-main'}`}
@@ -137,6 +145,17 @@ const Navbar: React.FC = () => {
 
           {/* Mobile Menu Button & Theme Toggle */}
           <div className="md:hidden flex items-center gap-1">
+            <button
+              onClick={() => navigate('/search')}
+              className={`p-2 hover:bg-primary/10 hover:text-primary rounded-lg transition-colors cursor-pointer ${location.pathname === '/search'
+                ? 'bg-primary/10 text-primary'
+                : 'text-text-main'
+                }`}
+              title="Tìm phim"
+            >
+              <Search size={20} />
+            </button>
+
             <button
               onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
               className="p-2 mr-1 hover:bg-primary/10 hover:text-primary rounded-lg transition-colors text-text-main cursor-pointer"
