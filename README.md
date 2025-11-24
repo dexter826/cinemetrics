@@ -18,7 +18,6 @@ Cinemetrics là một ứng dụng quản lý phim cá nhân thông minh với A
 - **📊 Thống kê chi tiết:** Biểu đồ về số lượng phim, thể loại, quốc gia, đánh giá,...
 - **🎲 Random Picker:** Chọn phim ngẫu nhiên từ bộ sưu tập của bạn.
 - **📤 Xuất dữ liệu:** Xuất danh sách phim sang Excel/CSV.
-- **🚀 Màn hình khởi động:** Splash screen đẹp mắt khi mở ứng dụng.
 - **🌓 Giao diện Dark/Light:** Chế độ sáng tối linh hoạt.
 - **📱 Responsive:** Giao diện đẹp mắt, tương thích tốt trên cả máy tính và điện thoại.
 
@@ -31,6 +30,7 @@ Cinemetrics là một ứng dụng quản lý phim cá nhân thông minh với A
 - **Frontend:** [React](https://react.dev/) (v19.2.0), [TypeScript](https://www.typescriptlang.org/), [Vite](https://vitejs.dev/) (v6.2.0)
 - **Styling:** [Tailwind CSS](https://tailwindcss.com/) (v4.1.17), [Lucide React](https://lucide.dev/) (v0.554.0)
 - **Routing:** [React Router DOM](https://reactrouter.com/) (v7.9.6)
+- **State Management:** [Zustand](https://zustand-demo.pmnd.rs/) (v5.0.8)
 - **Backend & Database:** [Firebase](https://firebase.google.com/) (v12.6.0) (Firestore, Auth)
 - **API:** [The Movie Database (TMDB)](https://www.themoviedb.org/), [OpenRouter AI](https://openrouter.ai/)
 - **Charts:** [Recharts](https://recharts.org/) (v3.4.1)
@@ -87,13 +87,13 @@ cinemetrics/
  src/
    components/        # Các component React
      auth/           # Component đăng nhập
-     contexts/       # Context providers (Toast, Alert, AddMovie, Export, Recommendations, Album)
      layout/         # Layout components (Navbar, Footer)
      modals/         # Modal components (AddMovie, AlbumSelector, Export, MovieDetail, RandomPicker)
      pages/          # Page components (Dashboard, SearchPage, StatsPage, AlbumsPage, AlbumDetailPage)
-     providers/      # AuthProvider, ThemeProvider
+     providers/      # React Context providers (AuthProvider, ThemeProvider, AlbumStoreInitializer, RecommendationsStoreInitializer)
      ui/             # UI components (Loading, MovieCard, SplashScreen, StatsCard)
    services/          # API services (aiService, albumService, exportService, movieService, tmdbService)
+   stores/           # Zustand stores (addMovieStore, albumStore, alertStore, exportStore, recommendationsStore, toastStore)
    utils/            # Utility functions (movieUtils)
    App.tsx           # Component chính, routing
    constants.ts      # Hằng số và cấu hình
