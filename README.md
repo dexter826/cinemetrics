@@ -17,6 +17,8 @@ Cinemetrics là một ứng dụng quản lý phim cá nhân thông minh với A
 - **📁 Quản lý Album:** Tạo album phim cá nhân, sắp xếp và quản lý bộ sưu tập.
 - **📊 Thống kê chi tiết:** Biểu đồ về số lượng phim, thể loại, quốc gia, đánh giá,...
 - **🎲 Random Picker:** Chọn phim ngẫu nhiên từ bộ sưu tập của bạn.
+- **📤 Xuất dữ liệu:** Xuất danh sách phim sang Excel/CSV.
+- **🚀 Màn hình khởi động:** Splash screen đẹp mắt khi mở ứng dụng.
 - **🌓 Giao diện Dark/Light:** Chế độ sáng tối linh hoạt.
 - **📱 Responsive:** Giao diện đẹp mắt, tương thích tốt trên cả máy tính và điện thoại.
 
@@ -26,13 +28,14 @@ Cinemetrics là một ứng dụng quản lý phim cá nhân thông minh với A
 
 ## 🛠️ Công nghệ sử dụng
 
-- **Frontend:** [React](https://react.dev/) (v19), [TypeScript](https://www.typescriptlang.org/), [Vite](https://vitejs.dev/)
-- **Styling:** [Tailwind CSS](https://tailwindcss.com/) (v4), [Lucide React](https://lucide.dev/) (Icons)
-- **Routing:** [React Router DOM](https://reactrouter.com/) (v7)
-- **Backend & Database:** [Firebase](https://firebase.google.com/) (Firestore, Auth)
+- **Frontend:** [React](https://react.dev/) (v19.2.0), [TypeScript](https://www.typescriptlang.org/), [Vite](https://vitejs.dev/) (v6.2.0)
+- **Styling:** [Tailwind CSS](https://tailwindcss.com/) (v4.1.17), [Lucide React](https://lucide.dev/) (v0.554.0)
+- **Routing:** [React Router DOM](https://reactrouter.com/) (v7.9.6)
+- **Backend & Database:** [Firebase](https://firebase.google.com/) (v12.6.0) (Firestore, Auth)
 - **API:** [The Movie Database (TMDB)](https://www.themoviedb.org/), [OpenRouter AI](https://openrouter.ai/)
-- **Charts:** [Recharts](https://recharts.org/)
-- **Animation:** [Lottie React](https://lottiereact.com/)
+- **Charts:** [Recharts](https://recharts.org/) (v3.4.1)
+- **Animation:** [Lottie React](https://lottiereact.com/) (v2.4.1)
+- **Export:** [xlsx](https://www.npmjs.com/package/xlsx) (v0.18.5), [file-saver](https://www.npmjs.com/package/file-saver) (v2.0.5)
 
 ## ⚙️ Cài đặt và chạy dự án
 
@@ -82,23 +85,30 @@ Cinemetrics là một ứng dụng quản lý phim cá nhân thông minh với A
 cinemetrics/
  public/              # File tĩnh (manifest, robots.txt, logo, animations,...)
  src/
-    components/       # Các component React (Dashboard, SearchPage, StatsPage,...)
-    services/         # Xử lý API (Firebase, TMDB, AI)
-    styles/           # Các file CSS custom
-    App.tsx           # Component chính, routing
-    firebase.ts       # Cấu hình Firebase
-    types.ts          # Định nghĩa kiểu dữ liệu TypeScript
-    constants.ts      # Hằng số và cấu hình
-    index.tsx         # Entry point
-    index.css         # Global styles
- index.html           # File HTML chính
- package.json         # Khai báo dependencies
- tailwind.config.js   # Cấu hình Tailwind
- vite.config.ts       # Cấu hình Vite
- .env.example         # Template cho environment variables
- firebase.json        # Cấu hình Firebase
+   components/        # Các component React
+     auth/           # Component đăng nhập
+     contexts/       # Context providers (Toast, Alert, AddMovie, Export, Recommendations, Album)
+     layout/         # Layout components (Navbar, Footer)
+     modals/         # Modal components (AddMovie, AlbumSelector, Export, MovieDetail, RandomPicker)
+     pages/          # Page components (Dashboard, SearchPage, StatsPage, AlbumsPage, AlbumDetailPage)
+     providers/      # AuthProvider, ThemeProvider
+     ui/             # UI components (Loading, MovieCard, SplashScreen, StatsCard)
+   services/          # API services (aiService, albumService, exportService, movieService, tmdbService)
+   utils/            # Utility functions (movieUtils)
+   App.tsx           # Component chính, routing
+   constants.ts      # Hằng số và cấu hình
+   firebase.ts       # Cấu hình Firebase
+   index.css         # Global styles
+   index.tsx         # Entry point
+   types.ts          # Định nghĩa kiểu dữ liệu TypeScript
+ index.html          # File HTML chính
+ package.json        # Khai báo dependencies
+ tailwind.config.js  # Cấu hình Tailwind
+ vite.config.ts      # Cấu hình Vite
+ .env.example        # Template cho environment variables
+ firebase.json       # Cấu hình Firebase
 ```
 
 ---
 
-Made with ❤️ by [MOB](https://github.com/dexter826)
+<div align="center">Made with ❤️ by <a href="https://github.com/dexter826">MOB</a></div>
