@@ -10,6 +10,7 @@ import { useAuth } from '../providers/AuthProvider';
 import useToastStore from '../../stores/toastStore';
 import useAlertStore from '../../stores/alertStore';
 import MovieCard from '../ui/MovieCard';
+import Pagination from '../ui/Pagination';
 import { Timestamp } from 'firebase/firestore';
 
 const AlbumDetailPage: React.FC = () => {
@@ -364,62 +365,11 @@ const AlbumDetailPage: React.FC = () => {
                   ))}
                 </div>
 
-                {totalPages > 1 && (
-                  <div className="flex items-center justify-center gap-2 pt-6">
-                    <button
-                      type="button"
-                      onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
-                      disabled={currentPage === 1}
-                      className="p-2.5 rounded-xl bg-surface border border-black/10 dark:border-white/10 text-text-main disabled:opacity-40 disabled:cursor-not-allowed hover:bg-black/5 dark:hover:bg-white/5 hover:border-primary/30 transition-all shadow-sm"
-                    >
-                      <ChevronLeft size={20} />
-                    </button>
-
-                    <div className="flex items-center gap-2">
-                      {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => {
-                        const isActive = currentPage === page;
-                        const showPage =
-                          page === 1 ||
-                          page === totalPages ||
-                          (page >= currentPage - 1 && page <= currentPage + 1);
-
-                        if (!showPage) {
-                          if (page === currentPage - 2 || page === currentPage + 2) {
-                            return (
-                              <span key={page} className="px-1 text-text-muted select-none">
-                                •••
-                              </span>
-                            );
-                          }
-                          return null;
-                        }
-
-                        return (
-                          <button
-                            key={page}
-                            type="button"
-                            onClick={() => setCurrentPage(page)}
-                            className={`min-w-10 h-10 px-3 rounded-xl text-sm font-semibold transition-all ${isActive
-                              ? 'bg-primary text-white shadow-lg shadow-primary/25'
-                              : 'bg-surface border border-black/10 dark:border-white/10 text-text-main hover:bg-black/5 dark:hover:bg-white/5 hover:border-primary/30'
-                              }`}
-                          >
-                            {page}
-                          </button>
-                        );
-                      })}
-                    </div>
-
-                    <button
-                      type="button"
-                      onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
-                      disabled={currentPage === totalPages}
-                      className="p-2.5 rounded-xl bg-surface border border-black/10 dark:border-white/10 text-text-main disabled:opacity-40 disabled:cursor-not-allowed hover:bg-black/5 dark:hover:bg-white/5 hover:border-primary/30 transition-all shadow-sm"
-                    >
-                      <ChevronRight size={20} />
-                    </button>
-                  </div>
-                )}
+                <Pagination
+                  currentPage={currentPage}
+                  totalPages={totalPages}
+                  onPageChange={setCurrentPage}
+                />
               </>
             )}
           </div>
