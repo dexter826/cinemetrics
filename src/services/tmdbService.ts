@@ -134,27 +134,61 @@ export const getDiscoverMovies = async (params: {
   if (!TMDB_API_KEY) return { results: [], totalPages: 0 };
 
   try {
-    const queryParams = new URLSearchParams({
+    const page = params.page || 1;
+
+    // Discover movies
+    const movieQueryParams = new URLSearchParams({
       api_key: TMDB_API_KEY,
       language: 'vi-VN',
-      page: (params.page || 1).toString(),
-      sort_by: 'popularity.desc', // Default sort by popularity
+      page: page.toString(),
+      sort_by: 'popularity.desc',
       include_adult: 'false',
       include_video: 'false',
     });
 
-    if (params.genre) queryParams.append('with_genres', params.genre);
-    if (params.year) queryParams.append('primary_release_year', params.year);
-    if (params.country) queryParams.append('with_origin_country', params.country);
+    if (params.genre) movieQueryParams.append('with_genres', params.genre);
+    if (params.year) movieQueryParams.append('primary_release_year', params.year);
+    if (params.country) movieQueryParams.append('with_origin_country', params.country);
 
-    const response = await fetch(
-      `${TMDB_BASE_URL}/discover/movie?${queryParams}`
+    const movieResponse = await fetch(
+      `${TMDB_BASE_URL}/discover/movie?${movieQueryParams}`
     );
 
-    if (!response.ok) throw new Error('TMDB API Error');
+    // Discover TV shows
+    const tvQueryParams = new URLSearchParams({
+      api_key: TMDB_API_KEY,
+      language: 'vi-VN',
+      page: page.toString(),
+      sort_by: 'popularity.desc',
+      include_adult: 'false',
+      include_video: 'false',
+    });
 
-    const data = await response.json();
-    return { results: data.results || [], totalPages: data.total_pages || 1 };
+    if (params.genre) tvQueryParams.append('with_genres', params.genre);
+    if (params.year) tvQueryParams.append('first_air_date_year', params.year);
+    if (params.country) tvQueryParams.append('with_origin_country', params.country);
+
+    const tvResponse = await fetch(
+      `${TMDB_BASE_URL}/discover/tv?${tvQueryParams}`
+    );
+
+    if (!movieResponse.ok || !tvResponse.ok) throw new Error('TMDB API Error');
+
+    const movieData = await movieResponse.json();
+    const tvData = await tvResponse.json();
+
+    // Combine results and add media_type
+    const movieResults = (movieData.results || []).map((item: any) => ({ ...item, media_type: 'movie' }));
+    const tvResults = (tvData.results || []).map((item: any) => ({ ...item, media_type: 'tv' }));
+
+    // Combine and sort by popularity (assuming popularity is a number)
+    const combinedResults = [...movieResults, ...tvResults].sort((a, b) => (b.popularity || 0) - (a.popularity || 0));
+
+    // For pagination, since we're combining, we need to handle total pages differently
+    // For simplicity, use the max of the two total pages
+    const totalPages = Math.max(movieData.total_pages || 1, tvData.total_pages || 1);
+
+    return { results: combinedResults, totalPages };
   } catch (error) {
     console.error("Failed to discover movies:", error);
     return { results: [], totalPages: 0 };
