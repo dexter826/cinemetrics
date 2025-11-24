@@ -6,6 +6,7 @@ import { TMDB_IMAGE_BASE_URL } from '../../constants';
 import { useNavigate } from 'react-router-dom';
 import Navbar from '../layout/Navbar';
 import Pagination from '../ui/Pagination';
+import CustomDropdown from '../ui/CustomDropdown';
 import useAddMovieStore from '../../stores/addMovieStore';
 import Loading from '../ui/Loading';
 import { useAuth } from '../providers/AuthProvider';
@@ -254,38 +255,41 @@ const SearchPage: React.FC = () => {
               <span className="text-sm font-medium text-text-muted">Lọc theo:</span>
             </div>
 
-            <select
+            <CustomDropdown
+              options={[
+                { value: 'all', label: 'Tất cả loại' },
+                { value: 'movie', label: 'Phim lẻ' },
+                { value: 'tv', label: 'TV Series' },
+              ]}
               value={filterType}
-              onChange={(e) => setFilterType(e.target.value as any)}
-              className="bg-surface border border-black/10 dark:border-white/10 rounded-xl px-4 py-2 focus:outline-none focus:border-primary/50 text-sm flex-1 sm:flex-none text-text-main [&>option]:bg-surface [&>option]:text-text-main dark:[&>option]:bg-gray-800 cursor-pointer"
-            >
-              <option value="all">Tất cả loại</option>
-              <option value="movie">Phim lẻ</option>
-              <option value="tv">TV Series</option>
-            </select>
+              onChange={(value) => setFilterType(value as 'all' | 'movie' | 'tv')}
+              placeholder="Chọn loại"
+              className="flex-1 sm:flex-none"
+            />
 
 
-            <select
+            <CustomDropdown
+              options={[
+                { value: '', label: 'Tất cả thể loại' },
+                ...genres.map(g => ({ value: g.id, label: g.name })),
+              ]}
               value={filterGenre}
-              onChange={(e) => setFilterGenre(e.target.value)}
-              className="bg-surface border border-black/10 dark:border-white/10 rounded-xl px-4 py-2 focus:outline-none focus:border-primary/50 text-sm flex-1 sm:flex-none min-w-[140px] text-text-main [&>option]:bg-surface [&>option]:text-text-main dark:[&>option]:bg-gray-800 cursor-pointer"
-            >
-              <option value="">Tất cả thể loại</option>
-              {genres.map(g => (
-                <option key={g.id} value={g.id}>{g.name}</option>
-              ))}
-            </select>
+              onChange={(value) => setFilterGenre(value as string)}
+              placeholder="Chọn thể loại"
+              className="flex-1 sm:flex-none min-w-[140px]"
+            />
 
-            <select
+            <CustomDropdown
+              options={[
+                { value: '', label: 'Tất cả quốc gia' },
+                ...countries.map(c => ({ value: c.iso_3166_1, label: c.native_name })),
+              ]}
               value={filterCountry}
-              onChange={(e) => setFilterCountry(e.target.value)}
-              className="bg-surface border border-black/10 dark:border-white/10 rounded-xl px-4 py-2 focus:outline-none focus:border-primary/50 text-sm flex-1 sm:flex-none min-w-[140px] text-text-main [&>option]:bg-surface [&>option]:text-text-main dark:[&>option]:bg-gray-800 cursor-pointer"
-            >
-              <option value="">Tất cả quốc gia</option>
-              {countries.map(c => (
-                <option key={c.iso_3166_1} value={c.iso_3166_1}>{c.native_name}</option>
-              ))}
-            </select>
+              onChange={(value) => setFilterCountry(value as string)}
+              placeholder="Chọn quốc gia"
+              className="flex-1 sm:flex-none min-w-[140px]"
+              searchable={true}
+            />
 
             <input
               type="number"

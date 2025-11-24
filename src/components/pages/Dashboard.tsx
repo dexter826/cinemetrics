@@ -9,6 +9,7 @@ import MovieCard from '../ui/MovieCard';
 import MovieDetailModal from '../modals/MovieDetailModal';
 import Navbar from '../layout/Navbar';
 import Pagination from '../ui/Pagination';
+import CustomDropdown from '../ui/CustomDropdown';
 import { TMDB_API_KEY } from '../../constants';
 import { Timestamp } from 'firebase/firestore';
 import useToastStore from '../../stores/toastStore';
@@ -391,26 +392,22 @@ const Dashboard: React.FC = () => {
                       </div>
 
                       {/* Content Type Filter */}
-                      <div>
-                        <label className="text-xs text-text-muted mb-1.5 block">Loại nội dung</label>
-                        <div className="relative">
-                          <select
-                            value={filterContentType}
-                            onChange={(e) => {
-                              setFilterContentType(e.target.value as 'all' | 'movie' | 'tv');
-                              setFilterVersion(v => v + 1);
-                            }}
-                            className="w-full bg-black/5 dark:bg-white/5 border-none rounded-lg text-sm text-text-main py-2 px-3 focus:ring-1 focus:ring-primary appearance-none cursor-pointer"
-                          >
-                            <option value="all" className="bg-surface text-text-main dark:bg-gray-800">Tất cả</option>
-                            <option value="movie" className="bg-surface text-text-main dark:bg-gray-800">Phim</option>
-                            <option value="tv" className="bg-surface text-text-main dark:bg-gray-800">TV Series</option>
-                          </select>
-                          <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-text-muted">
-                            <ArrowDown size={12} />
-                          </div>
-                        </div>
-                      </div>
+                       <div>
+                         <label className="text-xs text-text-muted mb-1.5 block">Loại nội dung</label>
+                         <CustomDropdown
+                           options={[
+                             { value: 'all', label: 'Tất cả' },
+                             { value: 'movie', label: 'Phim' },
+                             { value: 'tv', label: 'TV Series' },
+                           ]}
+                           value={filterContentType}
+                           onChange={(value) => {
+                             setFilterContentType(value as 'all' | 'movie' | 'tv');
+                             setFilterVersion(v => v + 1);
+                           }}
+                           placeholder="Chọn loại nội dung"
+                         />
+                       </div>
 
                       {/* Rating Filter */}
                       <div>
@@ -432,52 +429,47 @@ const Dashboard: React.FC = () => {
                       {/* Year Filter */}
                       <div>
                         <label className="text-xs text-text-muted mb-1.5 block">Năm xem</label>
-                        <div className="relative">
-                          <select
-                            value={filterYear || ''}
-                            onChange={(e) => setFilterYear(e.target.value ? Number(e.target.value) : null)}
-                            className="w-full bg-black/5 dark:bg-white/5 border-none rounded-lg text-sm text-text-main py-2 px-3 focus:ring-1 focus:ring-primary appearance-none cursor-pointer"
-                          >
-                            <option value="" className="bg-surface text-text-main dark:bg-gray-800">Tất cả các năm</option>
-                            {Array.from(new Set(currentMovies.map(m => {
+                        <CustomDropdown
+                          options={[
+                            { value: '', label: 'Tất cả các năm' },
+                            ...Array.from(new Set(currentMovies.map(m => {
                               const d = m.watched_at instanceof Timestamp ? m.watched_at.toDate() : (m.watched_at as Date);
                               return d ? d.getFullYear() : null;
-                            }).filter(Boolean))).sort((a, b) => (b as number) - (a as number)).map(year => (
-                              <option key={year} value={year as number} className="bg-surface text-text-main dark:bg-gray-800">{year}</option>
-                            ))}
-                          </select>
-                          <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-text-muted">
-                            <ArrowDown size={12} />
-                          </div>
-                        </div>
+                            }).filter(Boolean))).sort((a, b) => (b as number) - (a as number)).map(year => ({
+                              value: year as number,
+                              label: year.toString(),
+                            })),
+                          ]}
+                          value={filterYear || ''}
+                          onChange={(value) => setFilterYear(value === '' ? null : Number(value))}
+                          placeholder="Chọn năm"
+                        />
                       </div>
 
                       {/* Country Filter */}
                       <div>
                         <label className="text-xs text-text-muted mb-1.5 block">Quốc gia</label>
-                        <div className="relative">
-                          <select
-                            value={filterCountry}
-                            onChange={(e) => {
-                              setFilterCountry(e.target.value);
-                              setFilterVersion(v => v + 1); // Force re-render
-                            }}
-                            className="w-full bg-black/5 dark:bg-white/5 border-none rounded-lg text-sm text-text-main py-2 px-3 focus:ring-1 focus:ring-primary appearance-none cursor-pointer"
-                          >
-                            <option value="" className="bg-surface text-text-main dark:bg-gray-800">Tất cả quốc gia</option>
-                            {Array.from(new Set(
+                        <CustomDropdown
+                          options={[
+                            { value: '', label: 'Tất cả quốc gia' },
+                            ...Array.from(new Set(
                               currentMovies
                                 .filter(m => m.country && m.country.trim().length > 0)
                                 .flatMap(m => m.country!.split(',').map(c => c.trim()))
                                 .filter(c => c.length > 0)
-                            )).sort().map(country => (
-                              <option key={country} value={country} className="bg-surface text-text-main dark:bg-gray-800">{country}</option>
-                            ))}
-                          </select>
-                          <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-text-muted">
-                            <ArrowDown size={12} />
-                          </div>
-                        </div>
+                            )).sort().map(country => ({
+                              value: country,
+                              label: country,
+                            })),
+                          ]}
+                          value={filterCountry}
+                          onChange={(value) => {
+                            setFilterCountry(value as string);
+                            setFilterVersion(v => v + 1);
+                          }}
+                          placeholder="Chọn quốc gia"
+                          searchable={true}
+                        />
                       </div>
                     </div>
                   </div>

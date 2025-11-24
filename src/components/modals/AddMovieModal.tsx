@@ -9,6 +9,7 @@ import useAddMovieStore from '../../stores/addMovieStore';
 import Loading from '../ui/Loading';
 import { subscribeToAlbums, updateAlbum, addAlbum } from '../../services/albumService';
 import { Album } from '../../types';
+import CustomDropdown from '../ui/CustomDropdown';
 
 const AddMovieModal: React.FC = () => {
   const { isOpen, closeAddModal, initialData } = useAddMovieStore();
@@ -521,10 +522,14 @@ const AddMovieModal: React.FC = () => {
                     <div>
                       <label className="block text-sm font-medium text-text-muted mb-1">Loại nội dung</label>
                       {isManualMode ? (
-                        <select
+                        <CustomDropdown
+                          options={[
+                            { value: 'movie', label: 'Phim lẻ' },
+                            { value: 'tv', label: 'TV Series' },
+                          ]}
                           value={manualMediaType}
-                          onChange={e => {
-                            setManualMediaType(e.target.value as 'movie' | 'tv');
+                          onChange={(value) => {
+                            setManualMediaType(value as 'movie' | 'tv');
                             // Reset runtime/seasons when switching
                             setFormData(prev => ({
                               ...prev,
@@ -532,11 +537,8 @@ const AddMovieModal: React.FC = () => {
                               seasons: ''
                             }));
                           }}
-                          className="w-full bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-lg px-4 py-2.5 text-text-main focus:outline-none focus:border-primary/50 transition-colors [&>option]:bg-surface [&>option]:text-text-main dark:[&>option]:bg-gray-800"
-                        >
-                          <option value="movie">Phim lẻ</option>
-                          <option value="tv">TV Series</option>
-                        </select>
+                          placeholder="Chọn loại"
+                        />
                       ) : (
                         <div className="w-full bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-lg px-4 py-2.5 text-text-main">
                           {(initialData?.mediaType === 'tv' || initialData?.movie?.media_type === 'tv' || initialData?.movieToEdit?.media_type === 'tv') ? 'TV Series' : 'Phim lẻ'}

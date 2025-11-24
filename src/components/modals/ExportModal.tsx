@@ -4,6 +4,7 @@ import { Movie } from '../../types';
 import { exportToExcel, ExportFilters } from '../../services/exportService';
 import useToastStore from '../../stores/toastStore';
 import { Timestamp } from 'firebase/firestore';
+import CustomDropdown from '../ui/CustomDropdown';
 
 interface ExportModalProps {
   isOpen: boolean;
@@ -138,39 +139,31 @@ const ExportModal: React.FC<ExportModalProps> = ({ isOpen, onClose, movies }) =>
             {/* Status Filter */}
             <div>
               <label className="block text-xs text-text-muted mb-1.5">Trạng thái</label>
-              <div className="relative">
-                <select
-                  value={filters.status || 'all'}
-                  onChange={(e) => setFilters(prev => ({ ...prev, status: e.target.value as 'all' | 'history' | 'watchlist' }))}
-                  className="w-full bg-black/5 dark:bg-white/5 border-none rounded-lg text-sm text-text-main py-2 px-3 focus:ring-1 focus:ring-primary appearance-none cursor-pointer"
-                >
-                  <option value="all" className="bg-surface text-text-main dark:bg-gray-800">Tất cả</option>
-                  <option value="history" className="bg-surface text-text-main dark:bg-gray-800">Đã xem</option>
-                  <option value="watchlist" className="bg-surface text-text-main dark:bg-gray-800">Sẽ xem</option>
-                </select>
-                <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-text-muted">
-                  <X size={12} className="rotate-45" />
-                </div>
-              </div>
+              <CustomDropdown
+                options={[
+                  { value: 'all', label: 'Tất cả' },
+                  { value: 'history', label: 'Đã xem' },
+                  { value: 'watchlist', label: 'Sẽ xem' },
+                ]}
+                value={filters.status || 'all'}
+                onChange={(value) => setFilters(prev => ({ ...prev, status: value as 'all' | 'history' | 'watchlist' }))}
+                placeholder="Chọn trạng thái"
+              />
             </div>
 
             {/* Content Type Filter */}
             <div>
               <label className="block text-xs text-text-muted mb-1.5">Loại nội dung</label>
-              <div className="relative">
-                <select
-                  value={filters.contentType || 'all'}
-                  onChange={(e) => setFilters(prev => ({ ...prev, contentType: e.target.value as 'all' | 'movie' | 'tv' }))}
-                  className="w-full bg-black/5 dark:bg-white/5 border-none rounded-lg text-sm text-text-main py-2 px-3 focus:ring-1 focus:ring-primary appearance-none cursor-pointer"
-                >
-                  <option value="all" className="bg-surface text-text-main dark:bg-gray-800">Tất cả</option>
-                  <option value="movie" className="bg-surface text-text-main dark:bg-gray-800">Phim</option>
-                  <option value="tv" className="bg-surface text-text-main dark:bg-gray-800">TV Series</option>
-                </select>
-                <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-text-muted">
-                  <X size={12} className="rotate-45" />
-                </div>
-              </div>
+              <CustomDropdown
+                options={[
+                  { value: 'all', label: 'Tất cả' },
+                  { value: 'movie', label: 'Phim' },
+                  { value: 'tv', label: 'TV Series' },
+                ]}
+                value={filters.contentType || 'all'}
+                onChange={(value) => setFilters(prev => ({ ...prev, contentType: value as 'all' | 'movie' | 'tv' }))}
+                placeholder="Chọn loại"
+              />
             </div>
 
             {/* Rating Filter */}
@@ -194,41 +187,30 @@ const ExportModal: React.FC<ExportModalProps> = ({ isOpen, onClose, movies }) =>
             {/* Year Filter */}
             <div>
               <label className="block text-xs text-text-muted mb-1.5">Năm xem</label>
-              <div className="relative">
-                <select
-                  value={filters.year || ''}
-                  onChange={(e) => setFilters(prev => ({ ...prev, year: e.target.value ? Number(e.target.value) : null }))}
-                  className="w-full bg-black/5 dark:bg-white/5 border-none rounded-lg text-sm text-text-main py-2 px-3 focus:ring-1 focus:ring-primary appearance-none cursor-pointer"
-                >
-                  <option value="" className="bg-surface text-text-main dark:bg-gray-800">Tất cả các năm</option>
-                  {filterOptions.years.map(year => (
-                    <option key={year} value={year as number} className="bg-surface text-text-main dark:bg-gray-800">{year}</option>
-                  ))}
-                </select>
-                <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-text-muted">
-                  <X size={12} className="rotate-45" />
-                </div>
-              </div>
+              <CustomDropdown
+                options={[
+                  { value: '', label: 'Tất cả các năm' },
+                  ...filterOptions.years.map(year => ({ value: year as number, label: year.toString() })),
+                ]}
+                value={filters.year || ''}
+                onChange={(value) => setFilters(prev => ({ ...prev, year: value === '' ? null : Number(value) }))}
+                placeholder="Chọn năm"
+              />
             </div>
 
             {/* Country Filter */}
             <div>
               <label className="block text-xs text-text-muted mb-1.5">Quốc gia</label>
-              <div className="relative">
-                <select
-                  value={filters.country || ''}
-                  onChange={(e) => setFilters(prev => ({ ...prev, country: e.target.value }))}
-                  className="w-full bg-black/5 dark:bg-white/5 border-none rounded-lg text-sm text-text-main py-2 px-3 focus:ring-1 focus:ring-primary appearance-none cursor-pointer"
-                >
-                  <option value="" className="bg-surface text-text-main dark:bg-gray-800">Tất cả quốc gia</option>
-                  {filterOptions.countries.map(country => (
-                    <option key={country} value={country} className="bg-surface text-text-main dark:bg-gray-800">{country}</option>
-                  ))}
-                </select>
-                <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-text-muted">
-                  <X size={12} className="rotate-45" />
-                </div>
-              </div>
+              <CustomDropdown
+                options={[
+                  { value: '', label: 'Tất cả quốc gia' },
+                  ...filterOptions.countries.map(country => ({ value: country, label: country })),
+                ]}
+                value={filters.country || ''}
+                onChange={(value) => setFilters(prev => ({ ...prev, country: value as string }))}
+                placeholder="Chọn quốc gia"
+                searchable={true}
+              />
             </div>
           </div>
 
