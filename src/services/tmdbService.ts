@@ -1,5 +1,5 @@
 import { TMDB_API_KEY, TMDB_BASE_URL } from '../constants';
-import { TMDBMovieResult, TMDBMovieDetail } from '../types';
+import { TMDBMovieResult, TMDBMovieDetail, TMDBVideo } from '../types';
 
 export const searchMovies = async (query: string, page: number = 1): Promise<{ results: TMDBMovieResult[]; totalPages: number }> => {
   if (!query || !TMDB_API_KEY) return { results: [], totalPages: 0 };
@@ -67,6 +67,24 @@ export const getMovieDetailsWithLanguage = async (id: number, mediaType: 'movie'
   } catch (error) {
     console.error("Failed to get movie details:", error);
     return null;
+  }
+};
+
+export const getMovieVideos = async (id: number, mediaType: 'movie' | 'tv' = 'movie'): Promise<TMDBVideo[]> => {
+  if (!TMDB_API_KEY) return [];
+
+  try {
+    const response = await fetch(
+      `${TMDB_BASE_URL}/${mediaType}/${id}/videos?api_key=${TMDB_API_KEY}`
+    );
+
+    if (!response.ok) throw new Error('TMDB API Error');
+
+    const data = await response.json();
+    return (data.results || []).filter((video: TMDBVideo) => video.type === 'Trailer' && video.site === 'YouTube');
+  } catch (error) {
+    console.error("Failed to get movie videos:", error);
+    return [];
   }
 };
 

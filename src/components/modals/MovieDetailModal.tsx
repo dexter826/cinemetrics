@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
-import { X, Calendar, Clock, Star, Film, Info, FolderPlus } from 'lucide-react';
-import { Movie, TMDBMovieDetail } from '../../types';
-import { getMovieDetails } from '../../services/tmdbService';
+import { X, Calendar, Clock, Star, Film, Info, FolderPlus, Play } from 'lucide-react';
+import { Movie, TMDBMovieDetail, TMDBVideo } from '../../types';
+import { getMovieDetails, getMovieVideos } from '../../services/tmdbService';
 import { TMDB_IMAGE_BASE_URL, PLACEHOLDER_IMAGE } from '../../constants';
 import { getDisplayTitle } from '../../utils/movieUtils';
 import Loading from '../ui/Loading';
@@ -18,6 +18,7 @@ const MovieDetailModal: React.FC<MovieDetailModalProps> = ({ isOpen, onClose, mo
   const [details, setDetails] = useState<TMDBMovieDetail | null>(null);
   const [loading, setLoading] = useState(false);
   const [showAlbumSelector, setShowAlbumSelector] = useState(false);
+  const [videos, setVideos] = useState<TMDBVideo[]>([]);
   const { showToast } = useToastStore();
 
   useEffect(() => {
@@ -26,13 +27,21 @@ const MovieDetailModal: React.FC<MovieDetailModalProps> = ({ isOpen, onClose, mo
         setLoading(true);
         try {
           let data = await getMovieDetails(Number(movie.id), movie.media_type || 'movie');
-          
+
           // Fallback for legacy data: if 'movie' failed and we didn't specify type, try 'tv'
           if (!data && !movie.media_type) {
-             data = await getMovieDetails(Number(movie.id), 'tv');
+              data = await getMovieDetails(Number(movie.id), 'tv');
           }
-          
+
           setDetails(data);
+
+          // Fetch videos for watchlist movies
+          if (movie.status === 'watchlist') {
+            const movieVideos = await getMovieVideos(Number(movie.id), movie.media_type || 'movie');
+            setVideos(movieVideos);
+          } else {
+            setVideos([]);
+          }
         } catch (error) {
           console.error("Failed to fetch details", error);
         } finally {
@@ -40,6 +49,7 @@ const MovieDetailModal: React.FC<MovieDetailModalProps> = ({ isOpen, onClose, mo
         }
       } else {
         setDetails(null);
+        setVideos([]);
       }
     };
 
@@ -84,6 +94,12 @@ const MovieDetailModal: React.FC<MovieDetailModalProps> = ({ isOpen, onClose, mo
       return;
     }
     setShowAlbumSelector(true);
+  };
+
+  const handleWatchTrailer = () => {
+    if (videos.length > 0) {
+      window.open(`https://www.youtube.com/watch?v=${videos[0].key}`, '_blank');
+    }
   };
 
   return (
@@ -180,21 +196,36 @@ const MovieDetailModal: React.FC<MovieDetailModalProps> = ({ isOpen, onClose, mo
                 </div>
               )}
 
-              {/* Album Actions */}
+              {/* Actions */}
               <div className="pt-2">
-                <button
-                  onClick={handleAddToAlbum}
-                  disabled={!canAddToAlbum}
-                  className={`w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl font-medium transition-all cursor-pointer ${
-                    canAddToAlbum
-                      ? 'bg-primary hover:bg-primary-dark text-white shadow-lg hover:shadow-xl'
-                      : 'bg-gray-500/20 text-gray-400 cursor-not-allowed'
-                  }`}
-                >
-                  <FolderPlus size={20} />
-                  <span>{canAddToAlbum ? 'Thêm vào album' : 'Không thể thêm vào album'}</span>
-                </button>
-                {!canAddToAlbum && (
+                {movie.status === 'watchlist' ? (
+                  <button
+                    onClick={handleWatchTrailer}
+                    disabled={videos.length === 0}
+                    className={`w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl font-medium transition-all cursor-pointer ${
+                      videos.length > 0
+                        ? 'bg-red-500 hover:bg-red-600 text-white shadow-lg hover:shadow-xl'
+                        : 'bg-gray-500/20 text-gray-400 cursor-not-allowed'
+                    }`}
+                  >
+                    <Play size={20} />
+                    <span>{videos.length > 0 ? 'Xem trailer' : 'Không có trailer'}</span>
+                  </button>
+                ) : (
+                  <button
+                    onClick={handleAddToAlbum}
+                    disabled={!canAddToAlbum}
+                    className={`w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl font-medium transition-all cursor-pointer ${
+                      canAddToAlbum
+                        ? 'bg-primary hover:bg-primary-dark text-white shadow-lg hover:shadow-xl'
+                        : 'bg-gray-500/20 text-gray-400 cursor-not-allowed'
+                    }`}
+                  >
+                    <FolderPlus size={20} />
+                    <span>{canAddToAlbum ? 'Thêm vào album' : 'Không thể thêm vào album'}</span>
+                  </button>
+                )}
+                {movie.status !== 'watchlist' && !canAddToAlbum && (
                   <p className="text-xs text-text-muted text-center mt-2">
                     Chỉ có thể thêm phim đã xem vào album
                   </p>

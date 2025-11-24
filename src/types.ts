@@ -63,6 +63,15 @@ export interface TMDBMovieDetail {
   production_countries?: { iso_3166_1: string; name: string }[];
 }
 
+export interface TMDBVideo {
+  id: string;
+  key: string;
+  name: string;
+  site: string;
+  type: string;
+  published_at: string;
+}
+
 export interface AuthContextType {
   user: User | null;
   loading: boolean;
