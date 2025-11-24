@@ -124,3 +124,39 @@ export const getCountries = async (): Promise<{ iso_3166_1: string; english_name
     return [];
   }
 };
+
+export const getDiscoverMovies = async (params: {
+  page?: number;
+  genre?: string;
+  year?: string;
+  country?: string;
+} = {}): Promise<{ results: TMDBMovieResult[]; totalPages: number }> => {
+  if (!TMDB_API_KEY) return { results: [], totalPages: 0 };
+
+  try {
+    const queryParams = new URLSearchParams({
+      api_key: TMDB_API_KEY,
+      language: 'vi-VN',
+      page: (params.page || 1).toString(),
+      sort_by: 'popularity.desc', // Default sort by popularity
+      include_adult: 'false',
+      include_video: 'false',
+    });
+
+    if (params.genre) queryParams.append('with_genres', params.genre);
+    if (params.year) queryParams.append('primary_release_year', params.year);
+    if (params.country) queryParams.append('with_origin_country', params.country);
+
+    const response = await fetch(
+      `${TMDB_BASE_URL}/discover/movie?${queryParams}`
+    );
+
+    if (!response.ok) throw new Error('TMDB API Error');
+
+    const data = await response.json();
+    return { results: data.results || [], totalPages: data.total_pages || 1 };
+  } catch (error) {
+    console.error("Failed to discover movies:", error);
+    return { results: [], totalPages: 0 };
+  }
+};

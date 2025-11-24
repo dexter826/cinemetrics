@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Search, RotateCcw, Film, ArrowLeft, Filter } from 'lucide-react';
-import { searchMovies, getGenres, getTrendingMovies, getCountries } from '../../services/tmdbService';
+import { searchMovies, getGenres, getTrendingMovies, getCountries, getDiscoverMovies } from '../../services/tmdbService';
 import { TMDBMovieResult } from '../../types';
 import { TMDB_IMAGE_BASE_URL } from '../../constants';
 import { useNavigate } from 'react-router-dom';
@@ -23,6 +23,12 @@ const SearchPage: React.FC = () => {
   const [initialLoading, setInitialLoading] = useState(true);
   const [searchPage, setSearchPage] = useState(1);
   const [totalSearchPages, setTotalSearchPages] = useState(1);
+
+  // Discover movies state
+  const [discoverMovies, setDiscoverMovies] = useState<TMDBMovieResult[]>([]);
+  const [discoverPage, setDiscoverPage] = useState(1);
+  const [totalDiscoverPages, setTotalDiscoverPages] = useState(1);
+  const [discoverLoading, setDiscoverLoading] = useState(false);
 
   const { user } = useAuth();
   const { aiRecommendations, trendingMovies, isAiLoading, refreshRecommendations } = useRecommendationsStore();
@@ -83,6 +89,7 @@ const SearchPage: React.FC = () => {
     fetchStaticData();
   }, []);
 
+  // Auto-search when query changes (for search mode)
   useEffect(() => {
     const timer = setTimeout(async () => {
       if (query.trim().length > 2) {
@@ -99,14 +106,35 @@ const SearchPage: React.FC = () => {
     return () => clearTimeout(timer);
   }, [query, searchPage]);
 
+  // Auto-refetch discover movies when filters change (only if we have discover movies loaded)
+  useEffect(() => {
+    if (discoverMovies.length > 0) {
+      const timer = setTimeout(async () => {
+        setDiscoverLoading(true);
+        const { results, totalPages } = await getDiscoverMovies({
+          page: 1, // Reset to first page when filters change
+          genre: filterGenre,
+          year: filterYear,
+          country: filterCountry,
+        });
+        setDiscoverMovies(results);
+        setTotalDiscoverPages(totalPages);
+        setDiscoverPage(1); // Reset page
+        setDiscoverLoading(false);
+      }, 300);
+      return () => clearTimeout(timer);
+    }
+  }, [filterGenre, filterYear, filterCountry]);
+
   // Reset search page when query changes
   useEffect(() => {
     setSearchPage(1);
   }, [query]);
 
-  const displayMovies = query
+  const isSearchMode = query.trim().length > 0;
+  const displayMovies = isSearchMode
     ? results
-    : [];
+    : discoverMovies;
 
   const filteredResults = displayMovies.filter(movie => {
     if (filterType !== 'all' && movie.media_type !== filterType) return false;
@@ -117,7 +145,7 @@ const SearchPage: React.FC = () => {
     }
 
     if (filterGenre) {
-      // Note: search/multi results usually contain genre_ids array
+      // Note: discover results contain genre_ids array
       if (!movie.genre_ids || !movie.genre_ids.includes(Number(filterGenre))) return false;
     }
 
@@ -127,6 +155,11 @@ const SearchPage: React.FC = () => {
 
     return true;
   });
+
+  const isLoading = isSearchMode ? loading : discoverLoading;
+  const currentPage = isSearchMode ? searchPage : discoverPage;
+  const totalPages = isSearchMode ? totalSearchPages : totalDiscoverPages;
+  const setCurrentPage = isSearchMode ? setSearchPage : setDiscoverPage;
 
   const handleSelectMovie = (movie: TMDBMovieResult) => {
     openAddModal({
@@ -138,6 +171,30 @@ const SearchPage: React.FC = () => {
   // Check if a movie is already saved
   const isMovieSaved = (movieId: number) => {
     return savedMovies.some(m => m.id === movieId);
+  };
+
+  // Handle search/discover
+  const handleSearch = async () => {
+    if (query.trim()) {
+      // Search mode
+      setLoading(true);
+      const { results: data, totalPages } = await searchMovies(query, searchPage);
+      setResults(data);
+      setTotalSearchPages(totalPages);
+      setLoading(false);
+    } else {
+      // Discover mode
+      setDiscoverLoading(true);
+      const { results, totalPages } = await getDiscoverMovies({
+        page: discoverPage,
+        genre: filterGenre,
+        year: filterYear,
+        country: filterCountry,
+      });
+      setDiscoverMovies(results);
+      setTotalDiscoverPages(totalPages);
+      setDiscoverLoading(false);
+    }
   };
 
   if (initialLoading) {
@@ -154,7 +211,9 @@ const SearchPage: React.FC = () => {
           <button onClick={() => navigate(-1)} className="p-2 hover:bg-black/5 dark:hover:bg-white/5 rounded-full transition-colors cursor-pointer">
             <ArrowLeft size={24} />
           </button>
-          <h1 className="text-2xl font-bold">Tìm kiếm phim</h1>
+          <h1 className="text-2xl font-bold">
+            {discoverMovies.length > 0 ? "Duyệt tất cả phim" : "Tìm kiếm phim"}
+          </h1>
         </div>
 
         {/* Search & Filter Bar */}
@@ -163,12 +222,23 @@ const SearchPage: React.FC = () => {
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-text-muted" size={20} />
             <input
               type="text"
-              placeholder="Nhập tên phim..."
+              placeholder="Nhập tên phim ..."
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              className="w-full bg-surface border border-black/10 dark:border-white/10 rounded-xl py-4 pl-12 pr-4 focus:outline-none focus:border-primary/50 transition-all shadow-sm text-lg"
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  handleSearch();
+                }
+              }}
+              className="w-full bg-surface border border-black/10 dark:border-white/10 rounded-xl py-4 pl-12 pr-16 focus:outline-none focus:border-primary/50 transition-all shadow-sm text-lg"
               autoFocus
             />
+            <button
+              onClick={handleSearch}
+              className="absolute right-2 top-1/2 -translate-y-1/2 bg-primary text-white px-4 py-2 rounded-lg hover:bg-primary/80 transition-colors text-sm font-medium"
+            >
+              Tìm
+            </button>
           </div>
 
           <div className="flex flex-wrap gap-3">
@@ -186,6 +256,7 @@ const SearchPage: React.FC = () => {
               <option value="movie">Phim lẻ</option>
               <option value="tv">TV Series</option>
             </select>
+
 
             <select
               value={filterGenre}
@@ -220,9 +291,9 @@ const SearchPage: React.FC = () => {
         </div>
 
         {/* Results */}
-        {loading ? (
+        {isLoading ? (
           <Loading fullScreen={false} size={40} className="py-20" />
-        ) : !query && isAiLoading ? (
+        ) : !query && !discoverMovies.length && isAiLoading ? (
           <>
             <div className="flex flex-col items-center justify-center py-20 space-y-4">
               <div className="w-24 h-24">
@@ -280,7 +351,7 @@ const SearchPage: React.FC = () => {
           </>
         ) : (
           <>
-            {!query && (
+            {!query && !discoverMovies.length && (
               <>
                 {aiRecommendations.length > 0 && (
                   <div className="mb-4 flex items-center justify-between gap-4">
@@ -437,36 +508,36 @@ const SearchPage: React.FC = () => {
                   Không tìm thấy kết quả nào.
                 </div>
               )}
-              {!query && trendingMovies.length === 0 && (
+              {!query && discoverMovies.length === 0 && trendingMovies.length === 0 && (
                 <div className="col-span-full flex flex-col items-center justify-center py-20 text-text-muted opacity-50">
                   <Search size={48} className="mb-4" />
-                  <p>Nhập tên phim để bắt đầu tìm kiếm</p>
+                  <p>Nhập tên phim hoặc nhấn "Tìm" để duyệt tất cả phim</p>
                 </div>
               )}
             </div>
 
-            {/* Pagination Controls - Only for Search Results */}
-            {!loading && query && filteredResults.length > 0 && totalSearchPages > 1 && (
+            {/* Pagination Controls */}
+            {!isLoading && filteredResults.length > 0 && totalPages > 1 && (
               <div className="flex items-center justify-center gap-2 pt-6">
                 <button
                   type="button"
-                  onClick={() => setSearchPage(prev => Math.max(1, prev - 1))}
-                  disabled={searchPage === 1}
+                  onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                  disabled={currentPage === 1}
                   className="p-2.5 rounded-xl bg-surface border border-black/10 dark:border-white/10 text-text-main disabled:opacity-40 disabled:cursor-not-allowed hover:bg-black/5 dark:hover:bg-white/5 hover:border-primary/30 transition-all shadow-sm cursor-pointer"
                 >
                   <Search size={20} className="rotate-180" />
                 </button>
 
                 <div className="flex items-center gap-2">
-                  {Array.from({ length: totalSearchPages }, (_, i) => i + 1).map(page => {
-                    const isActive = searchPage === page;
+                  {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => {
+                    const isActive = currentPage === page;
                     const showPage =
                       page === 1 ||
-                      page === totalSearchPages ||
-                      (page >= searchPage - 1 && page <= searchPage + 1);
+                      page === totalPages ||
+                      (page >= currentPage - 1 && page <= currentPage + 1);
 
                     if (!showPage) {
-                      if (page === searchPage - 2 || page === searchPage + 2) {
+                      if (page === currentPage - 2 || page === currentPage + 2) {
                         return (
                           <span key={page} className="px-1 text-text-muted select-none">
                             •••
@@ -480,7 +551,7 @@ const SearchPage: React.FC = () => {
                       <button
                         key={page}
                         type="button"
-                        onClick={() => setSearchPage(page)}
+                        onClick={() => setCurrentPage(page)}
                         className={`min-w-10 h-10 px-3 rounded-xl text-sm font-semibold transition-all cursor-pointer ${isActive
                           ? 'bg-primary text-white shadow-lg shadow-primary/25'
                           : 'bg-surface border border-black/10 dark:border-white/10 text-text-main hover:bg-black/5 dark:hover:bg-white/5 hover:border-primary/30'
@@ -494,8 +565,8 @@ const SearchPage: React.FC = () => {
 
                 <button
                   type="button"
-                  onClick={() => setSearchPage(prev => Math.min(totalSearchPages, prev + 1))}
-                  disabled={searchPage === totalSearchPages}
+                  onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                  disabled={currentPage === totalPages}
                   className="p-2.5 rounded-xl bg-surface border border-black/10 dark:border-white/10 text-text-main disabled:opacity-40 disabled:cursor-not-allowed hover:bg-black/5 dark:hover:bg-white/5 hover:border-primary/30 transition-all shadow-sm cursor-pointer"
                 >
                   <Search size={20} />
