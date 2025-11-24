@@ -138,9 +138,9 @@ const StatsPage: React.FC = () => {
       <Navbar />
       
       <div className="max-w-7xl mx-auto px-4 md:px-8 py-8 space-y-8">
-        <h1 className="md:text-3xl text-xl font-bold flex items-center gap-3">
+        <h1 className="md:text-2xl text-xl font-bold flex items-center gap-3">
           <TrendingUp className="text-primary" />
-          Thống kê chi tiết phim đã xem
+          Thống kê phim đã xem
         </h1>
 
         {/* Overview Cards */}
