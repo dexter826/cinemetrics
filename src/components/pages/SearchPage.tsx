@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Search, RotateCcw, Film, ArrowLeft, Filter } from 'lucide-react';
+import { Search, RotateCcw, Film, ArrowLeft, Filter, ArrowDown } from 'lucide-react';
 import { searchMovies, getGenres, getTrendingMovies, getCountries, getDiscoverMovies } from '../../services/tmdbService';
 import { TMDBMovieResult } from '../../types';
 import { TMDB_IMAGE_BASE_URL } from '../../constants';
@@ -106,25 +106,31 @@ const SearchPage: React.FC = () => {
     return () => clearTimeout(timer);
   }, [query, searchPage]);
 
-  // Auto-refetch discover movies when filters change (only if we have discover movies loaded)
+  // Reset discover page when filters change
   useEffect(() => {
     if (discoverMovies.length > 0) {
+      setDiscoverPage(1);
+    }
+  }, [filterGenre, filterYear, filterCountry]);
+
+  // Auto-load discover movies when page or filters change
+  useEffect(() => {
+    if (!isSearchMode && discoverMovies.length > 0) {
       const timer = setTimeout(async () => {
         setDiscoverLoading(true);
         const { results, totalPages } = await getDiscoverMovies({
-          page: 1, // Reset to first page when filters change
+          page: discoverPage,
           genre: filterGenre,
           year: filterYear,
           country: filterCountry,
         });
         setDiscoverMovies(results);
         setTotalDiscoverPages(totalPages);
-        setDiscoverPage(1); // Reset page
         setDiscoverLoading(false);
       }, 300);
       return () => clearTimeout(timer);
     }
-  }, [filterGenre, filterYear, filterCountry]);
+  }, [discoverPage, filterGenre, filterYear, filterCountry]);
 
   // Reset search page when query changes
   useEffect(() => {
@@ -424,7 +430,7 @@ const SearchPage: React.FC = () => {
               </>
             )}
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 md:gap-6">
-              {query ? filteredResults.map(movie => (
+              {(query || discoverMovies.length > 0) ? filteredResults.map(movie => (
                 <div
                   key={movie.id}
                   onClick={() => handleSelectMovie(movie)}
@@ -525,7 +531,7 @@ const SearchPage: React.FC = () => {
                   disabled={currentPage === 1}
                   className="p-2.5 rounded-xl bg-surface border border-black/10 dark:border-white/10 text-text-main disabled:opacity-40 disabled:cursor-not-allowed hover:bg-black/5 dark:hover:bg-white/5 hover:border-primary/30 transition-all shadow-sm cursor-pointer"
                 >
-                  <Search size={20} className="rotate-180" />
+                  <ArrowDown size={20} className="rotate-90" />
                 </button>
 
                 <div className="flex items-center gap-2">
@@ -569,7 +575,7 @@ const SearchPage: React.FC = () => {
                   disabled={currentPage === totalPages}
                   className="p-2.5 rounded-xl bg-surface border border-black/10 dark:border-white/10 text-text-main disabled:opacity-40 disabled:cursor-not-allowed hover:bg-black/5 dark:hover:bg-white/5 hover:border-primary/30 transition-all shadow-sm cursor-pointer"
                 >
-                  <Search size={20} />
+                  <ArrowDown size={20} className="-rotate-90" />
                 </button>
               </div>
             )}
