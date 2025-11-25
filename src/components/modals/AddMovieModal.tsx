@@ -23,7 +23,7 @@ const AddMovieModal: React.FC = () => {
     seasons: '',
     poster: '',
     date: new Date().toISOString().split('T')[0],
-    time: '12:00',
+    time: `${String(new Date().getHours()).padStart(2, '0')}:${String(new Date().getMinutes()).padStart(2, '0')}`,
     rating: 0,
     review: '',
     tagline: '',
@@ -152,6 +152,7 @@ const AddMovieModal: React.FC = () => {
                 const country = details.production_countries?.map(c => c.name).join(', ') || '';
                 const content = details.overview || '';
 
+                const now = new Date();
                 setFormData(prev => ({
                   ...prev,
                   title: displayTitle,
@@ -159,8 +160,8 @@ const AddMovieModal: React.FC = () => {
                   runtime: runtime.toString(),
                   seasons: seasons ? seasons.toString() : '',
                   poster: details.poster_path || '',
-                  date: new Date().toISOString().split('T')[0],
-                  time: '12:00',
+                  date: now.toISOString().split('T')[0],
+                  time: `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`,
                   rating: 0,
                   review: '',
                   tagline: tagline,
@@ -181,14 +182,15 @@ const AddMovieModal: React.FC = () => {
         fetchDetails();
       } else {
         // Manual Add Mode (Reset)
+        const now = new Date();
         setFormData({
           title: '',
           title_vi: '',
           runtime: '',
           seasons: '',
           poster: '',
-          date: new Date().toISOString().split('T')[0],
-          time: '12:00',
+          date: now.toISOString().split('T')[0],
+          time: `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`,
           rating: 0,
           review: '',
           tagline: '',
