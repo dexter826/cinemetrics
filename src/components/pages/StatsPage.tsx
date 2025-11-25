@@ -66,6 +66,7 @@ const StatsPage: React.FC = () => {
   const [movies, setMovies] = useState<Movie[]>([]);
   const [loading, setLoading] = useState(true);
   const [showAllYears, setShowAllYears] = useState(false);
+  const [isSmallScreen, setIsSmallScreen] = useState(false);
 
   useEffect(() => {
     if (!user) return;
@@ -75,6 +76,14 @@ const StatsPage: React.FC = () => {
     });
     return () => unsubscribe();
   }, [user]);
+
+  // Track screen size to tweak chart labels on mobile
+  useEffect(() => {
+    const update = () => setIsSmallScreen(window.innerWidth < 640); // Tailwind 'sm'
+    update();
+    window.addEventListener('resize', update);
+    return () => window.removeEventListener('resize', update);
+  }, []);
 
   const watchedMovies = useMemo(() => movies.filter(m => (m.status || 'history') === 'history'), [movies]);
 
@@ -317,32 +326,51 @@ const StatsPage: React.FC = () => {
               Phân bố phim theo thể loại
             </h3>
             {Object.keys(stats.moviesByGenre).length > 0 ? (
-              <div className="h-80">
+              <div className="h-112 sm:h-80">
                 <ResponsiveContainer width="100%" height="100%" minWidth={0}>
                   <PieChart>
-                    <Pie
-                      data={Object.entries(stats.moviesByGenre)
+                    {(() => {
+                      const entries = Object.entries(stats.moviesByGenre)
                         .sort((a, b) => Number(b[1]) - Number(a[1]))
-                        .slice(0, 8)
-                        .map(([genre, count]) => ({
-                          name: genre,
-                          value: Number(count),
-                          percentage: ((Number(count) / stats.totalMovies) * 100).toFixed(1)
-                        }))}
-                      cx="50%"
-                      cy="50%"
-                      labelLine={false}
-                      label={({ name, value }) => `${name}: ${((value / stats.totalMovies) * 100).toFixed(1)}%`}
-                      outerRadius={90}
-                      fill="#8884d8"
-                      dataKey="value"
-                    >
-                      {Object.entries(stats.moviesByGenre)
-                        .slice(0, 8)
-                        .map((entry, index) => (
-                          <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                        ))}
-                    </Pie>
+                        .map(([genre, count]) => ({ name: genre, value: Number(count) }));
+
+                      // Keep top 7 and group the rest as "Khác" to prevent long legends
+                      let genreData = entries;
+                      if (entries.length > 8) {
+                        const top = entries.slice(0, 7);
+                        const othersTotal = entries.slice(7).reduce((acc, cur) => acc + cur.value, 0);
+                        genreData = [...top, { name: 'Khác', value: othersTotal }];
+                      } else {
+                        genreData = entries.slice(0, 8);
+                      }
+                      return (
+                        <>
+                          <Pie
+                            data={genreData}
+                            cx="50%"
+                            cy="50%"
+                            labelLine={false}
+                            label={isSmallScreen ? false : (({ name, value }) => `${name}: ${((value / stats.totalMovies) * 100).toFixed(1)}%`)}
+                            outerRadius={isSmallScreen ? 80 : 90}
+                            fill="#8884d8"
+                            dataKey="value"
+                          >
+                            {genreData.map((_, index) => (
+                              <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                            ))}
+                          </Pie>
+                          {isSmallScreen && (
+                            <Legend
+                              verticalAlign="bottom"
+                              align="center"
+                              layout="vertical"
+                              wrapperStyle={{ fontSize: 12, marginTop: 12 }}
+                              formatter={(value: string, entry: any) => `${value}: ${((entry.payload.value / stats.totalMovies) * 100).toFixed(1)}%`}
+                            />
+                          )}
+                        </>
+                      );
+                    })()}
                     <Tooltip content={customTooltip} />
                   </PieChart>
                 </ResponsiveContainer>
