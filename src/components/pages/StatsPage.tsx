@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useAuth } from '../providers/AuthProvider';
+import { useTheme } from '../providers/ThemeProvider';
 import { subscribeToMovies } from '../../services/movieService';
 import { Movie } from '../../types';
 import { Calendar, Film, Star, TrendingUp, Tv, Globe } from 'lucide-react';
@@ -43,6 +44,7 @@ const GENRE_TRANSLATIONS: Record<string, string> = {
 
 const StatsPage: React.FC = () => {
   const { user } = useAuth();
+  const { theme } = useTheme();
   const [movies, setMovies] = useState<Movie[]>([]);
   const [loading, setLoading] = useState(true);
   const [showAllYears, setShowAllYears] = useState(false);
@@ -277,11 +279,13 @@ const StatsPage: React.FC = () => {
                       tick={{ fill: 'currentColor', fontSize: 12 }}
                       className="text-text-muted"
                     />
-                    <Tooltip 
+                    <Tooltip
                       formatter={(value: number) => [`${value} phim`, 'Số lượng']}
                       labelFormatter={(label, payload) => payload && payload[0] ? payload[0].payload.fullCountry : label}
-                      contentStyle={{ 
-                        backgroundColor: 'var(--color-surface)',
+                      contentStyle={{
+                        backgroundColor: theme === 'dark' ? 'rgba(0, 0, 0, 0.8)' : 'rgba(255, 255, 255, 0.8)',
+                        color: theme === 'dark' ? '#ffffff' : '#000000',
+                        backdropFilter: 'blur(10px)',
                         border: '1px solid rgba(255, 255, 255, 0.1)',
                         borderRadius: '8px'
                       }}
@@ -331,10 +335,12 @@ const StatsPage: React.FC = () => {
                           <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                         ))}
                     </Pie>
-                    <Tooltip 
+                    <Tooltip
                       formatter={(value: number) => [`${value} phim`, 'Số lượng']}
-                      contentStyle={{ 
-                        backgroundColor: 'var(--color-surface)',
+                      contentStyle={{
+                        backgroundColor: theme === 'dark' ? 'rgba(0, 0, 0, 0.8)' : 'rgba(255, 255, 255, 0.8)',
+                        color: theme === 'dark' ? '#ffffff' : '#000000',
+                        backdropFilter: 'blur(10px)',
                         border: '1px solid rgba(255, 255, 255, 0.1)',
                         borderRadius: '8px'
                       }}
