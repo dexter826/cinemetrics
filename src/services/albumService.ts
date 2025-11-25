@@ -63,7 +63,7 @@ export const subscribeToAlbums = (uid: string, callback: (albums: Album[]) => vo
   });
 };
 
-export const subscribeToAlbum = (docId: string, callback: (album: Album | null) => void) => {
+export const subscribeToAlbum = (uid: string, docId: string, callback: (album: Album | null) => void) => {
   const ref = doc(db, COLLECTION_NAME, docId);
   return onSnapshot(ref, snapshot => {
     if (!snapshot.exists()) {
@@ -71,6 +71,11 @@ export const subscribeToAlbum = (docId: string, callback: (album: Album | null) 
       return;
     }
     const data = snapshot.data();
+    // Check if album belongs to the user
+    if (data.uid !== uid) {
+      callback(null);
+      return;
+    }
     callback({
       docId: snapshot.id,
       uid: data.uid,

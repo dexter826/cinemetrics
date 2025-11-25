@@ -32,9 +32,9 @@ const AlbumDetailPage: React.FC = () => {
   const itemsPerPage = 10;
 
   useEffect(() => {
-    if (!albumId) return;
+    if (!albumId || !user) return;
 
-    const unsubscribe = subscribeToAlbum(albumId, data => {
+    const unsubscribe = subscribeToAlbum(user.uid, albumId, data => {
       setAlbum(data);
       if (data) {
         setName(data.name);
@@ -43,7 +43,7 @@ const AlbumDetailPage: React.FC = () => {
     });
 
     return () => unsubscribe();
-  }, [albumId]);
+  }, [albumId, user]);
 
   useEffect(() => {
     if (!user) return;
