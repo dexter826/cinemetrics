@@ -147,7 +147,7 @@ const MultiSelectDropdown: React.FC<MultiSelectDropdownProps> = ({
           w-full bg-surface border border-black/10 dark:border-white/10 rounded-xl px-3 py-2 text-left
           focus:outline-none focus:border-primary/50 focus:ring-1 focus:ring-primary/20
           hover:border-primary/30 transition-all duration-200
-          flex items-center gap-2
+          flex items-center justify-between
           ${disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}
           ${isOpen ? 'border-primary/50 ring-1 ring-primary/20' : ''}
         `}
