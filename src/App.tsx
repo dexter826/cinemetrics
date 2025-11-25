@@ -8,6 +8,7 @@ const SearchPage = lazy(() => import('./components/pages/SearchPage'));
 const StatsPage = lazy(() => import('./components/pages/StatsPage'));
 const AlbumsPage = lazy(() => import('./components/pages/AlbumsPage'));
 const AlbumDetailPage = lazy(() => import('./components/pages/AlbumDetailPage'));
+const PersonDetailPage = lazy(() => import('./components/pages/PersonDetailPage'));
 const AddMovieModal = lazy(() => import('./components/modals/AddMovieModal'));
 import Layout from './components/layout/Layout';
 import SplashScreen from './components/ui/SplashScreen';
@@ -70,6 +71,7 @@ const AppContent: React.FC = () => {
           <Route path="/stats" element={<StatsPage />} />
           <Route path="/albums" element={<AlbumsPage />} />
           <Route path="/albums/:albumId" element={<AlbumDetailPage />} />
+          <Route path="/person/:personId" element={<PersonDetailPage />} />
           <Route path="*" element={<Navigate to="/" />} />
         </Routes>
         <AddMovieModal />

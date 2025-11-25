@@ -92,3 +92,45 @@ export interface Stats {
   hours: number;
   minutes: number;
 }
+
+export interface TMDBPerson {
+  id: number;
+  name: string;
+  profile_path: string | null;
+  known_for_department: string;
+  popularity: number;
+  birthday?: string;
+  deathday?: string;
+  gender?: number;
+  place_of_birth?: string;
+  biography?: string;
+  homepage?: string;
+}
+
+export interface TMDBCast extends TMDBPerson {
+  character: string;
+  order: number;
+}
+
+export interface TMDBCrew extends TMDBPerson {
+  job: string;
+  department: string;
+}
+
+export interface TMDBCredits {
+  cast: TMDBCast[];
+  crew: TMDBCrew[];
+}
+
+export interface PersonMovie {
+  id: number;
+  title?: string;
+  name?: string;
+  poster_path: string | null;
+  release_date?: string;
+  first_air_date?: string;
+  media_type: 'movie' | 'tv';
+  character?: string;
+  job?: string;
+  department?: string;
+}

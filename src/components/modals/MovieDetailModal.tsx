@@ -1,12 +1,13 @@
 import React, { useEffect, useState } from 'react';
-import { X, Calendar, Clock, Star, Film, Info, FolderPlus, Play } from 'lucide-react';
-import { Movie, TMDBVideo } from '../../types';
-import { getMovieVideos } from '../../services/tmdbService';
+import { X, Calendar, Clock, Star, Film, Info, FolderPlus, Play, Users, User } from 'lucide-react';
+import { Movie, TMDBVideo, TMDBCredits } from '../../types';
+import { getMovieVideos, getMovieCredits } from '../../services/tmdbService';
 import { TMDB_IMAGE_BASE_URL, PLACEHOLDER_IMAGE } from '../../constants';
 import { getDisplayTitle } from '../../utils/movieUtils';
 import Loading from '../ui/Loading';
 import AlbumSelectorModal from './AlbumSelectorModal';
 import useToastStore from '../../stores/toastStore';
+import { useNavigate } from 'react-router-dom';
 
 interface MovieDetailModalProps {
   isOpen: boolean;
@@ -18,24 +19,34 @@ const MovieDetailModal: React.FC<MovieDetailModalProps> = ({ isOpen, onClose, mo
   const [loading, setLoading] = useState(false);
   const [showAlbumSelector, setShowAlbumSelector] = useState(false);
   const [videos, setVideos] = useState<TMDBVideo[]>([]);
+  const [credits, setCredits] = useState<TMDBCredits | null>(null);
   const { showToast } = useToastStore();
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchData = async () => {
-      if (movie && movie.source === 'tmdb' && movie.id && movie.status === 'watchlist') {
+      if (movie && movie.source === 'tmdb' && movie.id) {
         setLoading(true);
         try {
           // Fetch videos for watchlist movies
-          const movieVideos = await getMovieVideos(Number(movie.id), movie.media_type || 'movie');
-          setVideos(movieVideos);
+          if (movie.status === 'watchlist') {
+            const movieVideos = await getMovieVideos(Number(movie.id), movie.media_type || 'movie');
+            setVideos(movieVideos);
+          }
+
+          // Fetch credits for all TMDB movies
+          const movieCredits = await getMovieCredits(Number(movie.id), movie.media_type || 'movie');
+          setCredits(movieCredits);
         } catch (error) {
-          console.error("Failed to fetch videos", error);
+          console.error("Failed to fetch data", error);
           setVideos([]);
+          setCredits(null);
         } finally {
           setLoading(false);
         }
       } else {
         setVideos([]);
+        setCredits(null);
         setLoading(false);
       }
     };
@@ -83,6 +94,11 @@ const MovieDetailModal: React.FC<MovieDetailModalProps> = ({ isOpen, onClose, mo
     if (videos.length > 0) {
       window.open(`https://www.youtube.com/watch?v=${videos[0].key}`, '_blank');
     }
+  };
+
+  const handlePersonClick = (personId: number) => {
+    navigate(`/person/${personId}`);
+    onClose();
   };
 
   return (
@@ -173,6 +189,50 @@ const MovieDetailModal: React.FC<MovieDetailModalProps> = ({ isOpen, onClose, mo
                   {overview}
                 </p>
               </div>
+
+              {credits && (
+                <>
+                  {credits.cast && credits.cast.length > 0 && (
+                    <div className="space-y-3">
+                      <h3 className="text-xl font-semibold text-text-main flex items-center gap-2">
+                        <Users size={20} />
+                        Diễn viên chính
+                      </h3>
+                      <div className="flex flex-wrap gap-2">
+                        {credits.cast.slice(0, 10).map((actor) => (
+                          <button
+                            key={actor.id}
+                            onClick={() => handlePersonClick(actor.id)}
+                            className="bg-white/5 hover:bg-white/10 px-3 py-2 rounded-lg text-sm text-text-muted hover:text-text-main transition-colors cursor-pointer border border-white/10 hover:border-white/20"
+                          >
+                            {actor.name}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {credits.crew && credits.crew.filter(person => person.job === 'Director').length > 0 && (
+                    <div className="space-y-3">
+                      <h3 className="text-xl font-semibold text-text-main flex items-center gap-2">
+                        <User size={20} />
+                        Đạo diễn
+                      </h3>
+                      <div className="flex flex-wrap gap-2">
+                        {credits.crew.filter(person => person.job === 'Director').slice(0, 5).map((director) => (
+                          <button
+                            key={director.id}
+                            onClick={() => handlePersonClick(director.id)}
+                            className="bg-white/5 hover:bg-white/10 px-3 py-2 rounded-lg text-sm text-text-muted hover:text-text-main transition-colors cursor-pointer border border-white/10 hover:border-white/20"
+                          >
+                            {director.name}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </>
+              )}
 
               {movie.review && (
                 <div className="bg-white/5 p-4 rounded-xl border border-white/10">

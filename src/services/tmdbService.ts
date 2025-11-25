@@ -1,5 +1,5 @@
 import { TMDB_API_KEY, TMDB_BASE_URL } from '../constants';
-import { TMDBMovieResult, TMDBMovieDetail, TMDBVideo } from '../types';
+import { TMDBMovieResult, TMDBMovieDetail, TMDBVideo, TMDBCredits, PersonMovie } from '../types';
 
 export const searchMovies = async (query: string, page: number = 1): Promise<{ results: TMDBMovieResult[]; totalPages: number }> => {
   if (!query || !TMDB_API_KEY) return { results: [], totalPages: 0 };
@@ -215,5 +215,70 @@ export const getDiscoverMovies = async (params: {
   } catch (error) {
     console.error("Failed to discover movies:", error);
     return { results: [], totalPages: 0 };
+  }
+};
+
+export const getMovieCredits = async (id: number, mediaType: 'movie' | 'tv' = 'movie'): Promise<TMDBCredits | null> => {
+  if (!TMDB_API_KEY) return null;
+
+  try {
+    const response = await fetch(
+      `${TMDB_BASE_URL}/${mediaType}/${id}/credits?api_key=${TMDB_API_KEY}`
+    );
+
+    if (!response.ok) throw new Error('TMDB API Error');
+
+    return await response.json();
+  } catch (error) {
+    console.error("Failed to get movie credits:", error);
+    return null;
+  }
+};
+
+export const getPersonMovieCredits = async (personId: number): Promise<PersonMovie[]> => {
+  if (!TMDB_API_KEY) return [];
+
+  try {
+    const [movieResponse, tvResponse] = await Promise.all([
+      fetch(`${TMDB_BASE_URL}/person/${personId}/movie_credits?api_key=${TMDB_API_KEY}`),
+      fetch(`${TMDB_BASE_URL}/person/${personId}/tv_credits?api_key=${TMDB_API_KEY}`)
+    ]);
+
+    if (!movieResponse.ok || !tvResponse.ok) throw new Error('TMDB API Error');
+
+    const movieData = await movieResponse.json();
+    const tvData = await tvResponse.json();
+
+    const movies: PersonMovie[] = (movieData.cast || []).map((item: any) => ({
+      ...item,
+      media_type: 'movie' as const,
+    })).concat((movieData.crew || []).map((item: any) => ({
+      ...item,
+      media_type: 'movie' as const,
+    })));
+
+    const tvShows: PersonMovie[] = (tvData.cast || []).map((item: any) => ({
+      ...item,
+      media_type: 'tv' as const,
+    })).concat((tvData.crew || []).map((item: any) => ({
+      ...item,
+      media_type: 'tv' as const,
+    })));
+
+    // Combine and remove duplicates based on id and media_type
+    const combined = [...movies, ...tvShows];
+    const unique = combined.filter((item, index, self) =>
+      index === self.findIndex(t => t.id === item.id && t.media_type === item.media_type)
+    );
+
+    // Sort by release date descending
+    return unique.sort((a, b) => {
+      const dateA = new Date(a.release_date || a.first_air_date || '1900-01-01');
+      const dateB = new Date(b.release_date || b.first_air_date || '1900-01-01');
+      return dateB.getTime() - dateA.getTime();
+    });
+  } catch (error) {
+    console.error("Failed to get person movie credits:", error);
+    return [];
   }
 };
