@@ -45,6 +45,24 @@ const GENRE_TRANSLATIONS: Record<string, string> = {
 const StatsPage: React.FC = () => {
   const { user } = useAuth();
   const { theme } = useTheme();
+
+  const customTooltip = ({ active, payload, label }: any) => {
+    if (active && payload && payload.length) {
+      const value = payload[0].value;
+      let displayLabel = label;
+      if (payload[0].payload && payload[0].payload.fullCountry) {
+        displayLabel = payload[0].payload.fullCountry;
+      }
+      return (
+        <div style={{ backgroundColor: theme === 'dark' ? 'rgba(0, 0, 0, 0.8)' : 'rgba(255, 255, 255, 0.8)', color: theme === 'dark' ? '#ffffff' : '#000000', backdropFilter: 'blur(10px)', border: '1px solid rgba(255, 255, 255, 0.1)', borderRadius: '8px', padding: '10px' }}>
+          <p>{displayLabel}</p>
+          <p>Số lượng: {value} phim</p>
+        </div>
+      );
+    }
+    return null;
+  };
+
   const [movies, setMovies] = useState<Movie[]>([]);
   const [loading, setLoading] = useState(true);
   const [showAllYears, setShowAllYears] = useState(false);
@@ -279,17 +297,7 @@ const StatsPage: React.FC = () => {
                       tick={{ fill: 'currentColor', fontSize: 12 }}
                       className="text-text-muted"
                     />
-                    <Tooltip
-                      formatter={(value: number) => [`${value} phim`, 'Số lượng']}
-                      labelFormatter={(label, payload) => payload && payload[0] ? payload[0].payload.fullCountry : label}
-                      contentStyle={{
-                        backgroundColor: theme === 'dark' ? 'rgba(0, 0, 0, 0.8)' : 'rgba(255, 255, 255, 0.8)',
-                        color: theme === 'dark' ? '#ffffff' : '#000000',
-                        backdropFilter: 'blur(10px)',
-                        border: '1px solid rgba(255, 255, 255, 0.1)',
-                        borderRadius: '8px'
-                      }}
-                    />
+                    <Tooltip content={customTooltip} />
                     <Bar dataKey="count" fill="#8b5cf6" radius={[8, 8, 0, 0]} />
                   </BarChart>
                 </ResponsiveContainer>
@@ -335,16 +343,7 @@ const StatsPage: React.FC = () => {
                           <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                         ))}
                     </Pie>
-                    <Tooltip
-                      formatter={(value: number) => [`${value} phim`, 'Số lượng']}
-                      contentStyle={{
-                        backgroundColor: theme === 'dark' ? 'rgba(0, 0, 0, 0.8)' : 'rgba(255, 255, 255, 0.8)',
-                        color: theme === 'dark' ? '#ffffff' : '#000000',
-                        backdropFilter: 'blur(10px)',
-                        border: '1px solid rgba(255, 255, 255, 0.1)',
-                        borderRadius: '8px'
-                      }}
-                    />
+                    <Tooltip content={customTooltip} />
                   </PieChart>
                 </ResponsiveContainer>
               </div>
