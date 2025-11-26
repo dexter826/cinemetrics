@@ -36,8 +36,8 @@ const CustomDropdown: React.FC<CustomDropdownProps> = ({
 
   const filteredOptions = searchable && searchQuery
     ? options.filter(option =>
-        option.label.toLowerCase().includes(searchQuery.toLowerCase())
-      )
+      option.label.toLowerCase().includes(searchQuery.toLowerCase())
+    )
     : options;
 
   useEffect(() => {
@@ -95,7 +95,7 @@ const CustomDropdown: React.FC<CustomDropdownProps> = ({
         onKeyDown={handleKeyDown}
         disabled={disabled}
         className={`
-          w-full bg-surface border border-black/10 dark:border-white/10 rounded-xl px-4 py-2 text-left
+          w-full bg-surface border border-black/10 dark:border-white/10 rounded-xl px-3 py-2 text-left
           focus:outline-none focus:border-primary/50 focus:ring-1 focus:ring-primary/20
           hover:border-primary/30 transition-all duration-200
           flex items-center justify-between

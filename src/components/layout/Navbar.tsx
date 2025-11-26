@@ -116,7 +116,7 @@ const Navbar: React.FC = () => {
                 <div className="absolute right-0 mt-2 w-48 bg-surface border border-black/5 dark:border-white/5 rounded-lg shadow-lg z-50">
                   <button
                     onClick={() => { setIsExportModalOpen(true); setIsDropdownOpen(false); }}
-                    className="w-full flex items-center space-x-3 px-4 py-3 text-left hover:bg-black/5 dark:hover:bg-white/5 transition-colors cursor-pointer rounded-t-lg"
+                    className="w-full flex items-center space-x-3 px-4 py-3 text-left hover:bg-primary/10 hover:text-primary transition-colors cursor-pointer rounded-t-lg"
                   >
                     <Download size={18} />
                     <span>Xuất dữ liệu</span>
