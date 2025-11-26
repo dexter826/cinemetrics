@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useMemo, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Search, Film, Tv, User, Calendar, MapPin, Users, Star, X, ChevronDown, ChevronUp, ArrowUp, ArrowDown, Type, Filter } from 'lucide-react';
+import { ArrowLeft, Search, Film, Tv, User, Calendar, CalendarCheck, MapPin, Users, Star, X, ChevronDown, ChevronUp, ArrowUp, ArrowDown, Type, Filter } from 'lucide-react';
 import { PersonMovie, TMDBPerson } from '../../types';
 import { getPersonMovieCredits } from '../../services/tmdbService';
 import { TMDB_IMAGE_BASE_URL, PLACEHOLDER_IMAGE, TMDB_API_KEY } from '../../constants';
@@ -449,18 +449,27 @@ const PersonDetailPage: React.FC = () => {
                         </>
                       )}
                     </div>
+
+                    {/* Year Tag */}
+                    {(movie.release_date || movie.first_air_date) && (
+                      <div className="absolute top-2 left-2 flex items-center space-x-1 px-2 py-1 bg-black/60 backdrop-blur-md rounded-lg border border-white/10 z-10">
+                        <CalendarCheck size={12} className="text-yellow-400" />
+                        <span className="text-xs font-bold text-white">
+                          {(movie.release_date || movie.first_air_date)?.split('-')[0]}
+                        </span>
+                      </div>
+                    )}
                   </div>
                   <div className="p-3">
                     <h3 className="font-semibold text-sm line-clamp-1 mb-1" title={movie.title || movie.name}>
                       {movie.title || movie.name || 'Không rõ'}
                     </h3>
-                    <p className="text-xs text-text-muted mb-1">
-                      {(movie.release_date || movie.first_air_date)?.split('-')[0] || 'N/A'}
-                    </p>
-                    <p className="text-xs text-text-muted truncate">
-                      {movie.character && `Nhân vật: ${movie.character}`}
-                      {movie.job && `Công việc: ${movie.job}`}
-                    </p>
+                    {(movie.character || movie.job) && (
+                      <p className="text-xs text-text-muted truncate">
+                        {movie.character && `Nhân vật: ${movie.character}`}
+                        {movie.job && `Công việc: ${movie.job}`}
+                      </p>
+                    )}
                   </div>
                 </div>
               ))}
