@@ -172,23 +172,31 @@ const MovieDetailModal: React.FC<MovieDetailModalProps> = ({ isOpen, onClose, mo
                     )}
                   </div>
                   <div className="text-text-main font-semibold text-lg mb-3">
-                    S{movie.progress.current_season}E{movie.progress.current_episode}
-                    {movie.total_episodes && movie.total_episodes > 0 && (
-                      <span className="text-text-muted font-normal text-sm ml-2">
-                        ({movie.progress.watched_episodes}/{movie.total_episodes} tập)
-                      </span>
+                    {movie.progress.is_completed ? (
+                      <span>Đã xem hết</span>
+                    ) : (
+                      <>
+                        S{movie.progress.current_season}E{movie.progress.current_episode}
+                        {movie.total_episodes && movie.total_episodes > 0 && (
+                          <span className="text-text-muted font-normal text-sm ml-2">
+                            ({movie.progress.watched_episodes}/{movie.total_episodes} tập)
+                          </span>
+                        )}
+                      </>
                     )}
                   </div>
-                  {movie.total_episodes && movie.total_episodes > 0 && (
-                    <div className="w-full h-2 bg-black/20 rounded-full overflow-hidden">
-                      <div
-                        className="h-full bg-blue-500 transition-all duration-300"
-                        style={{
-                          width: `${Math.min(100, (movie.progress.watched_episodes / movie.total_episodes) * 100)}%`
-                        }}
-                      />
-                    </div>
-                  )}
+                  <div className="w-full h-2 bg-black/20 rounded-full overflow-hidden">
+                    <div
+                      className="h-full bg-blue-500 transition-all duration-300"
+                      style={{
+                        width: movie.progress.is_completed
+                          ? '100%'
+                          : movie.total_episodes && movie.total_episodes > 0
+                            ? `${Math.min(100, Math.max(0, (movie.progress.watched_episodes / movie.total_episodes) * 100))}%`
+                            : '0%'
+                      }}
+                    />
+                  </div>
                 </div>
               )}
 

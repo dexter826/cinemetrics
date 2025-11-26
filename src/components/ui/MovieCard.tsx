@@ -40,17 +40,41 @@ const MovieCard: React.FC<MovieCardProps> = ({ movie, onDelete, onEdit, onClick,
         />
         <div className="absolute inset-0 bg-linear-to-t from-black/90 via-black/40 to-transparent opacity-100" />
 
-        {/* Progress Bar */}
-        <div className="absolute bottom-0 left-0 right-0 h-1 bg-black/30">
-          <div
-            className={`h-full transition-all duration-300 ${movie.media_type === 'tv' ? 'bg-blue-500' : 'bg-green-500'}`}
-            style={{
-              width: movie.media_type === 'tv' && movie.progress && movie.total_episodes && movie.total_episodes > 0
-                ? `${Math.min(100, Math.max(0, (movie.progress.watched_episodes / movie.total_episodes) * 100))}%`
-                : '100%'
-            }}
-          />
-        </div>
+        {/* Progress Bar with Tooltip - Only show for history (watched movies) */}
+        {movie.status !== 'watchlist' && (
+          <div className="absolute bottom-0 left-0 right-0 h-3 bg-transparent z-20 group/progress">
+            <div className="absolute bottom-0 left-0 right-0 h-1 bg-black/30">
+              <div
+                className={`h-full transition-all duration-300 ${movie.media_type === 'tv' ? 'bg-blue-500' : 'bg-green-500'}`}
+                style={{
+                  width: movie.media_type === 'tv' && movie.progress
+                    ? movie.progress.is_completed
+                      ? '100%'
+                      : movie.total_episodes && movie.total_episodes > 0
+                        ? `${Math.min(100, Math.max(0, (movie.progress.watched_episodes / movie.total_episodes) * 100))}%`
+                        : '100%'
+                    : '100%'
+                }}
+              />
+            </div>
+            {/* Progress Tooltip */}
+            <div className="absolute -top-7 left-1/2 -translate-x-1/2 opacity-0 group-hover/progress:opacity-100 transition-opacity pointer-events-none z-30">
+              <div className="bg-black text-white text-xs font-semibold px-2 py-1 rounded shadow-lg whitespace-nowrap">
+                {movie.media_type === 'tv' && movie.progress ? (
+                  movie.progress.is_completed ? (
+                    'Đã xem hết'
+                  ) : movie.total_episodes && movie.total_episodes > 0 ? (
+                    `S${movie.progress.current_season}E${movie.progress.current_episode} - ${movie.progress.watched_episodes}/${movie.total_episodes} tập (${Math.round((movie.progress.watched_episodes / movie.total_episodes) * 100)}%)`
+                  ) : (
+                    `S${movie.progress.current_season}E${movie.progress.current_episode}`
+                  )
+                ) : (
+                  'Đã xem'
+                )}
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Action Buttons (Always visible on mobile, visible on hover on desktop) */}
         <div className="absolute top-2 right-2 flex space-x-2 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity z-10">
