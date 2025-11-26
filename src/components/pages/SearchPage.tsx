@@ -180,9 +180,10 @@ const SearchPage: React.FC = () => {
     });
   };
 
-  // Check if a movie is already saved
-  const isMovieSaved = (movieId: number) => {
-    return savedMovies.some(m => m.id === movieId);
+  // Check if a movie is already saved and get its status
+  const getMovieStatus = (movieId: number): 'history' | 'watchlist' | null => {
+    const movie = savedMovies.find(m => m.id === movieId);
+    return movie ? movie.status || null : null;
   };
 
   // Handle search/discover
@@ -342,14 +343,18 @@ const SearchPage: React.FC = () => {
                     <div className="absolute inset-0 bg-linear-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
 
                     {/* Saved Badge */}
-                    {isMovieSaved(movie.id) && (
-                      <div className="absolute top-2 left-2 flex items-center space-x-1 px-2 py-1 bg-green-500/50 backdrop-blur-md rounded-lg border border-white/20 z-10">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-white">
-                          <path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z" />
-                        </svg>
-                        <span className="text-xs font-bold text-white">Đã lưu</span>
-                      </div>
-                    )}
+                    {(() => {
+                      const status = getMovieStatus(movie.id);
+                      if (!status) return null;
+                      return (
+                        <div className="absolute top-2 left-2 flex items-center space-x-1 px-2 py-1 bg-green-500/60 backdrop-blur-md rounded-lg border border-white/20 z-10">
+                          <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-white">
+                            <path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z" />
+                          </svg>
+                          <span className="text-xs font-bold text-white">{status === 'history' ? 'Đã xem' : 'Sẽ xem'}</span>
+                        </div>
+                      );
+                    })()}
                   </div>
                   <div className="p-3">
                     <h3 className="font-semibold text-sm line-clamp-1" title={movie.title || movie.name}>
@@ -409,14 +414,18 @@ const SearchPage: React.FC = () => {
                           <div className="absolute inset-0 bg-linear-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
 
                           {/* Saved Badge */}
-                          {isMovieSaved(movie.id) && (
-                            <div className="absolute top-2 left-2 flex items-center space-x-1 px-2 py-1 bg-green-500/50 backdrop-blur-md rounded-lg border border-white/20 z-10">
-                              <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-white">
-                                <path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z" />
-                              </svg>
-                              <span className="text-xs font-bold text-white">Đã lưu</span>
-                            </div>
-                          )}
+                          {(() => {
+                            const status = getMovieStatus(movie.id);
+                            if (!status) return null;
+                            return (
+                              <div className="absolute top-2 left-2 flex items-center space-x-1 px-2 py-1 bg-green-500/60 backdrop-blur-md rounded-lg border border-white/20 z-10">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-white">
+                                  <path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z" />
+                                </svg>
+                                <span className="text-xs font-bold text-white">{status === 'history' ? 'Đã xem' : 'Sẽ xem'}</span>
+                              </div>
+                            );
+                          })()}
                         </div>
                         <div className="p-3">
                           <h3 className="font-semibold text-sm line-clamp-1" title={movie.title || movie.name}>
@@ -459,14 +468,18 @@ const SearchPage: React.FC = () => {
                     <div className="absolute inset-0 bg-linear-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
 
                     {/* Saved Badge */}
-                    {isMovieSaved(movie.id) && (
-                      <div className="absolute top-2 left-2 flex items-center space-x-1 px-2 py-1 bg-green-500/50 backdrop-blur-md rounded-lg border border-white/20 z-10">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-white">
-                          <path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z" />
-                        </svg>
-                        <span className="text-xs font-bold text-white">Đã lưu</span>
-                      </div>
-                    )}
+                    {(() => {
+                      const status = getMovieStatus(movie.id);
+                      if (!status) return null;
+                      return (
+                        <div className="absolute top-2 left-2 flex items-center space-x-1 px-2 py-1 bg-green-500/60 backdrop-blur-md rounded-lg border border-white/20 z-10">
+                          <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-white">
+                            <path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z" />
+                          </svg>
+                          <span className="text-xs font-bold text-white">{status === 'history' ? 'Đã xem' : 'Sẽ xem'}</span>
+                        </div>
+                      );
+                    })()}
                   </div>
                   <div className="p-3">
                     <h3 className="font-semibold text-sm line-clamp-1" title={movie.title || movie.name}>
@@ -498,14 +511,18 @@ const SearchPage: React.FC = () => {
                     <div className="absolute inset-0 bg-linear-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
 
                     {/* Saved Badge */}
-                    {isMovieSaved(movie.id) && (
-                      <div className="absolute top-2 left-2 flex items-center space-x-1 px-2 py-1 bg-green-500/50 backdrop-blur-md rounded-lg border border-white/20 z-10">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-white">
-                          <path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z" />
-                        </svg>
-                        <span className="text-xs font-bold text-white">Đã lưu</span>
-                      </div>
-                    )}
+                    {(() => {
+                      const status = getMovieStatus(movie.id);
+                      if (!status) return null;
+                      return (
+                        <div className="absolute top-2 left-2 flex items-center space-x-1 px-2 py-1 bg-green-500/60 backdrop-blur-md rounded-lg border border-white/20 z-10">
+                          <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-white">
+                            <path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z" />
+                          </svg>
+                          <span className="text-xs font-bold text-white">{status === 'history' ? 'Đã xem' : 'Sẽ xem'}</span>
+                        </div>
+                      );
+                    })()}
                   </div>
                   <div className="p-3">
                     <h3 className="font-semibold text-sm line-clamp-1" title={movie.title || movie.name}>
