@@ -192,7 +192,7 @@ const PersonDetailPage: React.FC = () => {
 
 
         {/* Person Info Section */}
-        <div className="bg-surface border border-black/5 dark:border-white/10 rounded-2xl p-6">
+        <div className="bg-surface border border-black/10 dark:border-white/10 rounded-2xl p-6 shadow-sm">
           <div className="flex flex-col md:flex-row gap-6">
             {/* Person Image */}
             <div className="flex justify-center md:justify-start shrink-0">
@@ -350,7 +350,7 @@ const PersonDetailPage: React.FC = () => {
 
             {/* Sorting Controls (Dropdown/Expandable) */}
             {showFilters && (
-              <div ref={filterRef} className="absolute top-full right-0 mt-2 z-20 bg-surface p-4 rounded-xl border border-black/5 dark:border-white/10 shadow-xl flex flex-col gap-4 min-w-[280px]">
+              <div ref={filterRef} className="absolute top-full right-0 mt-2 z-20 bg-surface p-4 rounded-xl border border-black/10 dark:border-white/10 shadow-xl flex flex-col gap-4 min-w-[280px]">
 
                 {/* Sort Section */}
                 <div className="space-y-2">
@@ -420,7 +420,7 @@ const PersonDetailPage: React.FC = () => {
                 <div
                   key={`${movie.id}-${movie.media_type}`}
                   onClick={() => handleMovieClick(movie)}
-                  className="group relative bg-surface rounded-xl overflow-hidden border border-black/5 dark:border-white/5 cursor-pointer hover:shadow-lg transition-all"
+                  className="group relative bg-surface rounded-xl overflow-hidden border border-black/10 dark:border-white/10 cursor-pointer hover:shadow-lg transition-all"
                 >
                   <div className="aspect-2/3 w-full relative overflow-hidden">
                     {movie.poster_path ? (
