@@ -26,7 +26,7 @@ const MovieCard: React.FC<MovieCardProps> = ({ movie, onDelete, onEdit, onClick,
   };
 
   return (
-    <div 
+    <div
       onClick={() => onClick(movie)}
       className="group relative bg-surface rounded-xl overflow-hidden border border-black/5 dark:border-white/5 hover:border-primary/50 transition-all duration-300 hover:shadow-lg hover:shadow-primary/10 cursor-pointer"
     >
@@ -39,6 +39,18 @@ const MovieCard: React.FC<MovieCardProps> = ({ movie, onDelete, onEdit, onClick,
           loading="lazy"
         />
         <div className="absolute inset-0 bg-linear-to-t from-black/90 via-black/40 to-transparent opacity-100" />
+
+        {/* Progress Bar */}
+        <div className="absolute bottom-0 left-0 right-0 h-1 bg-black/30">
+          <div
+            className={`h-full transition-all duration-300 ${movie.media_type === 'tv' ? 'bg-blue-500' : 'bg-green-500'}`}
+            style={{
+              width: movie.media_type === 'tv' && movie.progress && movie.total_episodes && movie.total_episodes > 0
+                ? `${Math.min(100, Math.max(0, (movie.progress.watched_episodes / movie.total_episodes) * 100))}%`
+                : '100%'
+            }}
+          />
+        </div>
 
         {/* Action Buttons (Always visible on mobile, visible on hover on desktop) */}
         <div className="absolute top-2 right-2 flex space-x-2 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity z-10">

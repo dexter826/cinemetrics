@@ -282,3 +282,61 @@ export const getPersonMovieCredits = async (personId: number): Promise<PersonMov
     return [];
   }
 };
+
+// Get TV season details including episode count
+export const getTVSeasonDetails = async (tvId: number, seasonNumber: number): Promise<{ episode_count: number } | null> => {
+  if (!TMDB_API_KEY) return null;
+
+  try {
+    const response = await fetch(
+      `${TMDB_BASE_URL}/tv/${tvId}/season/${seasonNumber}?api_key=${TMDB_API_KEY}`
+    );
+
+    if (!response.ok) throw new Error('TMDB API Error');
+
+    const data = await response.json();
+    return {
+      episode_count: data.episodes?.length || 0
+    };
+  } catch (error) {
+    console.error("Failed to get TV season details:", error);
+    return null;
+  }
+};
+
+// Get all seasons details for a TV show and calculate total episodes
+export const getTVShowEpisodeInfo = async (tvId: number, numberOfSeasons: number): Promise<{
+  total_episodes: number;
+  episodes_per_season: { [season: number]: number };
+}> => {
+  if (!TMDB_API_KEY) return { total_episodes: 0, episodes_per_season: {} };
+
+  try {
+    const seasonPromises = [];
+    for (let i = 1; i <= numberOfSeasons; i++) {
+      seasonPromises.push(getTVSeasonDetails(tvId, i));
+    }
+
+    const seasons = await Promise.all(seasonPromises);
+
+    let totalEpisodes = 0;
+    const episodesPerSeason: { [season: number]: number } = {};
+
+    seasons.forEach((season, index) => {
+      if (season) {
+        const seasonNumber = index + 1;
+        const episodeCount = season.episode_count;
+        episodesPerSeason[seasonNumber] = episodeCount;
+        totalEpisodes += episodeCount;
+      }
+    });
+
+    return {
+      total_episodes: totalEpisodes,
+      episodes_per_season: episodesPerSeason
+    };
+  } catch (error) {
+    console.error("Failed to get TV show episode info:", error);
+    return { total_episodes: 0, episodes_per_season: {} };
+  }
+};

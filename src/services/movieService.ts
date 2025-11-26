@@ -89,6 +89,7 @@ export const subscribeToMovies = (uid: string, callback: (movies: Movie[]) => vo
         poster_path: data.poster_path,
         runtime: data.runtime,
         seasons: data.seasons || 0,
+        total_episodes: data.total_episodes || 0,
         watched_at: data.watched_at,
         source: data.source,
         media_type: data.media_type || 'movie',
@@ -99,7 +100,8 @@ export const subscribeToMovies = (uid: string, callback: (movies: Movie[]) => vo
         genres: data.genres || '',
         release_date: data.release_date || '',
         country: data.country || '',
-        content: data.content || ''
+        content: data.content || '',
+        progress: data.progress || undefined
       } as Movie;
     });
     callback(movies);

@@ -44,6 +44,7 @@ const Dashboard: React.FC = () => {
   const [filterYear, setFilterYear] = useState<number | null>(null);
   const [filterCountry, setFilterCountry] = useState<string>('');
   const [filterContentType, setFilterContentType] = useState<'all' | 'movie' | 'tv'>('all');
+  const [filterWatchStatus, setFilterWatchStatus] = useState<'all' | 'watching' | 'completed'>('all');
   const [filterVersion, setFilterVersion] = useState(0);
 
   // Pagination State
@@ -134,6 +135,20 @@ const Dashboard: React.FC = () => {
       });
     }
 
+    // Watch status filter (only for history tab)
+    if (activeTab === 'history' && filterWatchStatus !== 'all') {
+      result = result.filter(movie => {
+        if (filterWatchStatus === 'watching') {
+          // Only TV series that are not completed
+          return movie.media_type === 'tv' && movie.progress && !movie.progress.is_completed;
+        } else if (filterWatchStatus === 'completed') {
+          // Movies (always completed) or TV series that are completed
+          return movie.media_type === 'movie' || !movie.media_type || (movie.progress && movie.progress.is_completed);
+        }
+        return true;
+      });
+    }
+
     // 2. Sort
     result.sort((a, b) => {
       let comparison = 0;
@@ -169,7 +184,7 @@ const Dashboard: React.FC = () => {
   // Reset to page 1 when filters change
   useEffect(() => {
     setCurrentPage(1);
-  }, [searchQuery, filterRating, filterYear, filterCountry, filterContentType, sortBy, sortOrder, filterVersion]);
+  }, [searchQuery, filterRating, filterYear, filterCountry, filterContentType, filterWatchStatus, sortBy, sortOrder, filterVersion]);
 
   // Reset to page 1 when tab changes
   useEffect(() => {
@@ -375,13 +390,14 @@ const Dashboard: React.FC = () => {
                     <div className="space-y-3">
                       <div className="flex items-center justify-between">
                         <div className="text-xs font-semibold text-text-muted uppercase tracking-wider">Lọc</div>
-                        {(filterRating !== null || filterYear !== null || filterCountry || filterContentType !== 'all') && (
+                        {(filterRating !== null || filterYear !== null || filterCountry || filterContentType !== 'all' || filterWatchStatus !== 'all') && (
                           <button
                             onClick={() => {
                               setFilterRating(null);
                               setFilterYear(null);
                               setFilterCountry('');
                               setFilterContentType('all');
+                              setFilterWatchStatus('all');
                               setFilterVersion(v => v + 1); // Force re-render
                             }}
                             className="text-xs text-primary hover:underline"
@@ -392,22 +408,42 @@ const Dashboard: React.FC = () => {
                       </div>
 
                       {/* Content Type Filter */}
-                       <div>
-                         <label className="text-xs text-text-muted mb-1.5 block">Loại nội dung</label>
-                         <CustomDropdown
-                           options={[
-                             { value: 'all', label: 'Tất cả' },
-                             { value: 'movie', label: 'Phim' },
-                             { value: 'tv', label: 'TV Series' },
-                           ]}
-                           value={filterContentType}
-                           onChange={(value) => {
-                             setFilterContentType(value as 'all' | 'movie' | 'tv');
-                             setFilterVersion(v => v + 1);
-                           }}
-                           placeholder="Chọn loại nội dung"
-                         />
-                       </div>
+                      <div>
+                        <label className="text-xs text-text-muted mb-1.5 block">Loại nội dung</label>
+                        <CustomDropdown
+                          options={[
+                            { value: 'all', label: 'Tất cả' },
+                            { value: 'movie', label: 'Phim' },
+                            { value: 'tv', label: 'TV Series' },
+                          ]}
+                          value={filterContentType}
+                          onChange={(value) => {
+                            setFilterContentType(value as 'all' | 'movie' | 'tv');
+                            setFilterVersion(v => v + 1);
+                          }}
+                          placeholder="Chọn loại nội dung"
+                        />
+                      </div>
+
+                      {/* Watch Status Filter - Only show for history tab */}
+                      {activeTab === 'history' && (
+                        <div>
+                          <label className="text-xs text-text-muted mb-1.5 block">Trạng thái xem</label>
+                          <CustomDropdown
+                            options={[
+                              { value: 'all', label: 'Tất cả' },
+                              { value: 'watching', label: 'Đang xem' },
+                              { value: 'completed', label: 'Đã xem xong' },
+                            ]}
+                            value={filterWatchStatus}
+                            onChange={(value) => {
+                              setFilterWatchStatus(value as 'all' | 'watching' | 'completed');
+                              setFilterVersion(v => v + 1);
+                            }}
+                            placeholder="Chọn trạng thái"
+                          />
+                        </div>
+                      )}
 
                       {/* Rating Filter */}
                       <div>

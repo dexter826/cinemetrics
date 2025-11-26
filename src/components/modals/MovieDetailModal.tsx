@@ -104,8 +104,8 @@ const MovieDetailModal: React.FC<MovieDetailModalProps> = ({ isOpen, onClose, mo
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-fade-in">
       <div className="bg-surface w-full max-w-4xl rounded-2xl overflow-hidden shadow-2xl border border-white/10 relative flex flex-col md:flex-row max-h-[90vh]">
-        
-        <button 
+
+        <button
           onClick={onClose}
           className="absolute top-4 right-4 z-10 p-2 bg-black/50 hover:bg-black/70 text-white rounded-full transition-colors cursor-pointer"
         >
@@ -114,12 +114,12 @@ const MovieDetailModal: React.FC<MovieDetailModalProps> = ({ isOpen, onClose, mo
 
         {/* Poster Section */}
         <div className="w-full md:w-1/3 h-64 md:h-auto relative shrink-0">
-            <img 
-              src={posterUrl} 
-              alt={title} 
-              className="w-full h-full object-cover"
-            />
-            <div className="absolute inset-0 bg-linear-to-t from-surface via-transparent to-transparent md:bg-linear-to-r md:from-transparent md:to-surface" />
+          <img
+            src={posterUrl}
+            alt={title}
+            className="w-full h-full object-cover"
+          />
+          <div className="absolute inset-0 bg-linear-to-t from-surface via-transparent to-transparent md:bg-linear-to-r md:from-transparent md:to-surface" />
         </div>
 
         {/* Content Section */}
@@ -155,12 +155,42 @@ const MovieDetailModal: React.FC<MovieDetailModalProps> = ({ isOpen, onClose, mo
                   </div>
                 ) : null}
                 {(movie.rating && movie.rating > 0) ? (
-                   <div className="flex items-center gap-1 bg-primary/10 px-3 py-1 rounded-full border border-primary/20">
-                   <Star size={16} className="text-primary fill-primary" />
-                   <span className="text-primary font-medium">{movie.rating}/5 (Của bạn)</span>
-                 </div>
+                  <div className="flex items-center gap-1 bg-primary/10 px-3 py-1 rounded-full border border-primary/20">
+                    <Star size={16} className="text-primary fill-primary" />
+                    <span className="text-primary font-medium">{movie.rating}/5 (Của bạn)</span>
+                  </div>
                 ) : null}
               </div>
+
+              {/* Progress Info for TV Series */}
+              {movie.media_type === 'tv' && movie.progress && movie.status !== 'watchlist' && (
+                <div className="bg-white/5 rounded-xl p-4 border border-white/10">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-text-muted text-sm">Tiến độ xem</span>
+                    {movie.progress.is_completed && (
+                      <span className="text-green-500 text-xs font-medium">✓ Hoàn thành</span>
+                    )}
+                  </div>
+                  <div className="text-text-main font-semibold text-lg mb-3">
+                    S{movie.progress.current_season}E{movie.progress.current_episode}
+                    {movie.total_episodes && movie.total_episodes > 0 && (
+                      <span className="text-text-muted font-normal text-sm ml-2">
+                        ({movie.progress.watched_episodes}/{movie.total_episodes} tập)
+                      </span>
+                    )}
+                  </div>
+                  {movie.total_episodes && movie.total_episodes > 0 && (
+                    <div className="w-full h-2 bg-black/20 rounded-full overflow-hidden">
+                      <div
+                        className="h-full bg-blue-500 transition-all duration-300"
+                        style={{
+                          width: `${Math.min(100, (movie.progress.watched_episodes / movie.total_episodes) * 100)}%`
+                        }}
+                      />
+                    </div>
+                  )}
+                </div>
+              )}
 
               {genres && (
                 <div className="flex items-center gap-2 text-text-muted">
@@ -172,9 +202,9 @@ const MovieDetailModal: React.FC<MovieDetailModalProps> = ({ isOpen, onClose, mo
               {country && (
                 <div className="flex items-center gap-2 text-text-muted">
                   <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <circle cx="12" cy="12" r="10"/>
-                    <line x1="2" y1="12" x2="22" y2="12"/>
-                    <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
+                    <circle cx="12" cy="12" r="10" />
+                    <line x1="2" y1="12" x2="22" y2="12" />
+                    <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" />
                   </svg>
                   <span>{country}</span>
                 </div>
@@ -247,11 +277,10 @@ const MovieDetailModal: React.FC<MovieDetailModalProps> = ({ isOpen, onClose, mo
                   <button
                     onClick={handleWatchTrailer}
                     disabled={videos.length === 0}
-                    className={`w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl font-medium transition-all cursor-pointer ${
-                      videos.length > 0
-                        ? 'bg-red-500 hover:bg-red-600 text-white shadow-lg hover:shadow-xl'
-                        : 'bg-gray-500/20 text-gray-400 cursor-not-allowed'
-                    }`}
+                    className={`w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl font-medium transition-all cursor-pointer ${videos.length > 0
+                      ? 'bg-red-500 hover:bg-red-600 text-white shadow-lg hover:shadow-xl'
+                      : 'bg-gray-500/20 text-gray-400 cursor-not-allowed'
+                      }`}
                   >
                     <Play size={20} />
                     <span>{videos.length > 0 ? 'Xem trailer' : 'Không có trailer'}</span>
@@ -260,11 +289,10 @@ const MovieDetailModal: React.FC<MovieDetailModalProps> = ({ isOpen, onClose, mo
                   <button
                     onClick={handleAddToAlbum}
                     disabled={!canAddToAlbum}
-                    className={`w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl font-medium transition-all cursor-pointer ${
-                      canAddToAlbum
-                        ? 'bg-primary hover:bg-primary-dark text-white shadow-lg hover:shadow-xl'
-                        : 'bg-gray-500/20 text-gray-400 cursor-not-allowed'
-                    }`}
+                    className={`w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl font-medium transition-all cursor-pointer ${canAddToAlbum
+                      ? 'bg-primary hover:bg-primary-dark text-white shadow-lg hover:shadow-xl'
+                      : 'bg-gray-500/20 text-gray-400 cursor-not-allowed'
+                      }`}
                   >
                     <FolderPlus size={20} />
                     <span>{canAddToAlbum ? 'Thêm vào album' : 'Không thể thêm vào album'}</span>
@@ -276,7 +304,7 @@ const MovieDetailModal: React.FC<MovieDetailModalProps> = ({ isOpen, onClose, mo
                   </p>
                 )}
               </div>
-              
+
               {movie.status !== 'watchlist' && (
                 <div className="pt-4 border-t border-white/10 text-xs text-text-muted flex justify-between">
                   <span>Đã xem: {movie.watched_at instanceof Object && 'toDate' in movie.watched_at ? movie.watched_at.toDate().toLocaleDateString('vi-VN') : new Date(movie.watched_at as any).toLocaleDateString('vi-VN')}</span>

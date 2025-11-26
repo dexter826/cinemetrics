@@ -10,6 +10,7 @@ export interface Movie {
   poster_path: string;
   runtime: number; // Minutes
   seasons?: number; // Number of seasons for TV shows
+  total_episodes?: number; // Total episodes for TV shows
   watched_at: Timestamp | Date;
   source: 'tmdb' | 'manual';
   media_type?: 'movie' | 'tv';
@@ -21,6 +22,14 @@ export interface Movie {
   release_date?: string;
   country?: string; // Production country
   content?: string; // Movie content/overview
+
+  // Progress tracking for series
+  progress?: {
+    current_season: number;      // Current season watching
+    current_episode: number;     // Current episode watching
+    watched_episodes: number;    // Total episodes watched
+    is_completed: boolean;       // Finished watching or not
+  };
 }
 
 export interface Album {

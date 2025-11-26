@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { X, Calendar, Star, Save, Loader2, FolderPlus, Check } from 'lucide-react';
 import { useAuth } from '../providers/AuthProvider';
 import { addMovie, updateMovie, checkMovieExists } from '../../services/movieService';
-import { getMovieDetails, getMovieDetailsWithLanguage, getGenres } from '../../services/tmdbService';
+import { getMovieDetails, getMovieDetailsWithLanguage, getGenres, getTVShowEpisodeInfo } from '../../services/tmdbService';
 import useToastStore from '../../stores/toastStore';
 import { TMDB_IMAGE_BASE_URL } from '../../constants';
 import useAddMovieStore from '../../stores/addMovieStore';
@@ -33,6 +33,13 @@ const AddMovieModal: React.FC = () => {
     country: '',
     content: ''
   });
+
+  // Progress tracking states for TV series
+  const [totalEpisodes, setTotalEpisodes] = useState(0);
+  const [episodesPerSeason, setEpisodesPerSeason] = useState<{ [season: number]: number }>({});
+  const [currentSeason, setCurrentSeason] = useState(1);
+  const [currentEpisode, setCurrentEpisode] = useState(0);
+  const [isCompleted, setIsCompleted] = useState(false);
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isLoadingDetails, setIsLoadingDetails] = useState(false);
@@ -139,6 +146,20 @@ const AddMovieModal: React.FC = () => {
           content: m.content || ''
         });
 
+        // Load progress data for TV series
+        if (m.media_type === 'tv') {
+          setTotalEpisodes(m.total_episodes || 0);
+          if (m.progress) {
+            setCurrentSeason(m.progress.current_season || 1);
+            setCurrentEpisode(m.progress.current_episode || 0);
+            setIsCompleted(m.progress.is_completed || false);
+          } else {
+            setCurrentSeason(1);
+            setCurrentEpisode(0);
+            setIsCompleted(false);
+          }
+        }
+
         // Parse genres string to IDs for editing
         if (m.genres && genreOptions.length > 0) {
           const genreNames = m.genres.split(',').map(g => g.trim());
@@ -203,6 +224,16 @@ const AddMovieModal: React.FC = () => {
                 if (genreOptions.length > 0) {
                   const genreIds = details.genres?.map(g => g.id) || [];
                   setSelectedGenreIds(genreIds);
+                }
+
+                // Fetch episode info for TV series
+                if (type === 'tv' && seasons > 0) {
+                  const episodeInfo = await getTVShowEpisodeInfo(Number(id), seasons);
+                  setTotalEpisodes(episodeInfo.total_episodes);
+                  setEpisodesPerSeason(episodeInfo.episodes_per_season);
+                  setCurrentSeason(1);
+                  setCurrentEpisode(0);
+                  setIsCompleted(false);
                 }
 
                 const now = new Date();
@@ -325,9 +356,21 @@ const AddMovieModal: React.FC = () => {
         : new Date();
       const isTv = initialData?.mediaType === 'tv' || initialData?.movie?.media_type === 'tv' || (initialData?.movieToEdit?.media_type === 'tv') || (isManualMode && manualMediaType === 'tv');
 
+      // Calculate watched episodes for TV series
+      let watchedEpisodes = 0;
+      if (isTv && !isCompleted) {
+        // Calculate total episodes watched up to current season and episode
+        for (let s = 1; s < currentSeason; s++) {
+          watchedEpisodes += episodesPerSeason[s] || 0;
+        }
+        watchedEpisodes += currentEpisode;
+      } else if (isTv && isCompleted) {
+        watchedEpisodes = totalEpisodes;
+      }
+
       if (initialData?.movieToEdit && initialData.movieToEdit.docId) {
         // Update Existing
-        await updateMovie(initialData.movieToEdit.docId, {
+        const updateData: any = {
           title: formData.title,
           title_vi: formData.title_vi,
           runtime: parseInt(formData.runtime) || 0,
@@ -342,12 +385,25 @@ const AddMovieModal: React.FC = () => {
           release_date: formData.releaseDate,
           country: formData.country,
           content: formData.content
-        });
+        };
+
+        // Add progress for TV series
+        if (isTv) {
+          updateData.total_episodes = totalEpisodes;
+          updateData.progress = {
+            current_season: currentSeason,
+            current_episode: currentEpisode,
+            watched_episodes: watchedEpisodes,
+            is_completed: isCompleted
+          };
+        }
+
+        await updateMovie(initialData.movieToEdit.docId, updateData);
         showToast("Đã cập nhật phim", "success");
       } else {
         // Add New
         const usedId = initialData?.tmdbId || initialData?.movie?.id || Date.now();
-        const movieDocId = await addMovie({
+        const movieData: any = {
           uid: user.uid,
           id: usedId,
           title: formData.title,
@@ -366,7 +422,20 @@ const AddMovieModal: React.FC = () => {
           release_date: formData.releaseDate,
           country: formData.country,
           content: formData.content
-        });
+        };
+
+        // Add progress for TV series
+        if (isTv) {
+          movieData.total_episodes = totalEpisodes;
+          movieData.progress = {
+            current_season: currentSeason,
+            current_episode: currentEpisode,
+            watched_episodes: watchedEpisodes,
+            is_completed: isCompleted
+          };
+        }
+
+        const movieDocId = await addMovie(movieData);
 
         // Add to selected albums if status is history
         if (isHistory && selectedAlbumIds.length > 0 && movieDocId) {
@@ -678,6 +747,93 @@ const AddMovieModal: React.FC = () => {
                           placeholder="Cảm nhận của bạn về phim..."
                         />
                       </div>
+
+                      {/* Progress Tracking for TV Series */}
+                      {(initialData?.mediaType === 'tv' || initialData?.movie?.media_type === 'tv' || initialData?.movieToEdit?.media_type === 'tv') && (
+                        <div className="border border-blue-500/20 rounded-xl p-4 bg-blue-500/5">
+                          <h3 className="text-sm font-semibold text-text-main mb-3">Tiến độ xem</h3>
+
+                          <div className="space-y-4">
+                            {/* Season Selector */}
+                            <div>
+                              <label className="block text-xs font-medium text-text-muted mb-2">Season hiện tại</label>
+                              <div className="flex items-center gap-2">
+                                <button
+                                  type="button"
+                                  onClick={() => setCurrentSeason(Math.max(1, currentSeason - 1))}
+                                  disabled={currentSeason <= 1 || isCompleted}
+                                  className="px-3 py-2 bg-black/5 dark:bg-white/5 hover:bg-black/10 dark:hover:bg-white/10 rounded-lg text-text-main disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                                >
+                                  -
+                                </button>
+                                <div className="flex-1 text-center bg-black/5 dark:bg-white/5 rounded-lg px-4 py-2 text-text-main font-semibold">
+                                  Season {currentSeason}
+                                </div>
+                                <button
+                                  type="button"
+                                  onClick={() => setCurrentSeason(Math.min(parseInt(formData.seasons) || 1, currentSeason + 1))}
+                                  disabled={currentSeason >= (parseInt(formData.seasons) || 1) || isCompleted}
+                                  className="px-3 py-2 bg-black/5 dark:bg-white/5 hover:bg-black/10 dark:hover:bg-white/10 rounded-lg text-text-main disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                                >
+                                  +
+                                </button>
+                              </div>
+                            </div>
+
+                            {/* Episode Selector */}
+                            <div>
+                              <label className="block text-xs font-medium text-text-muted mb-2">
+                                Tập đã xem {episodesPerSeason[currentSeason] ? `(tối đa ${episodesPerSeason[currentSeason]} tập)` : ''}
+                              </label>
+                              <div className="flex items-center gap-2">
+                                <button
+                                  type="button"
+                                  onClick={() => setCurrentEpisode(Math.max(0, currentEpisode - 1))}
+                                  disabled={currentEpisode <= 0 || isCompleted}
+                                  className="px-3 py-2 bg-black/5 dark:bg-white/5 hover:bg-black/10 dark:hover:bg-white/10 rounded-lg text-text-main disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                                >
+                                  -
+                                </button>
+                                <div className="flex-1 text-center bg-black/5 dark:bg-white/5 rounded-lg px-4 py-2 text-text-main font-semibold">
+                                  {currentEpisode} tập
+                                </div>
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    const maxEpisodes = episodesPerSeason[currentSeason] || 999;
+                                    setCurrentEpisode(Math.min(maxEpisodes, currentEpisode + 1));
+                                  }}
+                                  disabled={isCompleted}
+                                  className="px-3 py-2 bg-black/5 dark:bg-white/5 hover:bg-black/10 dark:hover:bg-white/10 rounded-lg text-text-main disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                                >
+                                  +
+                                </button>
+                              </div>
+                            </div>
+
+                            {/* Completed Checkbox */}
+                            <div className="flex items-center gap-2 pt-2">
+                              <input
+                                type="checkbox"
+                                id="completed-checkbox"
+                                checked={isCompleted}
+                                onChange={(e) => setIsCompleted(e.target.checked)}
+                                className="w-4 h-4 rounded border-black/20 dark:border-white/20 text-primary focus:ring-primary focus:ring-offset-0"
+                              />
+                              <label htmlFor="completed-checkbox" className="text-sm text-text-main cursor-pointer">
+                                Đã xem hết series này
+                              </label>
+                            </div>
+
+                            {/* Progress Info */}
+                            {totalEpisodes > 0 && !isCompleted && (
+                              <div className="text-xs text-text-muted pt-2 border-t border-black/10 dark:border-white/10">
+                                Tiến độ: S{currentSeason}E{currentEpisode} / {totalEpisodes} tập
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      )}
                     </>
                   )}
                 </div>
