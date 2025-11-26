@@ -23,7 +23,7 @@ Cinemetrics là một ứng dụng quản lý phim cá nhân thông minh với A
 - **📱 Responsive:** Giao diện đẹp mắt, tương thích tốt trên cả máy tính và điện thoại.
 
 <div align="center">
-  <img src="https://i.ibb.co/qMY21Rf9/mockup.png" alt="Mockup của ứng dụng">
+  <img src="public/mockup.webp" alt="Mockup của ứng dụng">
 </div>
 
 ## 🛠️ Công nghệ sử dụng
@@ -88,11 +88,11 @@ cinemetrics/
  src/
    components/        # Các component React
      auth/           # Component đăng nhập
-     layout/         # Layout components (Navbar, Footer)
+     layout/         # Layout components (Layout, Navbar, Footer)
      modals/         # Modal components (AddMovie, AlbumSelector, Export, MovieDetail, RandomPicker)
      pages/          # Page components (Dashboard, SearchPage, StatsPage, AlbumsPage, AlbumDetailPage, PersonDetailPage)
      providers/      # React Context providers (AuthProvider, ThemeProvider, AlbumStoreInitializer, RecommendationsStoreInitializer)
-     ui/             # UI components (Loading, MovieCard, SplashScreen, StatsCard)
+     ui/             # UI components (AlertContainer, CustomDropdown, Loading, MovieCard, MultiSelectDropdown, Pagination, ScrollToTop, SplashScreen, StatsCard, ToastContainer)
    services/          # API services (aiService, albumService, exportService, movieService, tmdbService)
    stores/           # Zustand stores (addMovieStore, albumStore, alertStore, exportStore, recommendationsStore, toastStore)
    utils/            # Utility functions (movieUtils)
