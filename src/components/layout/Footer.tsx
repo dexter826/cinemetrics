@@ -1,5 +1,5 @@
 import React from 'react';
-import { Facebook, Instagram, Github } from 'lucide-react';
+import { Facebook, Instagram, Github, Mail } from 'lucide-react';
 
 const Footer: React.FC = () => {
   return (
@@ -30,13 +30,19 @@ const Footer: React.FC = () => {
             >
               <Instagram size={24} />
             </a>
-            <a 
-              href="https://github.com/dexter826" 
-              target="_blank" 
+            <a
+              href="https://github.com/dexter826"
+              target="_blank"
               rel="noopener noreferrer"
               className="text-text-muted hover:text-primary transition-colors"
             >
               <Github size={24} />
+            </a>
+            <a
+              href="mailto:contact@cinemetrics.com"
+              className="text-text-muted hover:text-primary transition-colors"
+            >
+              <Mail size={24} />
             </a>
           </div>
           
