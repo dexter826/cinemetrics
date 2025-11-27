@@ -138,17 +138,7 @@
         }
     }
 
-    /* Spin Wheel Animations */
-    @keyframes spin-wheel {
-        0% {
-            transform: rotate(0deg);
-        }
-
-        100% {
-            transform: rotate(360deg);
-        }
-    }
-
+    /* Random Picker Animations */
     @keyframes pulse-soft {
 
         0%,
@@ -175,10 +165,6 @@
         }
     }
 
-    .animate-spin-wheel {
-        animation: spin-wheel 1s linear infinite;
-    }
-
     .animate-pulse-soft {
         animation: pulse-soft 1.5s ease-in-out infinite;
     }
@@ -193,21 +179,10 @@
         transform-style: preserve-3d;
     }
 
-    /* Smooth transitions for card movements */
-    .movie-card-transition {
-        transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-    }
-
     /* Glow effect for center card */
     .center-card-glow {
         box-shadow:
             0 0 20px rgba(16, 185, 129, 0.3),
             0 10px 40px rgba(0, 0, 0, 0.2);
-    }
-
-    /* Side card effects */
-    .side-card-blur {
-        filter: blur(1px);
-        transition: filter 0.3s ease;
     }
 }

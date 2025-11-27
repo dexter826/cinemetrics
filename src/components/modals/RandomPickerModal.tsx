@@ -333,20 +333,7 @@ const RandomPickerModal: React.FC<RandomPickerModalProps> = ({ isOpen, onClose }
                     {/* Gradient overlay */}
                     <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent" />
 
-                    {/* Movie title */}
-                    <div className="absolute bottom-3 left-3 right-3 text-white">
-                      <p className="text-sm font-bold line-clamp-2 drop-shadow-lg">
-                        {(() => {
-                          if (!activePool || activePool.length === 0 || currentIndex === null) return '';
-                          const movie = activePool[currentIndex];
-                          if (poolType === 'watchlist') {
-                            return (movie as Movie).title;
-                          }
-                          const m = movie as TMDBMovieResult;
-                          return m.title || m.name || '';
-                        })()}
-                      </p>
-                    </div>
+
                   </div>
                 </div>
 
