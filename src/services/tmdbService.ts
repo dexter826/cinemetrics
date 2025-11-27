@@ -1,5 +1,5 @@
 import { TMDB_API_KEY, TMDB_BASE_URL } from '../constants';
-import { TMDBMovieResult, TMDBMovieDetail, TMDBVideo, TMDBCredits, PersonMovie } from '../types';
+import { TMDBMovieResult, TMDBMovieDetail, TMDBVideo, TMDBCredits, PersonMovie, TMDBPerson } from '../types';
 
 export const searchMovies = async (query: string, page: number = 1): Promise<{ results: TMDBMovieResult[]; totalPages: number }> => {
   if (!query || !TMDB_API_KEY) return { results: [], totalPages: 0 };
@@ -338,5 +338,24 @@ export const getTVShowEpisodeInfo = async (tvId: number, numberOfSeasons: number
   } catch (error) {
     console.error("Failed to get TV show episode info:", error);
     return { total_episodes: 0, episodes_per_season: {} };
+  }
+};
+
+// Search for people (actors, directors, etc.)
+export const searchPeople = async (query: string, page: number = 1): Promise<{ results: TMDBPerson[]; totalPages: number }> => {
+  if (!query || !TMDB_API_KEY) return { results: [], totalPages: 0 };
+
+  try {
+    const response = await fetch(
+      `${TMDB_BASE_URL}/search/person?api_key=${TMDB_API_KEY}&query=${encodeURIComponent(query)}&include_adult=false&page=${page}`
+    );
+
+    if (!response.ok) throw new Error('TMDB API Error');
+
+    const data = await response.json();
+    return { results: data.results || [], totalPages: data.total_pages || 1 };
+  } catch (error) {
+    console.error("Failed to search people:", error);
+    return { results: [], totalPages: 0 };
   }
 };

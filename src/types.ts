@@ -114,6 +114,7 @@ export interface TMDBPerson {
   place_of_birth?: string;
   biography?: string;
   homepage?: string;
+  known_for?: TMDBMovieResult[]; // For search results
 }
 
 export interface TMDBCast extends TMDBPerson {

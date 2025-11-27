@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { Search, RotateCcw, Film, ArrowLeft, Filter, ArrowDown } from 'lucide-react';
-import { searchMovies, getGenres, getTrendingMovies, getCountries, getDiscoverMovies } from '../../services/tmdbService';
-import { TMDBMovieResult } from '../../types';
+import { Search, RotateCcw, Film, ArrowLeft, Filter, ArrowDown, User } from 'lucide-react';
+import { searchMovies, getGenres, getTrendingMovies, getCountries, getDiscoverMovies, searchPeople } from '../../services/tmdbService';
+import { TMDBMovieResult, TMDBPerson } from '../../types';
 import { TMDB_IMAGE_BASE_URL } from '../../constants';
 import { useNavigate } from 'react-router-dom';
 import Navbar from '../layout/Navbar';
@@ -21,7 +21,9 @@ const SearchPage: React.FC = () => {
   const navigate = useNavigate();
   const { openAddModal } = useAddMovieStore();
   const [query, setQuery] = useState('');
+  const [searchTab, setSearchTab] = useState<'movies' | 'people'>('movies');
   const [results, setResults] = useState<TMDBMovieResult[]>([]);
+  const [peopleResults, setPeopleResults] = useState<TMDBPerson[]>([]);
   const [loading, setLoading] = useState(false);
   const [initialLoading, setInitialLoading] = useState(true);
   const [searchPage, setSearchPage] = useState(1);
@@ -97,17 +99,24 @@ const SearchPage: React.FC = () => {
     const timer = setTimeout(async () => {
       if (query.trim().length > 2) {
         setLoading(true);
-        const { results: data, totalPages } = await searchMovies(query, searchPage);
-        setResults(data);
-        setTotalSearchPages(totalPages);
+        if (searchTab === 'movies') {
+          const { results: data, totalPages } = await searchMovies(query, searchPage);
+          setResults(data);
+          setTotalSearchPages(totalPages);
+        } else {
+          const { results: data, totalPages } = await searchPeople(query, searchPage);
+          setPeopleResults(data);
+          setTotalSearchPages(totalPages);
+        }
         setLoading(false);
       } else {
         setResults([]);
+        setPeopleResults([]);
         setSearchPage(1);
       }
     }, 500);
     return () => clearTimeout(timer);
-  }, [query, searchPage]);
+  }, [query, searchPage, searchTab]);
 
   // Reset discover page when filters change
   useEffect(() => {
@@ -191,22 +200,30 @@ const SearchPage: React.FC = () => {
     if (query.trim()) {
       // Search mode
       setLoading(true);
-      const { results: data, totalPages } = await searchMovies(query, searchPage);
-      setResults(data);
-      setTotalSearchPages(totalPages);
+      if (searchTab === 'movies') {
+        const { results: data, totalPages } = await searchMovies(query, searchPage);
+        setResults(data);
+        setTotalSearchPages(totalPages);
+      } else {
+        const { results: data, totalPages } = await searchPeople(query, searchPage);
+        setPeopleResults(data);
+        setTotalSearchPages(totalPages);
+      }
       setLoading(false);
     } else {
-      // Discover mode
-      setDiscoverLoading(true);
-      const { results, totalPages } = await getDiscoverMovies({
-        page: discoverPage,
-        genres: filterGenres.map(g => String(g)),
-        year: filterYear,
-        country: filterCountry,
-      });
-      setDiscoverMovies(results);
-      setTotalDiscoverPages(totalPages);
-      setDiscoverLoading(false);
+      // Discover mode (only for movies)
+      if (searchTab === 'movies') {
+        setDiscoverLoading(true);
+        const { results, totalPages } = await getDiscoverMovies({
+          page: discoverPage,
+          genres: filterGenres.map(g => String(g)),
+          year: filterYear,
+          country: filterCountry,
+        });
+        setDiscoverMovies(results);
+        setTotalDiscoverPages(totalPages);
+        setDiscoverLoading(false);
+      }
     }
   };
 
@@ -225,8 +242,43 @@ const SearchPage: React.FC = () => {
             <ArrowLeft size={24} />
           </button>
           <h1 className="text-2xl font-bold">
-            {discoverMovies.length > 0 ? "Duyệt tất cả phim" : "Tìm kiếm phim"}
+            {searchTab === 'movies'
+              ? (discoverMovies.length > 0 ? "Duyệt tất cả phim" : "Tìm kiếm phim")
+              : "Tìm kiếm người"}
           </h1>
+        </div>
+
+        {/* Search Tabs */}
+        <div className="flex gap-2 bg-surface border border-black/10 dark:border-white/10 rounded-xl p-1">
+          <button
+            onClick={() => {
+              setSearchTab('movies');
+              setSearchPage(1);
+              setPeopleResults([]);
+            }}
+            className={`flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg font-medium transition-all cursor-pointer ${searchTab === 'movies'
+              ? 'bg-primary text-white shadow-sm'
+              : 'text-text-muted hover:text-text-main'
+              }`}
+          >
+            <Film size={18} />
+            <span>Phim</span>
+          </button>
+          <button
+            onClick={() => {
+              setSearchTab('people');
+              setSearchPage(1);
+              setResults([]);
+              setDiscoverMovies([]);
+            }}
+            className={`flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg font-medium transition-all cursor-pointer ${searchTab === 'people'
+              ? 'bg-primary text-white shadow-sm'
+              : 'text-text-muted hover:text-text-main'
+              }`}
+          >
+            <User size={18} />
+            <span>Người</span>
+          </button>
         </div>
 
         {/* Search & Filter Bar */}
@@ -235,7 +287,7 @@ const SearchPage: React.FC = () => {
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-text-muted" size={20} />
             <input
               type="text"
-              placeholder="Nhập tên phim ..."
+              placeholder={searchTab === 'movies' ? "Nhập tên phim ..." : "Nhập tên diễn viên, đạo diễn ..."}
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               onKeyDown={(e) => {
@@ -254,61 +306,120 @@ const SearchPage: React.FC = () => {
             </button>
           </div>
 
-          <div className="grid grid-cols-2 sm:flex sm:flex-wrap gap-3">
-            <div className="hidden sm:flex items-center gap-2 bg-surface border border-black/10 dark:border-white/10 rounded-xl px-3 py-2">
-              <Filter size={16} className="text-text-muted" />
-              <span className="text-sm font-medium text-text-muted">Lọc theo:</span>
+          {searchTab === 'movies' && (
+            <div className="grid grid-cols-2 sm:flex sm:flex-wrap gap-3">
+              <div className="hidden sm:flex items-center gap-2 bg-surface border border-black/10 dark:border-white/10 rounded-xl px-3 py-2">
+                <Filter size={16} className="text-text-muted" />
+                <span className="text-sm font-medium text-text-muted">Lọc theo:</span>
+              </div>
+
+              <CustomDropdown
+                options={[
+                  { value: 'all', label: 'Tất cả loại' },
+                  { value: 'movie', label: 'Phim lẻ' },
+                  { value: 'tv', label: 'TV Series' },
+                ]}
+                value={filterType}
+                onChange={(value) => setFilterType(value as 'all' | 'movie' | 'tv')}
+                placeholder="Chọn loại"
+                className="flex-1 sm:flex-none"
+              />
+
+
+              <MultiSelectDropdown
+                options={genres.map(g => ({ value: g.id, label: g.name }))}
+                values={filterGenres}
+                onChange={(values) => setFilterGenres(values)}
+                placeholder="Chọn thể loại"
+                className="flex-1 sm:flex-none min-w-[180px]"
+                searchable={true}
+                maxDisplay={1}
+              />
+
+              <CustomDropdown
+                options={[
+                  { value: '', label: 'Tất cả quốc gia' },
+                  ...countries.map(c => ({ value: c.iso_3166_1, label: c.native_name })),
+                ]}
+                value={filterCountry}
+                onChange={(value) => setFilterCountry(value as string)}
+                placeholder="Chọn quốc gia"
+                className="flex-1 sm:flex-none min-w-[140px]"
+                searchable={true}
+              />
+
+              <input
+                type="number"
+                placeholder="Năm"
+                value={filterYear}
+                onChange={(e) => setFilterYear(e.target.value)}
+                className="w-full sm:w-24 bg-surface border border-black/10 dark:border-white/10 rounded-xl px-3 py-2 focus:outline-none focus:border-primary/50 text-sm flex-1 sm:flex-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+              />
             </div>
-
-            <CustomDropdown
-              options={[
-                { value: 'all', label: 'Tất cả loại' },
-                { value: 'movie', label: 'Phim lẻ' },
-                { value: 'tv', label: 'TV Series' },
-              ]}
-              value={filterType}
-              onChange={(value) => setFilterType(value as 'all' | 'movie' | 'tv')}
-              placeholder="Chọn loại"
-              className="flex-1 sm:flex-none"
-            />
-
-
-            <MultiSelectDropdown
-              options={genres.map(g => ({ value: g.id, label: g.name }))}
-              values={filterGenres}
-              onChange={(values) => setFilterGenres(values)}
-              placeholder="Chọn thể loại"
-              className="flex-1 sm:flex-none min-w-[180px]"
-              searchable={true}
-              maxDisplay={1}
-            />
-
-            <CustomDropdown
-              options={[
-                { value: '', label: 'Tất cả quốc gia' },
-                ...countries.map(c => ({ value: c.iso_3166_1, label: c.native_name })),
-              ]}
-              value={filterCountry}
-              onChange={(value) => setFilterCountry(value as string)}
-              placeholder="Chọn quốc gia"
-              className="flex-1 sm:flex-none min-w-[140px]"
-              searchable={true}
-            />
-
-            <input
-              type="number"
-              placeholder="Năm"
-              value={filterYear}
-              onChange={(e) => setFilterYear(e.target.value)}
-              className="w-full sm:w-24 bg-surface border border-black/10 dark:border-white/10 rounded-xl px-3 py-2 focus:outline-none focus:border-primary/50 text-sm flex-1 sm:flex-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-            />
-          </div>
+          )}
         </div>
 
         {/* Results */}
         {isLoading ? (
           <Loading fullScreen={false} size={40} className="py-20" />
-        ) : !query && !discoverMovies.length && isAiLoading ? (
+        ) : searchTab === 'people' && query.trim().length > 0 ? (
+          <>
+            {/* People Results */}
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 md:gap-6">
+              {peopleResults.map(person => (
+                <div
+                  key={person.id}
+                  onClick={() => navigate(`/person/${person.id}`)}
+                  className="group relative bg-surface rounded-xl overflow-hidden border border-black/5 dark:border-white/5 cursor-pointer hover:shadow-lg transition-all"
+                >
+                  <div className="aspect-2/3 w-full relative overflow-hidden">
+                    {person.profile_path ? (
+                      <img
+                        src={`${TMDB_IMAGE_BASE_URL}${person.profile_path}`}
+                        alt={person.name}
+                        className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                      />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center bg-gray-200 dark:bg-gray-800 text-text-muted">
+                        <User size={32} />
+                      </div>
+                    )}
+                    <div className="absolute inset-0 bg-linear-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+                  </div>
+                  <div className="p-3">
+                    <h3 className="font-semibold text-sm line-clamp-1" title={person.name}>
+                      {person.name}
+                    </h3>
+                    <p className="text-xs text-text-muted mt-1">
+                      {person.known_for_department || 'N/A'}
+                    </p>
+                    {person.known_for && person.known_for.length > 0 && (
+                      <p className="text-xs text-text-muted mt-1 line-clamp-1">
+                        {person.known_for.map(m => m.title || m.name).filter(Boolean).slice(0, 2).join(', ')}
+                      </p>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* No results message */}
+            {peopleResults.length === 0 && query.length > 2 && (
+              <div className="col-span-full text-center py-10 text-text-muted">
+                Không tìm thấy kết quả nào.
+              </div>
+            )}
+
+            {/* Pagination for people */}
+            {peopleResults.length > 0 && totalPages > 1 && (
+              <Pagination
+                currentPage={searchPage}
+                totalPages={totalPages}
+                onPageChange={setSearchPage}
+              />
+            )}
+          </>
+        ) : !query && !discoverMovies.length && isAiLoading && searchTab === 'movies' ? (
           <>
             <div className="flex flex-col items-center justify-center py-20 space-y-4">
               <div className="w-24 h-24">
@@ -368,7 +479,7 @@ const SearchPage: React.FC = () => {
               ))}
             </div>
           </>
-        ) : (
+        ) : searchTab === 'movies' ? (
           <>
             {!query && !discoverMovies.length && (
               <>
@@ -556,6 +667,11 @@ const SearchPage: React.FC = () => {
               />
             )}
           </>
+        ) : (
+          <div className="col-span-full flex flex-col items-center justify-center py-20 text-text-muted opacity-50">
+            <Search size={48} className="mb-4" />
+            <p>Nhập từ khóa để tìm kiếm</p>
+          </div>
         )}
       </div>
     </div>
