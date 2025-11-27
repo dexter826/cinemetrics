@@ -39,7 +39,7 @@ const Footer: React.FC = () => {
               <Github size={24} />
             </a>
             <a
-              href="mailto:contact@cinemetrics.com"
+              href="mailto:tcongminh1604@gmail.com"
               className="text-text-muted hover:text-primary transition-colors"
             >
               <Mail size={24} />
