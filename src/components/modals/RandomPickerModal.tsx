@@ -327,7 +327,7 @@ const RandomPickerModal: React.FC<RandomPickerModalProps> = ({ isOpen, onClose }
               <div className="relative w-80 h-60 flex items-center justify-center movie-wheel-container">
 
                 {/* Left Side Card */}
-                <div className="absolute left-8 top-1/2 transform -translate-y-1/2 rotate-[-15deg] w-24 h-36 z-10 opacity-70">
+                <div className="absolute left-8 top-1/2 transform -translate-y-1/2 rotate-[-15deg] w-24 h-36 z-10 opacity-70 rounded-xl overflow-hidden">
                   <div className="w-full h-full rounded-xl overflow-hidden shadow-lg border-2 border-white/30 dark:border-gray-500">
                     <img
                       src={(() => {
@@ -376,7 +376,7 @@ const RandomPickerModal: React.FC<RandomPickerModalProps> = ({ isOpen, onClose }
                 </div>
 
                 {/* Right Side Card */}
-                <div className="absolute right-8 top-1/2 transform -translate-y-1/2 rotate-15 w-24 h-36 z-10 opacity-70">
+                <div className="absolute right-8 top-1/2 transform -translate-y-1/2 rotate-15 w-24 h-36 z-10 opacity-70 rounded-xl overflow-hidden">
                   <div className="w-full h-full rounded-xl overflow-hidden shadow-lg border-2 border-white/30 dark:border-gray-500">
                     <img
                       src={(() => {
