@@ -32,6 +32,7 @@
         /* gray-400 */
     }
 
+    button,
     button[type="submit"],
     button[type="button"] {
         outline: none;
