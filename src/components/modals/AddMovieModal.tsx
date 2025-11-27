@@ -17,6 +17,30 @@ const AddMovieModal: React.FC = () => {
   const { user } = useAuth();
   const { showToast } = useToastStore();
 
+  // Country options
+  const countryOptions = [
+    { value: 'Việt Nam', label: 'Việt Nam' },
+    { value: 'Mỹ', label: 'Mỹ' },
+    { value: 'Anh', label: 'Anh' },
+    { value: 'Nhật Bản', label: 'Nhật Bản' },
+    { value: 'Hàn Quốc', label: 'Hàn Quốc' },
+    { value: 'Trung Quốc', label: 'Trung Quốc' },
+    { value: 'Pháp', label: 'Pháp' },
+    { value: 'Đức', label: 'Đức' },
+    { value: 'Ý', label: 'Ý' },
+    { value: 'Tây Ban Nha', label: 'Tây Ban Nha' },
+    { value: 'Canada', label: 'Canada' },
+    { value: 'Úc', label: 'Úc' },
+    { value: 'Ấn Độ', label: 'Ấn Độ' },
+    { value: 'Thái Lan', label: 'Thái Lan' },
+    { value: 'Singapore', label: 'Singapore' },
+    { value: 'Malaysia', label: 'Malaysia' },
+    { value: 'Indonesia', label: 'Indonesia' },
+    { value: 'Philippines', label: 'Philippines' },
+    { value: 'Hồng Kông', label: 'Hồng Kông' },
+    { value: 'Đài Loan', label: 'Đài Loan' },
+  ];
+
   const [formData, setFormData] = useState({
     title: '',
     title_vi: '',
@@ -58,11 +82,22 @@ const AddMovieModal: React.FC = () => {
   const [genreOptions, setGenreOptions] = useState<{ id: number; name: string }[]>([]);
   const [selectedGenreIds, setSelectedGenreIds] = useState<(string | number)[]>([]);
 
-  // Rating error state for highlighting
+  // Error states for highlighting
   const [ratingError, setRatingError] = useState(false);
+  const [titleError, setTitleError] = useState(false);
+  const [countryError, setCountryError] = useState(false);
+  const [releaseDateError, setReleaseDateError] = useState(false);
+  const [runtimeError, setRuntimeError] = useState(false);
+  const [seasonsError, setSeasonsError] = useState(false);
+  const [hoverRating, setHoverRating] = useState(0);
   const [isAnimating, setIsAnimating] = useState(false);
   const [errorTrigger, setErrorTrigger] = useState(0);
   const ratingRef = useRef<HTMLDivElement>(null);
+  const titleRef = useRef<HTMLInputElement>(null);
+  const countryRef = useRef<HTMLDivElement>(null);
+  const releaseDateRef = useRef<HTMLInputElement>(null);
+  const runtimeRef = useRef<HTMLInputElement>(null);
+  const seasonsRef = useRef<HTMLInputElement>(null);
 
   const isManualMode = !initialData?.tmdbId && !initialData?.movie && !initialData?.movieToEdit;
 
@@ -107,8 +142,14 @@ const AddMovieModal: React.FC = () => {
       setSelectedAlbumIds([]);
       setShowCreateAlbum(false);
       setNewAlbumName('');
-      // Reset rating error
+      // Reset errors
       setRatingError(false);
+      setTitleError(false);
+      setCountryError(false);
+      setReleaseDateError(false);
+      setRuntimeError(false);
+      setSeasonsError(false);
+      setHoverRating(0);
       setErrorTrigger(0);
     } else {
       // Restore body scroll when modal is closed
@@ -328,15 +369,31 @@ const AddMovieModal: React.FC = () => {
     }
   }, [isOpen, initialData, user, genreOptions]);
 
-  // Scroll to rating section when error occurs
+  // Scroll to error section when error occurs
   useEffect(() => {
-    if (errorTrigger > 0 && ratingRef.current) {
-      ratingRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      setIsAnimating(false);
-      setTimeout(() => setIsAnimating(true), 10);
-      setTimeout(() => setIsAnimating(false), 1010);
+    if (errorTrigger > 0) {
+      let targetRef: HTMLElement | null = null;
+      if (titleError && titleRef.current) {
+        targetRef = titleRef.current;
+      } else if (countryError && countryRef.current) {
+        targetRef = countryRef.current;
+      } else if (releaseDateError && releaseDateRef.current) {
+        targetRef = releaseDateRef.current;
+      } else if (runtimeError && runtimeRef.current) {
+        targetRef = runtimeRef.current;
+      } else if (seasonsError && seasonsRef.current) {
+        targetRef = seasonsRef.current;
+      } else if (ratingError && ratingRef.current) {
+        targetRef = ratingRef.current;
+      }
+      if (targetRef) {
+        targetRef.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        setIsAnimating(false);
+        setTimeout(() => setIsAnimating(true), 10);
+        setTimeout(() => setIsAnimating(false), 1010);
+      }
     }
-  }, [errorTrigger]);
+  }, [errorTrigger, titleError, countryError, releaseDateError, runtimeError, seasonsError, ratingError]);
 
   const handleCreateAlbum = async () => {
     if (!newAlbumName.trim() || !user) return;
@@ -366,8 +423,43 @@ const AddMovieModal: React.FC = () => {
     if (!user) return;
     const isHistory = status === 'history';
 
-    // Check if rating is required (when recording movies, not manual mode)
-    if (isHistory && !isManualMode && formData.rating === 0) {
+    // Validate required fields for manual mode
+    if (isManualMode) {
+      if (!formData.title.trim()) {
+        setTitleError(true);
+        setErrorTrigger(prev => prev + 1);
+        showToast("Vui lòng nhập tên phim", "error");
+        return;
+      }
+      if (!formData.country.trim()) {
+        setCountryError(true);
+        setErrorTrigger(prev => prev + 1);
+        showToast("Vui lòng chọn quốc gia", "error");
+        return;
+      }
+      if (!formData.releaseDate) {
+        setReleaseDateError(true);
+        setErrorTrigger(prev => prev + 1);
+        showToast("Vui lòng nhập ngày phát hành", "error");
+        return;
+      }
+      const isTv = manualMediaType === 'tv';
+      if (isTv && (!formData.seasons || parseInt(formData.seasons) <= 0)) {
+        setSeasonsError(true);
+        setErrorTrigger(prev => prev + 1);
+        showToast("Vui lòng nhập số phần hợp lệ", "error");
+        return;
+      }
+      if (!isTv && (!formData.runtime || parseInt(formData.runtime) <= 0)) {
+        setRuntimeError(true);
+        setErrorTrigger(prev => prev + 1);
+        showToast("Vui lòng nhập thời lượng hợp lệ", "error");
+        return;
+      }
+    }
+
+    // Check if rating is required (when recording movies)
+    if (isHistory && formData.rating === 0) {
       setRatingError(true);
       setErrorTrigger(prev => prev + 1);
       showToast("Vui lòng đánh giá phim", "error");
@@ -595,7 +687,7 @@ const AddMovieModal: React.FC = () => {
                 {/* History Specifics: Rating & Date */}
                 {status === 'history' && (
                   <div className="space-y-4 animate-in slide-in-from-top-2 duration-200">
-                    <div ref={ratingRef} className={`bg-black/5 dark:bg-white/5 rounded-xl p-4 space-y-3 transition-transform duration-500 ${isAnimating ? 'border-2 border-primary scale-110' : ''}`}>
+                    <div ref={ratingRef} className={`bg-black/5 dark:bg-white/5 rounded-xl p-4 space-y-3 transition-transform duration-500 ${isAnimating ? 'scale-110' : ''}`}>
                       <label className="text-xs font-medium text-text-muted uppercase tracking-wider block">Đánh giá</label>
                       <div className="flex justify-between px-2">
                         {[1, 2, 3, 4, 5].map((star) => (
@@ -606,11 +698,13 @@ const AddMovieModal: React.FC = () => {
                               setFormData(prev => ({ ...prev, rating: star }));
                               setRatingError(false);
                             }}
+                            onMouseEnter={() => setHoverRating(star)}
+                            onMouseLeave={() => setHoverRating(0)}
                             className="group p-1 focus:outline-none"
                           >
                             <Star
                               size={28}
-                              className={`transition-all duration-200 ${star <= formData.rating
+                              className={`transition-all duration-200 ${star <= (hoverRating || formData.rating)
                                 ? 'fill-yellow-500 text-yellow-500 scale-110'
                                 : 'text-text-muted/40 group-hover:text-yellow-500/50 group-hover:scale-110'
                                 }`}
@@ -654,12 +748,16 @@ const AddMovieModal: React.FC = () => {
 
                 {/* Title Section */}
                 <div className="space-y-4">
-                  <div>
+                  <div className={`transition-transform duration-500 ${isAnimating && titleError ? 'scale-110' : ''}`}>
                     <input
+                      ref={titleRef}
                       type="text"
                       required
                       value={formData.title}
-                      onChange={e => setFormData({ ...formData, title: e.target.value })}
+                      onChange={e => {
+                        setFormData({ ...formData, title: e.target.value });
+                        setTitleError(false);
+                      }}
                       placeholder="Tên phim"
                       className="w-full bg-transparent border-b-2 border-black/10 dark:border-white/10 px-0 py-2 text-2xl font-bold text-text-main placeholder-text-muted/50 focus:border-primary outline-none transition-colors"
                     />
@@ -708,15 +806,23 @@ const AddMovieModal: React.FC = () => {
                     <label className="text-xs font-medium text-text-muted uppercase tracking-wider flex items-center gap-1.5">
                       <Globe size={12} /> Quốc gia
                     </label>
-                    <input
-                      type="text"
-                      required={isManualMode}
-                      value={formData.country}
-                      onChange={e => setFormData({ ...formData, country: e.target.value })}
-                      placeholder="Quốc gia..."
-                      disabled={!isManualMode && !initialData?.movieToEdit}
-                      className="w-full bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-lg px-3 py-2 text-sm text-text-main focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all disabled:opacity-50"
-                    />
+                    {isManualMode ? (
+                      <div ref={countryRef} className={`transition-transform duration-500 ${isAnimating && countryError ? 'scale-110' : ''}`}>
+                        <CustomDropdown
+                          options={countryOptions}
+                          value={formData.country}
+                          onChange={(value) => {
+                            setFormData({ ...formData, country: value as string });
+                            setCountryError(false);
+                          }}
+                          placeholder="Chọn quốc gia..."
+                        />
+                      </div>
+                    ) : (
+                      <div className="w-full bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-lg px-3 py-2 text-sm text-text-main opacity-70">
+                        {formData.country || 'Không có thông tin'}
+                      </div>
+                    )}
                   </div>
 
                   {/* Release Date */}
@@ -724,14 +830,20 @@ const AddMovieModal: React.FC = () => {
                     <label className="text-xs font-medium text-text-muted uppercase tracking-wider flex items-center gap-1.5">
                       <Calendar size={12} /> Phát hành
                     </label>
-                    <input
-                      type="date"
-                      required={isManualMode}
-                      value={formData.releaseDate}
-                      onChange={e => setFormData({ ...formData, releaseDate: e.target.value })}
-                      disabled={!isManualMode}
-                      className="w-full bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-lg px-3 py-2 text-sm text-text-main focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all disabled:opacity-50 scheme-light dark:scheme-dark"
-                    />
+                    <div className={`transition-transform duration-500 ${isAnimating && releaseDateError ? 'scale-110' : ''}`}>
+                      <input
+                        ref={releaseDateRef}
+                        type="date"
+                        required={isManualMode}
+                        value={formData.releaseDate}
+                        onChange={e => {
+                          setFormData({ ...formData, releaseDate: e.target.value });
+                          setReleaseDateError(false);
+                        }}
+                        disabled={!isManualMode}
+                        className="w-full bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-lg px-3 py-2 text-sm text-text-main focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all disabled:opacity-50 scheme-light dark:scheme-dark"
+                      />
+                    </div>
                   </div>
 
                   {/* Runtime / Seasons */}
@@ -740,14 +852,24 @@ const AddMovieModal: React.FC = () => {
                       {(isManualMode ? manualMediaType === 'tv' : (initialData?.mediaType === 'tv' || initialData?.movie?.media_type === 'tv' || initialData?.movieToEdit?.media_type === 'tv')) ? <Tv size={12} /> : <Clock size={12} />}
                       {(isManualMode ? manualMediaType === 'tv' : (initialData?.mediaType === 'tv' || initialData?.movie?.media_type === 'tv' || initialData?.movieToEdit?.media_type === 'tv')) ? 'Số phần' : 'Thời lượng (phút)'}
                     </label>
-                    <input
-                      type="number"
-                      required
-                      disabled={!isManualMode}
-                      value={(isManualMode ? manualMediaType === 'tv' : (initialData?.mediaType === 'tv' || initialData?.movie?.media_type === 'tv' || initialData?.movieToEdit?.media_type === 'tv')) ? formData.seasons : formData.runtime}
-                      onChange={e => setFormData({ ...formData, [(isManualMode ? manualMediaType === 'tv' : (initialData?.mediaType === 'tv' || initialData?.movie?.media_type === 'tv' || initialData?.movieToEdit?.media_type === 'tv')) ? 'seasons' : 'runtime']: e.target.value })}
-                      className="w-full bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-lg px-3 py-2 text-sm text-text-main focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all disabled:opacity-50"
-                    />
+                    <div className={`transition-transform duration-500 ${isAnimating && ((manualMediaType === 'tv' && seasonsError) || (manualMediaType !== 'tv' && runtimeError)) ? 'scale-110' : ''}`}>
+                      <input
+                        ref={(isManualMode ? manualMediaType === 'tv' : (initialData?.mediaType === 'tv' || initialData?.movie?.media_type === 'tv' || initialData?.movieToEdit?.media_type === 'tv')) ? seasonsRef : runtimeRef}
+                        type="number"
+                        required
+                        disabled={!isManualMode}
+                        value={(isManualMode ? manualMediaType === 'tv' : (initialData?.mediaType === 'tv' || initialData?.movie?.media_type === 'tv' || initialData?.movieToEdit?.media_type === 'tv')) ? formData.seasons : formData.runtime}
+                        onChange={e => {
+                          setFormData({ ...formData, [(isManualMode ? manualMediaType === 'tv' : (initialData?.mediaType === 'tv' || initialData?.movie?.media_type === 'tv' || initialData?.movieToEdit?.media_type === 'tv')) ? 'seasons' : 'runtime']: e.target.value });
+                          if ((isManualMode ? manualMediaType === 'tv' : (initialData?.mediaType === 'tv' || initialData?.movie?.media_type === 'tv' || initialData?.movieToEdit?.media_type === 'tv'))) {
+                            setSeasonsError(false);
+                          } else {
+                            setRuntimeError(false);
+                          }
+                        }}
+                        className="w-full bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-lg px-3 py-2 text-sm text-text-main focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all disabled:opacity-50"
+                      />
+                    </div>
                   </div>
                 </div>
 
