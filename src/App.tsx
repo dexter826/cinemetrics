@@ -64,7 +64,7 @@ const AppContent: React.FC = () => {
   }
 
   return (
-    <>
+    <Layout>
       <AlbumStoreInitializer />
       <RecommendationsStoreInitializer />
       <Suspense fallback={<Loading />}>
@@ -84,7 +84,7 @@ const AppContent: React.FC = () => {
           movie={selectedMovie}
         />
       </Suspense>
-    </>
+    </Layout>
   );
 };
 
@@ -93,9 +93,7 @@ const App: React.FC = () => {
     <Router>
       <AuthProvider>
         <ThemeProvider>
-          <Layout>
-            <AppContent />
-          </Layout>
+          <AppContent />
           <ToastContainer />
           <AlertContainer />
         </ThemeProvider>
