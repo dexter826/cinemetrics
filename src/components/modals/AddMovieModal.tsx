@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { X, Calendar, Star, Save, Loader2, FolderPlus, Check, Clock, Globe, Film, Tv, LayoutGrid, AlignLeft, Plus } from 'lucide-react';
 import { useAuth } from '../providers/AuthProvider';
 import { addMovie, updateMovie, checkMovieExists } from '../../services/movieService';
@@ -58,6 +58,12 @@ const AddMovieModal: React.FC = () => {
   const [genreOptions, setGenreOptions] = useState<{ id: number; name: string }[]>([]);
   const [selectedGenreIds, setSelectedGenreIds] = useState<(string | number)[]>([]);
 
+  // Rating error state for highlighting
+  const [ratingError, setRatingError] = useState(false);
+  const [isAnimating, setIsAnimating] = useState(false);
+  const [errorTrigger, setErrorTrigger] = useState(0);
+  const ratingRef = useRef<HTMLDivElement>(null);
+
   const isManualMode = !initialData?.tmdbId && !initialData?.movie && !initialData?.movieToEdit;
 
   // Subscribe to albums
@@ -101,6 +107,9 @@ const AddMovieModal: React.FC = () => {
       setSelectedAlbumIds([]);
       setShowCreateAlbum(false);
       setNewAlbumName('');
+      // Reset rating error
+      setRatingError(false);
+      setErrorTrigger(0);
     } else {
       // Restore body scroll when modal is closed
       document.body.style.overflow = 'unset';
@@ -319,6 +328,16 @@ const AddMovieModal: React.FC = () => {
     }
   }, [isOpen, initialData, user, genreOptions]);
 
+  // Scroll to rating section when error occurs
+  useEffect(() => {
+    if (errorTrigger > 0 && ratingRef.current) {
+      ratingRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      setIsAnimating(false);
+      setTimeout(() => setIsAnimating(true), 10);
+      setTimeout(() => setIsAnimating(false), 1010);
+    }
+  }, [errorTrigger]);
+
   const handleCreateAlbum = async () => {
     if (!newAlbumName.trim() || !user) return;
 
@@ -349,6 +368,8 @@ const AddMovieModal: React.FC = () => {
 
     // Check if rating is required (when recording movies, not manual mode)
     if (isHistory && !isManualMode && formData.rating === 0) {
+      setRatingError(true);
+      setErrorTrigger(prev => prev + 1);
       showToast("Vui lòng đánh giá phim", "error");
       return;
     }
@@ -574,14 +595,17 @@ const AddMovieModal: React.FC = () => {
                 {/* History Specifics: Rating & Date */}
                 {status === 'history' && (
                   <div className="space-y-4 animate-in slide-in-from-top-2 duration-200">
-                    <div className="bg-black/5 dark:bg-white/5 rounded-xl p-4 space-y-3">
+                    <div ref={ratingRef} className={`bg-black/5 dark:bg-white/5 rounded-xl p-4 space-y-3 transition-transform duration-500 ${isAnimating ? 'border-2 border-primary scale-110' : ''}`}>
                       <label className="text-xs font-medium text-text-muted uppercase tracking-wider block">Đánh giá</label>
                       <div className="flex justify-between px-2">
                         {[1, 2, 3, 4, 5].map((star) => (
                           <button
                             key={star}
                             type="button"
-                            onClick={() => setFormData(prev => ({ ...prev, rating: star }))}
+                            onClick={() => {
+                              setFormData(prev => ({ ...prev, rating: star }));
+                              setRatingError(false);
+                            }}
                             className="group p-1 focus:outline-none"
                           >
                             <Star
@@ -784,9 +808,9 @@ const AddMovieModal: React.FC = () => {
 
                 {/* TV Series Progress */}
                 {status === 'history' && (initialData?.mediaType === 'tv' || initialData?.movie?.media_type === 'tv' || initialData?.movieToEdit?.media_type === 'tv') && (
-                  <div className="bg-green-500/5 border border-green-500/10 rounded-xl p-4 space-y-4">
+                  <div className="bg-primary/5 border border-primary/10 rounded-xl p-4 space-y-4">
                     <div className="flex items-center justify-between">
-                      <h3 className="text-sm font-semibold text-green-500 flex items-center gap-2">
+                      <h3 className="text-sm font-semibold text-primary flex items-center gap-2">
                         <Tv size={16} /> Tiến độ xem
                       </h3>
                       <div className="flex items-center gap-2">
@@ -795,7 +819,7 @@ const AddMovieModal: React.FC = () => {
                           id="completed-checkbox"
                           checked={isCompleted}
                           onChange={(e) => setIsCompleted(e.target.checked)}
-                          className="w-4 h-4 rounded border-green-500/30 text-green-500 focus:ring-green-500 accent-green-500"
+                          className="w-4 h-4 rounded border-primary/30 text-primary focus:ring-primary accent-primary"
                         />
                         <label htmlFor="completed-checkbox" className="text-sm text-text-main cursor-pointer select-none">
                           Đã xem hết
@@ -852,7 +876,7 @@ const AddMovieModal: React.FC = () => {
                     )}
 
                     {totalEpisodes > 0 && !isCompleted && (
-                      <div className="text-xs text-text-muted text-center pt-2 border-t border-green-500/10">
+                      <div className="text-xs text-text-muted text-center pt-2 border-t border-primary/10">
                         Tổng: {totalEpisodes} tập • Mùa này: {episodesPerSeason[currentSeason] || '?'} tập
                       </div>
                     )}
