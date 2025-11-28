@@ -10,6 +10,11 @@ interface PaginationProps {
 const Pagination: React.FC<PaginationProps> = ({ currentPage, totalPages, onPageChange }) => {
   const [inputValue, setInputValue] = useState(currentPage.toString());
 
+  // Update input value when currentPage changes
+  React.useEffect(() => {
+    setInputValue(currentPage.toString());
+  }, [currentPage]);
+
   const handlePageChange = (page: number) => {
     onPageChange(page);
     window.scrollTo({ top: 0, behavior: 'smooth' });

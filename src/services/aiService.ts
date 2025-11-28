@@ -33,7 +33,7 @@ export const getAIRecommendations = async (history: Movie[], allMovies: Movie[],
     const previouslyRecommendedTitles = excludePreviouslyRecommended.join(', ');
 
     const prompt = `
-    Based on the user's watched movie and TV series history below, recommend 17 similar movies or TV series that they haven't watched and are not already in their collection.
+    Based on the user's watched movie and TV series history below, recommend 22 similar movies or TV series that they haven't watched and are not already in their collection.
 
     User History:
     ${watchedList}

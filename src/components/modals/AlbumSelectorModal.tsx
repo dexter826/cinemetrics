@@ -8,6 +8,7 @@ import { updateAlbum, addAlbum } from '../../services/albumService';
 import { getDisplayTitle } from '../../utils/movieUtils';
 import Loading from '../ui/Loading';
 import logoText from '../../assets/images/logo_text.png';
+import { usePreventScroll } from '../../hooks/usePreventScroll';
 
 interface AlbumSelectorModalProps {
   isOpen: boolean;
@@ -25,6 +26,9 @@ const AlbumSelectorModal: React.FC<AlbumSelectorModalProps> = ({ isOpen, onClose
   const [newAlbumName, setNewAlbumName] = useState('');
   const [creatingAlbum, setCreatingAlbum] = useState(false);
 
+  // Prevent body scroll when modal is open
+  usePreventScroll(isOpen);
+
   useEffect(() => {
     if (!user) return;
 
@@ -35,19 +39,6 @@ const AlbumSelectorModal: React.FC<AlbumSelectorModalProps> = ({ isOpen, onClose
 
     return () => unsubscribe();
   }, [user]);
-
-  // Prevent body scroll when modal is open
-  useEffect(() => {
-    if (isOpen) {
-      document.body.style.overflow = 'hidden';
-    } else {
-      document.body.style.overflow = 'unset';
-    }
-    return () => {
-      document.body.style.overflow = 'unset';
-    };
-  }, [isOpen]);
-
 
   const handleAddToAlbum = async (album: Album) => {
     if (!album.docId || !movie?.docId) return;
@@ -104,8 +95,16 @@ const AlbumSelectorModal: React.FC<AlbumSelectorModalProps> = ({ isOpen, onClose
   );
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-fade-in">
-      <div className="bg-surface w-full max-w-2xl rounded-2xl overflow-hidden shadow-2xl border border-white/10 relative">
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-fade-in"
+      onTouchMove={(e) => e.preventDefault()}
+      onWheel={(e) => e.preventDefault()}
+    >
+      <div
+        className="bg-surface w-full max-w-2xl rounded-2xl overflow-hidden shadow-2xl border border-white/10 relative"
+        onTouchMove={(e) => e.stopPropagation()}
+        onWheel={(e) => e.stopPropagation()}
+      >
 
         <button
           onClick={onClose}

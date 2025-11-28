@@ -12,6 +12,7 @@ import useMovieDetailStore from '../../stores/movieDetailStore';
 import { Timestamp } from 'firebase/firestore';
 import Loading from '../ui/Loading';
 import randomAudioFile from '../../assets/audio/random.MP3';
+import { usePreventScroll } from '../../hooks/usePreventScroll';
 
 interface RandomPickerModalProps {
   isOpen: boolean;
@@ -32,6 +33,9 @@ const RandomPickerModal: React.FC<RandomPickerModalProps> = ({ isOpen, onClose }
   const [hasResult, setHasResult] = useState(false);
   const [confettiData, setConfettiData] = useState<any | null>(null);
   const [randomAudio, setRandomAudio] = useState<Howl | null>(null);
+
+  // Prevent body scroll when modal is open
+  usePreventScroll(isOpen);
 
   // Subscribe to user's movies only when modal is open
   useEffect(() => {
@@ -81,18 +85,6 @@ const RandomPickerModal: React.FC<RandomPickerModalProps> = ({ isOpen, onClose }
     if (poolType === 'trending') return trending;
     return [];
   }, [poolType, watchlistMovies, trending]);
-
-  // Prevent body scroll when modal is open
-  useEffect(() => {
-    if (isOpen) {
-      document.body.style.overflow = 'hidden';
-    } else {
-      document.body.style.overflow = 'unset';
-    }
-    return () => {
-      document.body.style.overflow = 'unset';
-    };
-  }, [isOpen]);
 
   // Reset and prepare pool when modal opens
   useEffect(() => {
@@ -275,10 +267,18 @@ const RandomPickerModal: React.FC<RandomPickerModalProps> = ({ isOpen, onClose }
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center px-4">
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center px-4"
+      onTouchMove={(e) => e.preventDefault()}
+      onWheel={(e) => e.preventDefault()}
+    >
       <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
 
-      <div className="relative bg-surface rounded-3xl max-w-lg w-full p-6 shadow-2xl border border-black/10 dark:border-white/10 flex flex-col gap-4">
+      <div
+        className="relative bg-surface rounded-3xl max-w-lg w-full p-6 shadow-2xl border border-black/10 dark:border-white/10 flex flex-col gap-4"
+        onTouchMove={(e) => e.stopPropagation()}
+        onWheel={(e) => e.stopPropagation()}
+      >
         {/* Confetti Layer */}
         {hasResult && confettiData && (
           <div className="pointer-events-none absolute inset-0 flex items-center justify-center opacity-90">

@@ -13,6 +13,7 @@ import CustomDropdown from '../ui/CustomDropdown';
 import MultiSelectDropdown from '../ui/MultiSelectDropdown';
 import CustomDatePicker from '../ui/CustomDatePicker';
 import CustomTimePicker from '../ui/CustomTimePicker';
+import { usePreventScroll } from '../../hooks/usePreventScroll';
 
 const AddMovieModal: React.FC = () => {
   const { isOpen, closeAddModal, initialData } = useAddMovieStore();
@@ -103,6 +104,9 @@ const AddMovieModal: React.FC = () => {
 
   const isManualMode = !initialData?.tmdbId && !initialData?.movie && !initialData?.movieToEdit;
 
+  // Prevent body scroll when modal is open
+  usePreventScroll(isOpen);
+
   // Subscribe to albums
   useEffect(() => {
     if (!user) return;
@@ -138,8 +142,6 @@ const AddMovieModal: React.FC = () => {
   // Reset form when modal opens with new data
   useEffect(() => {
     if (isOpen) {
-      // Prevent body scroll when modal is open
-      document.body.style.overflow = 'hidden';
       // Reset album selection
       setSelectedAlbumIds([]);
       setShowCreateAlbum(false);
@@ -153,13 +155,7 @@ const AddMovieModal: React.FC = () => {
       setSeasonsError(false);
       setHoverRating(0);
       setErrorTrigger(0);
-    } else {
-      // Restore body scroll when modal is closed
-      document.body.style.overflow = 'unset';
     }
-    return () => {
-      document.body.style.overflow = 'unset';
-    };
   }, [isOpen]);
 
   // Load albums that contain the movie being edited

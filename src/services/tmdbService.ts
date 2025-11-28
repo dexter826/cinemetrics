@@ -110,6 +110,7 @@ export const getTrendingMovies = async (page: number = 1): Promise<{ results: TM
   if (!TMDB_API_KEY) return { results: [], totalPages: 0 };
 
   try {
+    // Fetch 22 movies (2 extra as backup) but only display 20
     const response = await fetch(
       `${TMDB_BASE_URL}/trending/all/week?api_key=${TMDB_API_KEY}&page=${page}`
     );
@@ -117,7 +118,11 @@ export const getTrendingMovies = async (page: number = 1): Promise<{ results: TM
     if (!response.ok) throw new Error('TMDB API Error');
 
     const data = await response.json();
-    const results = (data.results || []).filter((item: TMDBMovieResult) => item.media_type === 'movie' || item.media_type === 'tv');
+    let results = (data.results || []).filter((item: TMDBMovieResult) => item.media_type === 'movie' || item.media_type === 'tv');
+
+    // Limit to 22 results (20 to display + 2 backup)
+    results = results.slice(0, 22);
+
     return { results, totalPages: data.total_pages || 1 };
   } catch (error) {
     console.error("Failed to get trending movies:", error);

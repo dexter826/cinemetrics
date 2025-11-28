@@ -18,6 +18,7 @@ import Loading from './components/ui/Loading';
 import { ThemeProvider } from './components/providers/ThemeProvider';
 import AlbumStoreInitializer from './components/providers/AlbumStoreInitializer';
 import RecommendationsStoreInitializer from './components/providers/RecommendationsStoreInitializer';
+import PullToRefreshProvider from './components/providers/PullToRefreshProvider';
 import ToastContainer from './components/ui/ToastContainer';
 import AlertContainer from './components/ui/AlertContainer';
 
@@ -64,27 +65,29 @@ const AppContent: React.FC = () => {
   }
 
   return (
-    <Layout>
-      <AlbumStoreInitializer />
-      <RecommendationsStoreInitializer />
-      <Suspense fallback={<Loading />}>
-        <Routes>
-          <Route path="/" element={<Dashboard />} />
-          <Route path="/search" element={<SearchPage />} />
-          <Route path="/stats" element={<StatsPage />} />
-          <Route path="/albums" element={<AlbumsPage />} />
-          <Route path="/albums/:albumId" element={<AlbumDetailPage />} />
-          <Route path="/person/:personId" element={<PersonDetailPage />} />
-          <Route path="*" element={<Navigate to="/" />} />
-        </Routes>
-        <AddMovieModal />
-        <MovieDetailModal
-          isOpen={isDetailModalOpen}
-          onClose={closeDetailModal}
-          movie={selectedMovie}
-        />
-      </Suspense>
-    </Layout>
+    <PullToRefreshProvider>
+      <Layout>
+        <AlbumStoreInitializer />
+        <RecommendationsStoreInitializer />
+        <Suspense fallback={<Loading />}>
+          <Routes>
+            <Route path="/" element={<Dashboard />} />
+            <Route path="/search" element={<SearchPage />} />
+            <Route path="/stats" element={<StatsPage />} />
+            <Route path="/albums" element={<AlbumsPage />} />
+            <Route path="/albums/:albumId" element={<AlbumDetailPage />} />
+            <Route path="/person/:personId" element={<PersonDetailPage />} />
+            <Route path="*" element={<Navigate to="/" />} />
+          </Routes>
+          <AddMovieModal />
+          <MovieDetailModal
+            isOpen={isDetailModalOpen}
+            onClose={closeDetailModal}
+            movie={selectedMovie}
+          />
+        </Suspense>
+      </Layout>
+    </PullToRefreshProvider>
   );
 };
 

@@ -5,6 +5,7 @@ import { exportToExcel, ExportFilters } from '../../services/exportService';
 import useToastStore from '../../stores/toastStore';
 import { Timestamp } from 'firebase/firestore';
 import CustomDropdown from '../ui/CustomDropdown';
+import { usePreventScroll } from '../../hooks/usePreventScroll';
 
 interface ExportModalProps {
   isOpen: boolean;
@@ -14,6 +15,9 @@ interface ExportModalProps {
 
 const ExportModal: React.FC<ExportModalProps> = ({ isOpen, onClose, movies }) => {
   const { showToast } = useToastStore();
+
+  // Prevent body scroll when modal is open
+  usePreventScroll(isOpen);
 
   const [isExporting, setIsExporting] = useState(false);
 
@@ -97,23 +101,19 @@ const ExportModal: React.FC<ExportModalProps> = ({ isOpen, onClose, movies }) =>
     return count;
   }, [movies, filters]);
 
-  // Prevent body scroll when modal is open
-  useEffect(() => {
-    if (isOpen) {
-      document.body.style.overflow = 'hidden';
-    } else {
-      document.body.style.overflow = 'unset';
-    }
-    return () => {
-      document.body.style.overflow = 'unset';
-    };
-  }, [isOpen]);
-
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
-      <div className="bg-surface border border-black/10 dark:border-white/10 rounded-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto shadow-2xl animate-in zoom-in-95 duration-200">
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200"
+      onTouchMove={(e) => e.preventDefault()}
+      onWheel={(e) => e.preventDefault()}
+    >
+      <div
+        className="bg-surface border border-black/10 dark:border-white/10 rounded-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto shadow-2xl animate-in zoom-in-95 duration-200"
+        onTouchMove={(e) => e.stopPropagation()}
+        onWheel={(e) => e.stopPropagation()}
+      >
 
         {/* Header */}
         <div className="sticky top-0 z-10 flex items-center justify-between p-4 border-b border-black/10 dark:border-white/10 bg-surface/95 backdrop-blur">
@@ -174,9 +174,8 @@ const ExportModal: React.FC<ExportModalProps> = ({ isOpen, onClose, movies }) =>
                   <button
                     key={star}
                     onClick={() => setFilters(prev => ({ ...prev, rating: prev.rating === star ? null : star }))}
-                    className={`p-1.5 rounded-lg transition-colors cursor-pointer ${
-                      (filters.rating || 0) >= star ? 'text-yellow-500 bg-yellow-500/10' : 'text-text-muted bg-black/5 dark:bg-white/5 hover:bg-black/10 dark:hover:bg-white/10'
-                    }`}
+                    className={`p-1.5 rounded-lg transition-colors cursor-pointer ${(filters.rating || 0) >= star ? 'text-yellow-500 bg-yellow-500/10' : 'text-text-muted bg-black/5 dark:bg-white/5 hover:bg-black/10 dark:hover:bg-white/10'
+                      }`}
                   >
                     <Star size={16} fill={(filters.rating || 0) >= star ? "currentColor" : "none"} />
                   </button>

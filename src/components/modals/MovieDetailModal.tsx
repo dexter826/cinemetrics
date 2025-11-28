@@ -8,6 +8,7 @@ import Loading from '../ui/Loading';
 import AlbumSelectorModal from './AlbumSelectorModal';
 import useToastStore from '../../stores/toastStore';
 import { useNavigate } from 'react-router-dom';
+import { usePreventScroll } from '../../hooks/usePreventScroll';
 
 interface MovieDetailModalProps {
   isOpen: boolean;
@@ -22,6 +23,9 @@ const MovieDetailModal: React.FC<MovieDetailModalProps> = ({ isOpen, onClose, mo
   const [credits, setCredits] = useState<TMDBCredits | null>(null);
   const { showToast } = useToastStore();
   const navigate = useNavigate();
+
+  // Prevent body scroll when modal is open
+  usePreventScroll(isOpen);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -55,17 +59,6 @@ const MovieDetailModal: React.FC<MovieDetailModalProps> = ({ isOpen, onClose, mo
       fetchData();
     }
   }, [isOpen, movie]);
-
-  useEffect(() => {
-    if (isOpen) {
-      document.body.style.overflow = 'hidden';
-    } else {
-      document.body.style.overflow = 'unset';
-    }
-    return () => {
-      document.body.style.overflow = 'unset';
-    };
-  }, [isOpen]);
 
   if (!isOpen || !movie) return null;
 
@@ -102,8 +95,16 @@ const MovieDetailModal: React.FC<MovieDetailModalProps> = ({ isOpen, onClose, mo
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-fade-in">
-      <div className="bg-surface w-full max-w-4xl rounded-2xl overflow-hidden shadow-2xl border border-white/10 relative flex flex-col md:flex-row max-h-[90vh]">
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-fade-in"
+      onTouchMove={(e) => e.preventDefault()}
+      onWheel={(e) => e.preventDefault()}
+    >
+      <div
+        className="bg-surface w-full max-w-4xl rounded-2xl overflow-hidden shadow-2xl border border-white/10 relative flex flex-col md:flex-row max-h-[90vh]"
+        onTouchMove={(e) => e.stopPropagation()}
+        onWheel={(e) => e.stopPropagation()}
+      >
 
         <button
           onClick={onClose}
