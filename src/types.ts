@@ -51,6 +51,8 @@ export interface TMDBMovieResult {
   media_type?: 'movie' | 'tv' | 'person';
   genre_ids?: number[];
   origin_country?: string[];
+  vote_average?: number;
+  popularity?: number;
 }
 
 export interface TMDBMovieDetail {

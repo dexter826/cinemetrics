@@ -153,17 +153,20 @@ export const getDiscoverMovies = async (params: {
   genres?: string[];
   year?: string;
   country?: string;
+  rating?: string;
+  sortBy?: string;
 } = {}): Promise<{ results: TMDBMovieResult[]; totalPages: number }> => {
   if (!TMDB_API_KEY) return { results: [], totalPages: 0 };
 
   try {
     const page = params.page || 1;
+    const sortBy = params.sortBy || 'popularity.desc';
 
     // Discover movies
     const movieQueryParams = new URLSearchParams({
       api_key: TMDB_API_KEY,
       page: page.toString(),
-      sort_by: 'popularity.desc',
+      sort_by: sortBy,
       include_adult: 'false',
       include_video: 'false',
     });
@@ -176,6 +179,10 @@ export const getDiscoverMovies = async (params: {
     }
     if (params.year) movieQueryParams.append('primary_release_year', params.year);
     if (params.country) movieQueryParams.append('with_origin_country', params.country);
+    if (params.rating) {
+      movieQueryParams.append('vote_average.gte', params.rating);
+      movieQueryParams.append('vote_count.gte', '100'); // Minimum vote count for reliability
+    }
 
     const movieResponse = await fetch(
       `${TMDB_BASE_URL}/discover/movie?${movieQueryParams}`
@@ -185,7 +192,7 @@ export const getDiscoverMovies = async (params: {
     const tvQueryParams = new URLSearchParams({
       api_key: TMDB_API_KEY,
       page: page.toString(),
-      sort_by: 'popularity.desc',
+      sort_by: sortBy,
       include_adult: 'false',
       include_video: 'false',
     });
@@ -195,6 +202,10 @@ export const getDiscoverMovies = async (params: {
     }
     if (params.year) tvQueryParams.append('first_air_date_year', params.year);
     if (params.country) tvQueryParams.append('with_origin_country', params.country);
+    if (params.rating) {
+      tvQueryParams.append('vote_average.gte', params.rating);
+      tvQueryParams.append('vote_count.gte', '100'); // Minimum vote count for reliability
+    }
 
     const tvResponse = await fetch(
       `${TMDB_BASE_URL}/discover/tv?${tvQueryParams}`
@@ -209,8 +220,39 @@ export const getDiscoverMovies = async (params: {
     const movieResults = (movieData.results || []).map((item: any) => ({ ...item, media_type: 'movie' }));
     const tvResults = (tvData.results || []).map((item: any) => ({ ...item, media_type: 'tv' }));
 
-    // Combine and sort by popularity (assuming popularity is a number)
-    const combinedResults = [...movieResults, ...tvResults].sort((a, b) => (b.popularity || 0) - (a.popularity || 0));
+    // Combine and sort based on sortBy parameter
+    let combinedResults = [...movieResults, ...tvResults];
+
+    // Apply sorting based on sortBy parameter
+    if (sortBy === 'popularity.desc') {
+      combinedResults.sort((a, b) => (b.popularity || 0) - (a.popularity || 0));
+    } else if (sortBy === 'vote_average.desc') {
+      combinedResults.sort((a, b) => (b.vote_average || 0) - (a.vote_average || 0));
+    } else if (sortBy === 'primary_release_date.desc') {
+      combinedResults.sort((a, b) => {
+        const dateA = new Date(a.release_date || a.first_air_date || '1900-01-01');
+        const dateB = new Date(b.release_date || b.first_air_date || '1900-01-01');
+        return dateB.getTime() - dateA.getTime();
+      });
+    } else if (sortBy === 'primary_release_date.asc') {
+      combinedResults.sort((a, b) => {
+        const dateA = new Date(a.release_date || a.first_air_date || '1900-01-01');
+        const dateB = new Date(b.release_date || b.first_air_date || '1900-01-01');
+        return dateA.getTime() - dateB.getTime();
+      });
+    } else if (sortBy === 'title.asc') {
+      combinedResults.sort((a, b) => {
+        const titleA = (a.title || a.name || '').toLowerCase();
+        const titleB = (b.title || b.name || '').toLowerCase();
+        return titleA.localeCompare(titleB);
+      });
+    } else if (sortBy === 'title.desc') {
+      combinedResults.sort((a, b) => {
+        const titleA = (a.title || a.name || '').toLowerCase();
+        const titleB = (b.title || b.name || '').toLowerCase();
+        return titleB.localeCompare(titleA);
+      });
+    }
 
     // For pagination, since we're combining, we need to handle total pages differently
     // For simplicity, use the max of the two total pages

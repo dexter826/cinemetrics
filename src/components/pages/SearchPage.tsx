@@ -1,19 +1,17 @@
 import React, { useState, useEffect } from 'react';
 import { Search, RotateCcw, Film, ArrowLeft, Filter, ArrowDown, User } from 'lucide-react';
-import { searchMovies, getGenres, getTrendingMovies, getCountries, getDiscoverMovies, searchPeople } from '../../services/tmdbService';
-import { TMDBMovieResult, TMDBPerson } from '../../types';
+import { searchMovies, getTrendingMovies, getCountries, getDiscoverMovies, searchPeople } from '../../services/tmdbService';
+import { TMDBMovieResult, TMDBPerson, Movie } from '../../types';
 import { TMDB_IMAGE_BASE_URL } from '../../constants';
 import { useNavigate } from 'react-router-dom';
 import Navbar from '../layout/Navbar';
 import Pagination from '../ui/Pagination';
 import CustomDropdown from '../ui/CustomDropdown';
-import MultiSelectDropdown from '../ui/MultiSelectDropdown';
 import useAddMovieStore from '../../stores/addMovieStore';
 import Loading from '../ui/Loading';
 import { useAuth } from '../providers/AuthProvider';
 import { subscribeToMovies } from '../../services/movieService';
 import useRecommendationsStore from '../../stores/recommendationsStore';
-import { Movie } from '../../types';
 import Lottie from 'lottie-react';
 import { Sparkles, Popcorn } from 'lucide-react';
 
@@ -69,20 +67,16 @@ const SearchPage: React.FC = () => {
   // Filters
   const [filterType, setFilterType] = useState<'all' | 'movie' | 'tv'>('all');
   const [filterYear, setFilterYear] = useState<string>('');
-  const [filterGenres, setFilterGenres] = useState<(string | number)[]>([]);
   const [filterCountry, setFilterCountry] = useState<string>('');
-  const [genres, setGenres] = useState<{ id: number, name: string }[]>([]);
+  const [filterRating, setFilterRating] = useState<string>('');
+  const [sortBy, setSortBy] = useState<string>('popularity.desc');
   const [countries, setCountries] = useState<{ iso_3166_1: string, english_name: string, native_name: string }[]>([]);
 
-  // Logic lấy dữ liệu ban đầu (Genres & Countries)
+  // Logic lấy dữ liệu ban đầu (Countries)
   useEffect(() => {
     const fetchStaticData = async () => {
       try {
-        const [genreList, countriesList] = await Promise.all([
-          getGenres(),
-          getCountries(),
-        ]);
-        setGenres(genreList);
+        const countriesList = await getCountries();
         setCountries(countriesList);
       } catch (error) {
         console.error("Error fetching static data:", error);
@@ -123,7 +117,7 @@ const SearchPage: React.FC = () => {
     if (discoverMovies.length > 0) {
       setDiscoverPage(1);
     }
-  }, [filterGenres, filterYear, filterCountry]);
+  }, [filterYear, filterCountry, filterRating, sortBy]);
 
   // Auto-load discover movies when page or filters change
   useEffect(() => {
@@ -132,9 +126,10 @@ const SearchPage: React.FC = () => {
         setDiscoverLoading(true);
         const { results, totalPages } = await getDiscoverMovies({
           page: discoverPage,
-          genres: filterGenres.map(g => String(g)),
           year: filterYear,
           country: filterCountry,
+          rating: filterRating,
+          sortBy: sortBy,
         });
         setDiscoverMovies(results);
         setTotalDiscoverPages(totalPages);
@@ -142,7 +137,7 @@ const SearchPage: React.FC = () => {
       }, 300);
       return () => clearTimeout(timer);
     }
-  }, [discoverPage, filterGenres, filterYear, filterCountry]);
+  }, [discoverPage, filterYear, filterCountry, filterRating, sortBy]);
 
   // Reset search page when query changes
   useEffect(() => {
@@ -162,16 +157,14 @@ const SearchPage: React.FC = () => {
       if (!date || !date.startsWith(filterYear)) return false;
     }
 
-    if (filterGenres.length > 0) {
-      // Check if movie has at least one of the selected genres
-      const hasMatchingGenre = filterGenres.some(g =>
-        movie.genre_ids?.includes(Number(g))
-      );
-      if (!hasMatchingGenre) return false;
-    }
 
     if (filterCountry) {
       if (!movie.origin_country || !movie.origin_country.includes(filterCountry)) return false;
+    }
+
+    if (filterRating) {
+      const minRating = parseFloat(filterRating);
+      if (!movie.vote_average || movie.vote_average < minRating) return false;
     }
 
     return true;
@@ -216,9 +209,10 @@ const SearchPage: React.FC = () => {
         setDiscoverLoading(true);
         const { results, totalPages } = await getDiscoverMovies({
           page: discoverPage,
-          genres: filterGenres.map(g => String(g)),
           year: filterYear,
           country: filterCountry,
+          rating: filterRating,
+          sortBy: sortBy,
         });
         setDiscoverMovies(results);
         setTotalDiscoverPages(totalPages);
@@ -326,16 +320,6 @@ const SearchPage: React.FC = () => {
               />
 
 
-              <MultiSelectDropdown
-                options={genres.map(g => ({ value: g.id, label: g.name }))}
-                values={filterGenres}
-                onChange={(values) => setFilterGenres(values)}
-                placeholder="Chọn thể loại"
-                className="flex-1 sm:flex-none min-w-[180px]"
-                searchable={true}
-                maxDisplay={1}
-              />
-
               <CustomDropdown
                 options={[
                   { value: '', label: 'Tất cả quốc gia' },
@@ -348,12 +332,49 @@ const SearchPage: React.FC = () => {
                 searchable={true}
               />
 
-              <input
-                type="number"
-                placeholder="Năm"
+              <CustomDropdown
+                options={[
+                  { value: '', label: 'Tất cả năm' },
+                  ...Array.from({ length: new Date().getFullYear() - 1899 }, (_, i) => {
+                    const year = new Date().getFullYear() - i;
+                    return { value: String(year), label: String(year) };
+                  }),
+                ]}
                 value={filterYear}
-                onChange={(e) => setFilterYear(e.target.value)}
-                className="w-full sm:w-24 bg-surface border border-black/10 dark:border-white/10 rounded-xl px-3 py-2 focus:outline-none focus:border-primary/50 text-sm flex-1 sm:flex-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                onChange={(value) => setFilterYear(value as string)}
+                placeholder="Chọn năm"
+                className="flex-1 sm:flex-none min-w-[120px]"
+                searchable={true}
+              />
+
+              <CustomDropdown
+                options={[
+                  { value: '', label: 'Tất cả đánh giá' },
+                  { value: '9', label: '9+ ⭐' },
+                  { value: '8', label: '8+ ⭐' },
+                  { value: '7', label: '7+ ⭐' },
+                  { value: '6', label: '6+ ⭐' },
+                  { value: '5', label: '5+ ⭐' },
+                ]}
+                value={filterRating}
+                onChange={(value) => setFilterRating(value as string)}
+                placeholder="Đánh giá"
+                className="flex-1 sm:flex-none min-w-[140px]"
+              />
+
+              <CustomDropdown
+                options={[
+                  { value: 'popularity.desc', label: 'Phổ biến nhất' },
+                  { value: 'vote_average.desc', label: 'Đánh giá cao' },
+                  { value: 'primary_release_date.desc', label: 'Mới nhất' },
+                  { value: 'primary_release_date.asc', label: 'Cũ nhất' },
+                  { value: 'title.asc', label: 'Tên A-Z' },
+                  { value: 'title.desc', label: 'Tên Z-A' },
+                ]}
+                value={sortBy}
+                onChange={(value) => setSortBy(value as string)}
+                placeholder="Sắp xếp"
+                className="flex-1 sm:flex-none min-w-[140px]"
               />
             </div>
           )}
