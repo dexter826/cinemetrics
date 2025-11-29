@@ -97,7 +97,7 @@ export const exportToExcel = async (movies: Movie[], filters: ExportFilters): Pr
     ws['!cols'] = colWidths;
 
     // Save file
-    const fileName = `cinemetrics_export_${new Date().toISOString().split('T')[0]}.xlsx`;
+    const fileName = `cinemob_export_${new Date().toISOString().split('T')[0]}.xlsx`;
     XLSX.writeFile(wb, fileName);
 
   } catch (error) {

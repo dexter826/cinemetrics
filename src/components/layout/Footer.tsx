@@ -33,7 +33,7 @@ const Footer: React.FC = () => {
   return (
     <footer className="relative bg-surface border-t border-black/10 dark:border-white/10 py-8 mt-auto overflow-hidden">
       {/* Animated gradient background */}
-      <div className="absolute inset-0 bg-gradient-to-r from-primary/5 via-secondary/5 to-primary/5 animate-gradient-x opacity-50" />
+      <div className="absolute inset-0 bg-linear-to-r from-primary/5 via-secondary/5 to-primary/5 animate-gradient-x opacity-50" />
 
       {/* Floating particles effect */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
@@ -49,12 +49,12 @@ const Footer: React.FC = () => {
             <div className="flex items-center justify-center md:justify-start gap-2 group">
               <img
                 src={logoText}
-                alt="Cinemetrics"
+                alt="CineMOB"
                 className="h-8 transition-all duration-300 group-hover:drop-shadow-[0_0_8px_rgba(16,185,129,0.5)] group-hover:scale-105"
               />
             </div>
             <p className="text-sm text-text-muted mt-1 flex items-center justify-center md:justify-start gap-1.5">
-              Theo dõi hành trình điện ảnh của bạn
+              Cine Over B**ch
               <Heart className="w-3.5 h-3.5 text-primary animate-pulse-soft inline-block" />
             </p>
           </div>
@@ -92,7 +92,7 @@ const Footer: React.FC = () => {
           {/* Copyright with fade-in animation */}
           <div className="text-sm text-text-muted animate-fade-in-up flex items-center gap-1.5" style={{ animationDelay: '400ms' }}>
             <span>© {new Date().getFullYear()}</span>
-            <span className="text-primary font-semibold">Cinemetrics</span>
+            <span className="text-primary font-semibold">CineMOB</span>
             <span className="hidden sm:inline">• Made by</span>
             <a
               href="https://github.com/dexter826"
@@ -100,7 +100,7 @@ const Footer: React.FC = () => {
               rel="noopener noreferrer"
               className="hidden sm:inline text-primary hover:underline font-medium transition-colors"
             >
-              dexter826
+              MOB
             </a>
           </div>
         </div>

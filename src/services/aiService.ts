@@ -59,7 +59,7 @@ export const getAIRecommendations = async (history: Movie[], allMovies: Movie[],
                 "Authorization": `Bearer ${OPENROUTER_API_KEY}`,
                 "Content-Type": "application/json",
                 "HTTP-Referer": window.location.origin, // Required by OpenRouter
-                "X-Title": "Cinemetrics", // Optional
+                "X-Title": "CineMOB", // Optional
             },
             body: JSON.stringify({
                 "model": "x-ai/grok-4.1-fast:free",

@@ -13,7 +13,7 @@ import { useAuth } from '../providers/AuthProvider';
 import { subscribeToMovies } from '../../services/movieService';
 import useRecommendationsStore from '../../stores/recommendationsStore';
 import Lottie from 'lottie-react';
-import { Sparkles, Popcorn } from 'lucide-react';
+import { Sparkles, Star } from 'lucide-react';
 
 const SearchPage: React.FC = () => {
   const navigate = useNavigate();
@@ -450,8 +450,8 @@ const SearchPage: React.FC = () => {
             </div>
             {/* Always show trending movies even when AI is loading */}
             <div className="flex items-center gap-2">
-              <Popcorn className="text-primary" size={18} />
-              <h2 className="text-xl text-primary font-bold">Phim vừa ra mắt</h2>
+              <Star className="text-primary" size={18} />
+              <h2 className="text-xl text-primary font-bold">Phim thịnh hành</h2>
             </div>
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 md:gap-6">
               {trendingMovies.map(movie => (
@@ -573,8 +573,8 @@ const SearchPage: React.FC = () => {
                 )}
 
                 <div className="flex items-center gap-2">
-                  <Popcorn className="text-primary" size={18} />
-                  <h2 className="text-xl text-primary font-bold">Phim vừa ra mắt</h2>
+                  <Star className="text-primary" size={18} />
+                  <h2 className="text-xl text-primary font-bold">Phim thịnh hành</h2>
                 </div>
               </>
             )}

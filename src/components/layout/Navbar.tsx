@@ -51,7 +51,7 @@ const Navbar: React.FC = () => {
             className="flex items-center cursor-pointer"
             onClick={() => navigate('/')}
           >
-            <img src={logoText} alt="Cinemetrics Logo" className="h-8 w-auto" />
+            <img src={logoText} alt="CineMOB Logo" className="h-8 w-auto" />
           </div>
 
           {/* Desktop Menu - Centered */}

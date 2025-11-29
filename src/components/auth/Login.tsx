@@ -15,12 +15,12 @@ const Login: React.FC = () => {
 
       <div className="z-10 flex flex-col items-center space-y-8 p-8">
         <div className="bg-surface p-4 rounded-2xl shadow-2xl shadow-primary/20 border border-black/5 dark:border-white/5">
-          <img src="/logo512.png" alt="Cinemetrics Logo" className="w-16 h-16" />
+          <img src="/logo512.png" alt="CineMOB Logo" className="w-16 h-16" />
         </div>
 
         <div className="text-center space-y-2">
           <h1 className="text-5xl font-bold tracking-tighter text-text-main">
-            Cinemetrics
+            CineMOB
           </h1>
           <p className="text-text-muted text-lg max-w-md">
             Theo dõi hành trình điện ảnh của bạn. Trực quan hóa lịch sử xem phim.
@@ -38,7 +38,7 @@ const Login: React.FC = () => {
       </div>
 
       <footer className="absolute bottom-8 text-text-muted text-sm z-10">
-        &copy; {new Date().getFullYear()} Cinemetrics. Dành cho những người yêu phim.
+        &copy; {new Date().getFullYear()} CineMOB. Cine Over B**ch.
       </footer>
     </div>
   );

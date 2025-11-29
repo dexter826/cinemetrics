@@ -2,11 +2,11 @@
   <img src="docs/images/logo_text.png" alt="Logo dự án">
 </div>
 
-Chào mừng đến với **Cinemetrics**! Đây là một ứng dụng để theo dõi và quản lý danh sách phim đã xem, giúp bạn lưu giữ những khoảnh khắc điện ảnh đáng nhớ. 🍿✨
+Chào mừng đến với **CineMOB**! Đây là một ứng dụng để theo dõi và quản lý danh sách phim đã xem, giúp bạn lưu giữ những khoảnh khắc điện ảnh đáng nhớ. 🍿✨
 
 ## 🚀 Giới thiệu
 
-**Cinemetrics** là một ứng dụng web hiện đại, được xây dựng để trở thành người bạn đồng hành lý tưởng cho những người yêu điện ảnh. Với Cinemetrics, bạn không chỉ có thể theo dõi và quản lý danh sách phim đã xem một cách chi tiết, mà còn có thể khám phá những bộ phim mới mẻ thông qua hệ thống gợi ý bằng AI, tạo các album phim theo chủ đề cá nhân, và xem thống kê trực quan về thói quen xem phim của mình. Hãy để Cinemetrics giúp bạn xây dựng và chăm sóc bộ sưu tập điện ảnh độc đáo của riêng bạn. 🍿✨
+**CineMOB** là một ứng dụng web hiện đại, được xây dựng để trở thành người bạn đồng hành lý tưởng cho những người yêu điện ảnh. Với CineMOB, bạn không chỉ có thể theo dõi và quản lý danh sách phim đã xem một cách chi tiết, mà còn có thể khám phá những bộ phim mới mẻ thông qua hệ thống gợi ý bằng AI, tạo các album phim theo chủ đề cá nhân, và xem thống kê trực quan về thói quen xem phim của mình. Hãy để CineMOB giúp bạn xây dựng và chăm sóc bộ sưu tập điện ảnh độc đáo của riêng bạn. 🍿✨
 
 ## ✨ Tính năng nổi bật
 
@@ -17,7 +17,7 @@ Chào mừng đến với **Cinemetrics**! Đây là một ứng dụng để th
 - **📁 Bộ sưu tập (Album):** Tự do tạo và quản lý các album phim theo chủ đề, giúp sắp xếp bộ sưu tập của bạn một cách khoa học.
 - **🌟 Trang chi tiết:** Cung cấp thông tin đầy đủ về phim, diễn viên, và đạo diễn, bao gồm danh sách phim đã tham gia.
 - **📊 Thống kê trực quan:** Theo dõi thói quen xem phim của bạn qua các biểu đồ sinh động về số lượng, thể loại, quốc gia, và điểm đánh giá.
-- **🎲 Lựa chọn ngẫu nhiên:** Để Cinemetrics giúp bạn chọn một bộ phim ngẫu nhiên từ danh sách của mình cho buổi xem phim tiếp theo.
+- **🎲 Lựa chọn ngẫu nhiên:** Để CineMOB giúp bạn chọn một bộ phim ngẫu nhiên từ danh sách của mình cho buổi xem phim tiếp theo.
 - **📤 Xuất dữ liệu:** Dễ dàng xuất toàn bộ danh sách phim của bạn ra file Excel (XLSX) để lưu trữ hoặc chia sẻ.
 - **🌓 Giao diện linh hoạt:** Tùy chỉnh giao diện với chế độ Sáng (Light) và Tối (Dark).
 - **📱 Thiết kế đáp ứng (Responsive):** Trải nghiệm mượt mà và đồng nhất trên mọi thiết bị, từ máy tính để bàn đến điện thoại di động.
@@ -53,8 +53,8 @@ Chào mừng đến với **Cinemetrics**! Đây là một ứng dụng để th
 1.  **Clone repository về máy của bạn:**
 
     ```bash
-    git clone https://github.com/dexter826/cinemetrics.git
-    cd cinemetrics
+    git clone https://github.com/dexter826/cinemob.git
+    cd cinemob
     ```
 
 2.  **Cài đặt các dependencies:**

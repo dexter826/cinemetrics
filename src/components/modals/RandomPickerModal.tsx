@@ -293,7 +293,7 @@ const RandomPickerModal: React.FC<RandomPickerModalProps> = ({ isOpen, onClose }
             </div>
             <div>
               <h2 className="text-lg font-semibold text-text-main">Không biết xem gì?</h2>
-              <p className="text-xs text-text-muted">Để Cinemetrics chọn ngẫu nhiên cho bạn</p>
+              <p className="text-xs text-text-muted">Để CineMOB chọn ngẫu nhiên cho bạn</p>
             </div>
           </div>
 
