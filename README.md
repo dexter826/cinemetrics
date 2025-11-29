@@ -23,23 +23,23 @@ Chào mừng đến với **CineMOB**! Đây là một ứng dụng để theo d
 - **📱 Thiết kế đáp ứng (Responsive):** Trải nghiệm mượt mà và đồng nhất trên mọi thiết bị, từ máy tính để bàn đến điện thoại di động.
 
 <div align="center">
-  <img src="docs/images/mockup.webp" alt="Mockup của ứng dụng">
+  <img src="docs/images/mockup.jpg" alt="Mockup của ứng dụng">
 </div>
 
 ## 🛠️ Công nghệ sử dụng
 
-| Hạng mục               | Công nghệ                                                                                                             |
-| :--------------------- | :-------------------------------------------------------------------------------------------------------------------- |
-| **Core Framework**     | [React](https://react.dev/) `v19.2.0`, [TypeScript](https://www.typescriptlang.org/) `~5.8.2`                         |
-| **Build Tool**         | [Vite](https://vitejs.dev/) `v6.2.0`                                                                                  |
-| **Styling**            | [Tailwind CSS](https://tailwindcss.com/) `v4.1.17`, [Lucide React](https://lucide.dev/) `v0.554.0`                    |
-| **Routing**            | [React Router DOM](https://reactrouter.com/) `v7.9.6`                                                                 |
-| **State Management**   | [Zustand](https://zustand-demo.pmnd.rs/) `v5.0.8`                                                                     |
-| **Backend & Database** | [Firebase](https://firebase.google.com/) `v12.6.0` (Firestore, Authentication)                                        |
-| **External APIs**      | [The Movie Database (TMDB)](https://www.themoviedb.org/), [OpenRouter AI](https://openrouter.ai/)                     |
-| **Data Visualization** | [Recharts](https://recharts.org/) `v3.4.1`                                                                            |
-| **Animation**          | [Lottie React](https://lottiereact.com/) `v2.4.1`                                                                     |
-| **Utilities**          | [xlsx](https://www.npmjs.com/package/xlsx) `v0.18.5`, [file-saver](https://www.npmjs.com/package/file-saver) `v2.0.5` |
+| Hạng mục               | Công nghệ                                                                                                                                                       |
+| :--------------------- | :-------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Core Framework**     | [React](https://react.dev/) `v19.2.0`, [TypeScript](https://www.typescriptlang.org/) `~5.8.2`                                                                   |
+| **Build Tool**         | [Vite](https://vitejs.dev/) `v6.2.0`                                                                                                                            |
+| **Styling**            | [Tailwind CSS](https://tailwindcss.com/) `v4.1.17`, [Lucide React](https://lucide.dev/) `v0.554.0`                                                              |
+| **Routing**            | [React Router DOM](https://reactrouter.com/) `v7.9.6`                                                                                                           |
+| **State Management**   | [Zustand](https://zustand-demo.pmnd.rs/) `v5.0.8`                                                                                                               |
+| **Backend & Database** | [Firebase](https://firebase.google.com/) `v12.6.0` (Firestore, Authentication)                                                                                  |
+| **External APIs**      | [The Movie Database (TMDB)](https://www.themoviedb.org/), [OpenRouter AI](https://openrouter.ai/)                                                               |
+| **Data Visualization** | [Recharts](https://recharts.org/) `v3.4.1`                                                                                                                      |
+| **Animation**          | [Lottie React](https://lottiereact.com/) `v2.4.1`                                                                                                               |
+| **Utilities**          | [xlsx](https://www.npmjs.com/package/xlsx) `v0.18.5`, [file-saver](https://www.npmjs.com/package/file-saver) `v2.0.5`, [howler](https://howlerjs.com/) `v2.2.4` |
 
 ## ⚙️ Cài đặt và Chạy dự án
 
