@@ -22,44 +22,25 @@ import PullToRefreshProvider from './components/providers/PullToRefreshProvider'
 import ToastContainer from './components/ui/ToastContainer';
 import AlertContainer from './components/ui/AlertContainer';
 
-const AppContent: React.FC = () => {
+import useInitialLoadStore from './stores/initialLoadStore';
+
+const MainApp: React.FC<{ onReady: () => void }> = ({ onReady }) => {
   const { user, loading: authLoading } = useAuth();
   const { isOpen: isDetailModalOpen, movie: selectedMovie, closeDetailModal } = useMovieDetailStore();
-  const [isSplashing, setIsSplashing] = useState(() => !sessionStorage.getItem('splashScreenShown'));
-  const [animationFinished, setAnimationFinished] = useState(false);
-  const [timerExpired, setTimerExpired] = useState(false);
+  const { isInitialLoadComplete } = useInitialLoadStore();
 
   useEffect(() => {
-    if (isSplashing) {
-      const timer = setTimeout(() => {
-        setTimerExpired(true);
-        if (animationFinished) {
-          sessionStorage.setItem('splashScreenShown', 'true');
-          setIsSplashing(false);
-        }
-      }, 2000); // Splash screen minimum time
-
-      return () => clearTimeout(timer);
-    }
-  }, [isSplashing, animationFinished]);
-
-  // If splash screen is active, show it.
-  if (isSplashing) {
-    return <SplashScreen onAnimationFinish={() => {
-      setAnimationFinished(true);
-      if (timerExpired) {
-        sessionStorage.setItem('splashScreenShown', 'true');
-        setIsSplashing(false);
+    if (!authLoading) {
+      if (!user) {
+        onReady();
+      } else if (isInitialLoadComplete) {
+        onReady();
       }
-    }} />;
-  }
+    }
+  }, [authLoading, user, isInitialLoadComplete, onReady]);
 
-  // After splash, if auth is still loading, show a blank screen to prevent flashing Login page.
-  if (authLoading) {
-    return null;
-  }
+  if (authLoading) return null;
 
-  // Once splash and auth are done, render the appropriate component.
   if (!user) {
     return <Login />;
   }
@@ -92,15 +73,42 @@ const AppContent: React.FC = () => {
 };
 
 const App: React.FC = () => {
+  const [shouldShowSplash, setShouldShowSplash] = useState(() => !sessionStorage.getItem('splashScreenShown'));
+  const [animationFinished, setAnimationFinished] = useState(false);
+  const [appReady, setAppReady] = useState(false);
+
+  useEffect(() => {
+    if (!shouldShowSplash) {
+      setAnimationFinished(true);
+    }
+  }, [shouldShowSplash]);
+
+  const handleAppReady = () => {
+    setAppReady(true);
+    if (shouldShowSplash) {
+      setShouldShowSplash(false);
+      sessionStorage.setItem('splashScreenShown', 'true');
+    }
+  };
+
   return (
     <Router>
-      <AuthProvider>
-        <ThemeProvider>
-          <AppContent />
-          <ToastContainer />
-          <AlertContainer />
-        </ThemeProvider>
-      </AuthProvider>
+      {shouldShowSplash && (
+        <SplashScreen 
+          onAnimationFinish={() => setAnimationFinished(true)} 
+          showLoading={animationFinished && !appReady}
+        />
+      )}
+
+      {animationFinished && (
+        <AuthProvider>
+          <ThemeProvider>
+            <MainApp onReady={handleAppReady} />
+            <ToastContainer />
+            <AlertContainer />
+          </ThemeProvider>
+        </AuthProvider>
+      )}
     </Router>
   );
 };

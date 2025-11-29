@@ -17,6 +17,7 @@ import useAddMovieStore from '../../stores/addMovieStore';
 import useMovieDetailStore from '../../stores/movieDetailStore';
 import useExportStore from '../../stores/exportStore';
 import Loading from '../ui/Loading';
+import useInitialLoadStore from '../../stores/initialLoadStore';
 
 type SortOption = 'date' | 'title';
 type SortOrder = 'asc' | 'desc';
@@ -28,6 +29,7 @@ const Dashboard: React.FC = () => {
   const { openAddModal } = useAddMovieStore();
   const { openDetailModal } = useMovieDetailStore();
   const { setMovies: setExportMovies } = useExportStore();
+  const { markInitialLoadComplete } = useInitialLoadStore();
   const navigate = useNavigate();
   const [movies, setMovies] = useState<Movie[]>([]);
   const [loading, setLoading] = useState(true);
@@ -74,10 +76,11 @@ const Dashboard: React.FC = () => {
       setMovies(data);
       setExportMovies(data); // Update export context
       setLoading(false);
+      markInitialLoadComplete();
     });
 
     return () => unsubscribe();
-  }, [user, setExportMovies]);
+  }, [user, setExportMovies, markInitialLoadComplete]);
 
   const historyMovies = useMemo(() => movies.filter(m => (m.status || 'history') === 'history'), [movies]);
   const watchlistMovies = useMemo(() => movies.filter(m => m.status === 'watchlist'), [movies]);
