@@ -31,14 +31,14 @@ const SplashScreen: React.FC<SplashScreenProps> = ({ onAnimationFinish, showLoad
 
   return (
     <div className="fixed inset-0 flex flex-col items-center justify-center z-50 bg-background overflow-hidden">
-      <div className="w-96 h-96 md:w-lg md:h-lg shrink-0 relative">
+      <div className="w-80 h-80 md:w-96 md:h-96 shrink-0 relative">
         <Lottie
           animationData={animationData}
           loop={false}
           onComplete={onAnimationFinish}
         />
         {showLoading && (
-          <div className="absolute bottom-36 left-1/2 -translate-x-1/2 z-10">
+          <div className="absolute bottom-28 md:bottom-36 left-1/2 -translate-x-1/2 z-10">
             <Disc3 className="animate-spin text-primary" size={40} />
           </div>
         )}
