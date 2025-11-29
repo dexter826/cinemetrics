@@ -132,7 +132,7 @@ const useRecommendationsStore = create<RecommendationsState>((set, get) => ({
 
         localStorage.setItem(cacheKey, JSON.stringify({
           historyLength: watchedHistory.length,
-          data: tmdbResults,
+          data: displayResults,
           timestamp: Date.now()
         }));
       } catch (e) {
