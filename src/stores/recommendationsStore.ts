@@ -1,6 +1,17 @@
 import { create } from 'zustand';
 import { TMDBMovieResult, Movie } from '../types';
 
+// Cache duration constants (in milliseconds)
+const CACHE_DURATION = {
+  AI_RECS: 7 * 24 * 60 * 60 * 1000, // 7 days
+  PREVIOUSLY_RECOMMENDED: 30 * 24 * 60 * 60 * 1000 // 30 days
+} as const;
+
+// Helper function to check if cache is expired
+const isExpired = (timestamp: number, duration: number): boolean => {
+  return Date.now() - timestamp > duration;
+};
+
 interface RecommendationsState {
   aiRecommendations: TMDBMovieResult[];
   trendingMovies: TMDBMovieResult[];
@@ -36,10 +47,27 @@ const useRecommendationsStore = create<RecommendationsState>((set, get) => ({
   setHasFetchedInitial: (fetched) => set({ hasFetchedInitial: fetched }),
   setPreviouslyRecommendedTitles: (titles) => set({ previouslyRecommendedTitles: titles }),
   initializeForUser: (userId: string) => {
-    // Load previously recommended titles
-    const stored = sessionStorage.getItem(`previously_recommended_${userId}`);
-    const titles = stored ? new Set(JSON.parse(stored) as string[]) : new Set<string>();
-    set({ previouslyRecommendedTitles: titles });
+    // Load previously recommended titles from localStorage with expiration check
+    const stored = localStorage.getItem(`previously_recommended_${userId}`);
+    if (stored) {
+      try {
+        const parsed = JSON.parse(stored);
+        // Check if data has expiration info and is not expired
+        if (parsed.timestamp && !isExpired(parsed.timestamp, CACHE_DURATION.PREVIOUSLY_RECOMMENDED)) {
+          set({ previouslyRecommendedTitles: new Set(parsed.titles) });
+        } else {
+          // Data expired, remove from storage
+          localStorage.removeItem(`previously_recommended_${userId}`);
+          set({ previouslyRecommendedTitles: new Set<string>() });
+        }
+      } catch (e) {
+        // Invalid data, reset
+        localStorage.removeItem(`previously_recommended_${userId}`);
+        set({ previouslyRecommendedTitles: new Set<string>() });
+      }
+    } else {
+      set({ previouslyRecommendedTitles: new Set<string>() });
+    }
   },
   refreshRecommendations: async (userId: string, forceRefresh = false) => {
     const state = get();
@@ -49,17 +77,25 @@ const useRecommendationsStore = create<RecommendationsState>((set, get) => ({
     // If user has watched at least 3 movies, try AI recommendations
     if (watchedHistory.length >= 3) {
       const cacheKey = `ai_recs_${userId}`;
-      const cachedData = sessionStorage.getItem(cacheKey);
+      const cachedData = localStorage.getItem(cacheKey);
 
-      // Use cache if available and history length matches, unless force refresh
+      // Use cache if available, not expired, and history length matches, unless force refresh
       if (cachedData && !forceRefresh) {
-        const parsedCache = JSON.parse(cachedData);
-        if (parsedCache.historyLength === watchedHistory.length && parsedCache.data) {
-          set({
-            aiRecommendations: parsedCache.data,
-            lastAiHistoryLength: watchedHistory.length
-          });
-          return;
+        try {
+          const parsedCache = JSON.parse(cachedData);
+          if (parsedCache.timestamp &&
+              !isExpired(parsedCache.timestamp, CACHE_DURATION.AI_RECS) &&
+              parsedCache.historyLength === watchedHistory.length &&
+              parsedCache.data) {
+            set({
+              aiRecommendations: parsedCache.data,
+              lastAiHistoryLength: watchedHistory.length
+            });
+            return;
+          }
+        } catch (e) {
+          // Invalid cache data, continue to fetch new data
+          localStorage.removeItem(cacheKey);
         }
       }
 
@@ -88,12 +124,16 @@ const useRecommendationsStore = create<RecommendationsState>((set, get) => ({
         const updatedPreviouslyRecommended = new Set([...state.previouslyRecommendedTitles, ...newTitles]);
         set({ previouslyRecommendedTitles: updatedPreviouslyRecommended });
 
-        // Save to sessionStorage
-        sessionStorage.setItem(`previously_recommended_${userId}`, JSON.stringify([...updatedPreviouslyRecommended]));
+        // Save to localStorage with timestamps
+        localStorage.setItem(`previously_recommended_${userId}`, JSON.stringify({
+          titles: [...updatedPreviouslyRecommended],
+          timestamp: Date.now()
+        }));
 
-        sessionStorage.setItem(cacheKey, JSON.stringify({
+        localStorage.setItem(cacheKey, JSON.stringify({
           historyLength: watchedHistory.length,
-          data: tmdbResults
+          data: tmdbResults,
+          timestamp: Date.now()
         }));
       } catch (e) {
         console.error('AI recommendations failed, falling back to trending:', e);
